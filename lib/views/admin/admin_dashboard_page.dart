@@ -155,7 +155,7 @@ class _CriticalMetric extends StatelessWidget {
     final occupancy =
         shop.totalCapacity == 0 ? 0.0 : shop.totalSold / shop.totalCapacity;
     return Card(
-      color: AppTheme.accent.withValues(alpha: 0.13),
+      color: AppTheme.accent.withOpacity(0.13),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -304,7 +304,7 @@ class _SalesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      color: Colors.white.withValues(alpha: 0.045),
+      color: Colors.white.withOpacity(0.045),
       child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 18, 20, 12),
           child: SizedBox(
@@ -388,7 +388,7 @@ class _QuickSalePanelState extends State<_QuickSalePanel> {
     _lotId ??= lots.first.id;
     final selected = lots.firstWhere((lot) => lot.id == _lotId);
     return Card(
-        color: AppTheme.primary.withValues(alpha: 0.16),
+        color: AppTheme.primary.withOpacity(0.16),
         child: Padding(
             padding: const EdgeInsets.all(18),
             child: LayoutBuilder(builder: (context, constraints) {
@@ -653,7 +653,7 @@ class _AddLotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      color: AppTheme.primary.withValues(alpha: 0.06),
+      color: AppTheme.primary.withOpacity(0.06),
       child: Padding(
           padding: const EdgeInsets.all(18),
           child:
@@ -687,7 +687,7 @@ class _LotSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final lots = shop.lots;
     return Card(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: Colors.white.withOpacity(0.03),
         child: Padding(
             padding: const EdgeInsets.all(12),
             child:

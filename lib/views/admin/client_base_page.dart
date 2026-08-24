@@ -125,7 +125,7 @@ class _ClientRowSimple extends StatelessWidget {
   Widget build(BuildContext context) => Card(
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: AppTheme.primaryLight.withValues(alpha: .2),
+            backgroundColor: AppTheme.primaryLight.withOpacity(.2),
             child: Text(client.fullName.substring(0, 1).toUpperCase()),
           ),
           title: Text(client.fullName, style: const TextStyle(fontWeight: FontWeight.w800)),

@@ -16,10 +16,10 @@ class RulesSection extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
-            color: summerOrange.withValues(alpha: 0.05),
+            color: summerOrange.withOpacity(0.05),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: summerOrange.withValues(alpha: 0.6), width: 2),
+                color: summerOrange.withOpacity(0.6), width: 2),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

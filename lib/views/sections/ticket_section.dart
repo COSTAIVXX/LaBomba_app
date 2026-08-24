@@ -143,7 +143,7 @@ class _TicketSectionState extends State<TicketSection> {
           ),
           borderRadius: BorderRadius.circular(32),
           border: Border.all(
-              color: AppTheme.accent.withValues(alpha: _isHovered ? 0.6 : 0.2),
+              color: AppTheme.accent.withOpacity(_isHovered ? 0.6 : 0.2),
               width: _isHovered ? 2 : 1),
         ),
         child: Column(

@@ -147,7 +147,7 @@ class _GalleryItem extends StatelessWidget {
             end: Alignment.bottomRight),
         boxShadow: [
           BoxShadow(
-              color: gradient[0].withValues(alpha: 0.4),
+              color: gradient[0].withOpacity(0.4),
               blurRadius: 20,
               offset: const Offset(0, 10)),
         ],
@@ -162,7 +162,7 @@ class _GalleryItem extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Center(
                 child: Icon(Icons.camera_alt,
-                    size: 64, color: Colors.white.withValues(alpha: 0.25)),
+                    size: 64, color: Colors.white.withOpacity(0.25)),
               ),
             ),
             DecoratedBox(
@@ -172,7 +172,7 @@ class _GalleryItem extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.75)
+                    Colors.black.withOpacity(0.75)
                   ],
                 ),
               ),
