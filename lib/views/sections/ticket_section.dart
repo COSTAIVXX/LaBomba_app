@@ -130,7 +130,7 @@ class _TicketSectionState extends State<TicketSection> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..scaleByDouble(scale, scale, scale, 1.0),
+        transform: Matrix4.identity()..scale(scale, scale, scale),
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
           gradient: LinearGradient(
