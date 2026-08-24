@@ -96,7 +96,7 @@ class _GallerySectionState extends State<GallerySection> {
                       transform: Matrix4.identity()
                         ..setEntry(3, 2, 0.002)
                         ..rotateY(-rotationY)
-                        ..scale(value, value, 1.0),
+                        ..scale(value, value),
                       alignment: Alignment.center,
                       child: Opacity(
                         opacity: value.clamp(0.4, 1.0),
