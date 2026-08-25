@@ -1,11 +1,10 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/ticket.dart';
-import '../../../providers/admin_auth_provider.dart';
-import '../../../providers/shop_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
+import 'package:labomba_app/models/ticket.dart';
+import 'package:labomba_app/providers/admin_auth_provider.dart';
+import 'package:labomba_app/providers/shop_provider.dart';
 import 'admin_login_page.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
@@ -213,8 +212,6 @@ class _DashboardOverviewTab extends StatelessWidget {
                           'Acompanhe a operação e registre vendas em poucos toques.',
                           style: TextStyle(color: Colors.white60)),
                       const SizedBox(height: 24),
-                      _CriticalMetric(shop: shop),
-                      const SizedBox(height: 16),
                       _DashboardGrid(compact: compact, shop: shop),
                       const SizedBox(height: 16),
                       _QuickSalePanel(shop: shop),
@@ -240,53 +237,6 @@ class _DashboardOverviewTab extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _CriticalMetric extends StatelessWidget {
-  const _CriticalMetric({required this.shop});
-  final ShopProvider shop;
-
-  @override
-  Widget build(BuildContext context) {
-    final occupancy =
-        shop.totalCapacity == 0 ? 0.0 : shop.totalSold / shop.totalCapacity;
-    return Card(
-      color: AppTheme.accent.withValues(alpha: 0.13),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.payments_outlined, color: AppTheme.accent),
-            const SizedBox(width: 10),
-            const Text('FATURAMENTO ESTIMADO',
-                style: TextStyle(
-                    color: AppTheme.accent,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2)),
-            const Spacer(),
-            Text('${(occupancy * 100).toStringAsFixed(1)}% da capacidade',
-                style: const TextStyle(color: Colors.white70)),
-          ]),
-          const SizedBox(height: 12),
-          Text('R\$ ${shop.estimatedRevenue.toStringAsFixed(2)}',
-              style:
-                  const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 16),
-          ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                  value: occupancy,
-                  minHeight: 8,
-                  backgroundColor: Colors.white12,
-                  color: AppTheme.accent)),
-          const SizedBox(height: 8),
-          Text(
-              '${shop.totalSold} abadás vendidos  •  ${shop.totalCapacity - shop.totalSold} disponíveis',
-              style: const TextStyle(color: Colors.white60)),
-        ]),
       ),
     );
   }
@@ -332,10 +282,6 @@ class _DashboardGrid extends StatelessWidget {
               .map((card) =>
                   SizedBox(width: compact ? double.infinity : 250, child: card))
               .toList()),
-      const SizedBox(height: 16),
-      const _PanelTitle(title: 'Vendas recentes', icon: Icons.show_chart),
-      const SizedBox(height: 10),
-      _SalesChart(values: shop.salesHistory),
     ]);
   }
 }
@@ -395,79 +341,6 @@ class _StatCard extends StatelessWidget {
                       ])
                 ]))
           ])));
-}
-
-class _SalesChart extends StatelessWidget {
-  const _SalesChart({required this.values});
-  final List<int> values;
-
-  @override
-  Widget build(BuildContext context) => Card(
-      color: Colors.white.withValues(alpha: 0.045),
-      child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 20, 12),
-          child: SizedBox(
-              height: 180,
-              width: double.infinity,
-              child: CustomPaint(painter: _SalesChartPainter(values)))));
-}
-
-class _SalesChartPainter extends CustomPainter {
-  const _SalesChartPainter(this.values);
-  final List<int> values;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) return;
-    const chartTop = 8.0;
-    const chartBottom = 150.0;
-    final maxValue = math.max(1, values.reduce(math.max));
-    final xStep = values.length == 1 ? 0.0 : size.width / (values.length - 1);
-    final points = values
-        .asMap()
-        .entries
-        .map((entry) => Offset(entry.key * xStep,
-            chartBottom - (entry.value / maxValue) * (chartBottom - chartTop)))
-        .toList();
-    final gridPaint = Paint()
-      ..color = Colors.white12
-      ..strokeWidth = 1;
-    for (var i = 0; i < 4; i++) {
-      final y = chartTop + i * ((chartBottom - chartTop) / 3);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-    final line = Path()..moveTo(points.first.dx, points.first.dy);
-    for (final point in points.skip(1)) {
-      line.lineTo(point.dx, point.dy);
-    }
-    final fill = Path.from(line)
-      ..lineTo(points.last.dx, chartBottom)
-      ..lineTo(points.first.dx, chartBottom)
-      ..close();
-    canvas.drawPath(
-        fill,
-        Paint()
-          ..shader = const LinearGradient(
-                  colors: [Color(0x557C3AED), Color(0x007C3AED)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter)
-              .createShader(
-                  Rect.fromLTWH(0, chartTop, size.width, chartBottom)));
-    canvas.drawPath(
-        line,
-        Paint()
-          ..color = AppTheme.primaryLight
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke);
-    final dotPaint = Paint()..color = AppTheme.accent;
-    for (final point in points) {
-      canvas.drawCircle(point, 4, dotPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SalesChartPainter oldDelegate) =>
-      oldDelegate.values != values;
 }
 
 class _QuickSalePanel extends StatefulWidget {

@@ -5,13 +5,19 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:labomba_app/main.dart';
+import 'package:labomba_app/providers/client_provider.dart';
 
 void main() {
   testWidgets('App launches smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const LaBombaApp());
+    await tester.pumpWidget(
+      LaBombaApp(
+        repository: SecureClientRepository(const FlutterSecureStorage()),
+      ),
+    );
 
     expect(find.text('LABOMBA 2027'), findsOneWidget);
   });

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/client.dart';
-import '../../../providers/admin_auth_provider.dart';
-import '../../../providers/client_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
+import 'package:labomba_app/models/client.dart';
+import 'package:labomba_app/providers/admin_auth_provider.dart';
+import 'package:labomba_app/providers/client_provider.dart';
 import 'admin_login_page.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class ClientBasePage extends StatelessWidget {
   final bool embedded;
