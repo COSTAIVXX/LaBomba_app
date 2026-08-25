@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:labomba_app/services/api_service.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
+import 'package:labomba_app/models/edition.dart';
+import 'package:labomba_app/services/api_service.dart';
+import 'package:labomba_app/services/edition_service.dart';
 
 class ContentDashboardPage extends StatefulWidget {
   final bool embedded;
@@ -18,12 +22,7 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
   final _eventDateController = TextEditingController(text: '05 de Fevereiro de 2027');
   final _locationController = TextEditingController(text: 'Peçanha - MG');
 
-  final List<Map<String, String>> _galleryItems = [
-    {'year': '2026', 'tag': 'Edição Lendária', 'url': 'assets/images/2026.png'},
-    {'year': '2025', 'tag': 'Histórico', 'url': 'assets/images/2025.png'},
-    {'year': '2024', 'tag': 'Eletrizante', 'url': 'assets/images/2024.png'},
-    {'year': '2023', 'tag': 'Inesquecível', 'url': 'assets/images/2023.png'},
-  ];
+  final List<Edition> _galleryItems = const EditionService().generateHistoricalEditions();
 
   @override
   void dispose() {
@@ -272,66 +271,138 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
   }
 
   Widget _buildGalleryManager() {
+    final editions = _galleryItems;
+
     return Card(
       color: Colors.white.withValues(alpha: 0.03),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 220,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: _galleryItems.length,
-              itemBuilder: (context, index) {
-                final item = _galleryItems[index];
-                return Container(
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 220,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.82,
+          ),
+          itemCount: editions.length,
+          itemBuilder: (context, index) {
+            final edition = editions[index];
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.06),
+                        Colors.white.withValues(alpha: 0.02),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.22),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                          child: Image.asset(
-                            item['url']!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.photo, color: Colors.white24, size: 40),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(
+                              edition.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Center(
+                                child: Icon(
+                                  Icons.photo_library_outlined,
+                                  color: Colors.white30,
+                                  size: 40,
+                                ),
+                              ),
                             ),
-                          ),
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.72),
+                                      Colors.black.withValues(alpha: 0.08),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 12,
+                              right: 12,
+                              bottom: 12,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    edition.label,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                      letterSpacing: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${edition.year}',
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(item['year']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              'Atualizar imagem',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white70,
+                              ),
+                            ),
                             IconButton(
-                              icon: const Icon(Icons.upload_file, size: 18),
-                              tooltip: 'Alterar Imagem',
-                              onPressed: () => _uploadMedia('galeria_${item['year']}'),
+                              icon: const Icon(Icons.upload_file_rounded, size: 18),
+                              color: Colors.white,
+                              tooltip: 'Alterar imagem da edição ${edition.year}',
+                              onPressed: () => _uploadMedia('galeria_${edition.year}'),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
