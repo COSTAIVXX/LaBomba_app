@@ -87,7 +87,7 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                   aspectRatio: 16 / 7,
                   child: Image.asset(
                     'assets/images/labomba_banner.png',
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain, // Ajustado para exibir a imagem inteira
                     errorBuilder: (_, __, ___) => _buildFallbackBanner(),
                   ),
                 ),
