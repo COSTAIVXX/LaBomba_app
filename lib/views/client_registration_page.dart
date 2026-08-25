@@ -15,7 +15,8 @@ class ClientRegistrationPage extends StatefulWidget {
   State<ClientRegistrationPage> createState() => _ClientRegistrationPageState();
 }
 
-class _ClientRegistrationPageState extends State<ClientRegistrationPage> with SingleTickerProviderStateMixin {
+class _ClientRegistrationPageState extends State<ClientRegistrationPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _birthDateController = TextEditingController();
@@ -25,9 +26,18 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
   bool _acceptedTerms = false;
   bool _hasOpenedTerms = false;
 
-  final _dateMask = MaskTextInputFormatter(mask: '##/##/####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
-  final _cpfMask = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
-  final _phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
+  final _dateMask = MaskTextInputFormatter(
+      mask: '##/##/####',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
+  final _cpfMask = MaskTextInputFormatter(
+      mask: '###.###.###-##',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
+  final _phoneMask = MaskTextInputFormatter(
+      mask: '(##) #####-####',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -40,8 +50,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+    _fadeAnimation =
+        CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
     _animationController.forward();
@@ -55,6 +67,14 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
     _cpfController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  // Função auxiliar para validar campos obrigatórios vazios
+  String? _required(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Por favor, informe $fieldName.';
+    }
+    return null;
   }
 
   DateTime? _parseBirthDate() {
@@ -120,7 +140,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
       setState(() {
         _nameController.text = googleData.displayName ?? '';
       });
-      _showMessage('Conta Google vinculada com sucesso. Complete os dados restantes.');
+      _showMessage(
+          'Conta Google vinculada com sucesso. Complete os dados restantes.');
     } catch (e) {
       if (!mounted) return;
       _showMessage('Erro ao acessar o Google. Tente novamente.');
@@ -151,128 +172,31 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _showTermsDialog() {
+  Future<void> _showTermsDialog() async {
     setState(() {
       _hasOpenedTerms = true;
     });
 
-    showDialog<void>(
+    final accepted = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) => BackdropFilter(
-        filter: dart_ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.all(24),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: const Color(0xFF130A2A).withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.5), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 40,
-                  offset: const Offset(0, 20),
-                )
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.description_outlined, color: AppTheme.primaryLight, size: 28),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'TERMOS DE USO',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Colors.white70),
-                    ),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Divider(color: Colors.white24),
-                ),
-                const Expanded(
-                  child: SingleChildScrollView(
-                    physics: BouncingScrollPhysics(),
-                    child: Text(
-                      'TERMOS DE USO, POLÍTICA DE ACESSO E REGRAS DO BLOCO – Bloco La Bomba\n\n'
-                      'Ao adquirir o ingresso para o Bloco La Bomba através deste sistema oficial e/ou ao fazer uso do abadá, caneca e pulseira, o Comprador/Folião ("Usuário") declara ter lido, compreendido e aceitado de forma expressa, irrevogável e irretratável todas as cláusulas, políticas de segurança e regras de conduta descritas abaixo:\n\n'
-                      '1. DA IDENTIDADE E RESPONSABILIDADE JURÍDICA DA PLATAFORMA E DO BLOCO\n'
-                      '1.1. O presente sistema e o Bloco La Bomba constituem uma operação unificada sob a responsabilidade de seus organizadores e desenvolvedores.\n'
-                      '1.2. O Usuário isenta integralmente os organizadores, produtores, equipe técnica e desenvolvedores do sistema de qualquer responsabilidade civil ou penal por danos materiais, corporais ou morais decorrentes de acidentes, tumultos, brigas, furtos, roubos ou casos fortuitos ocorridos antes, durante ou após a realização do bloco, ressalvadas as obrigações legais diretas da organização.\n\n'
-                      '2. DO KIT DO FOLIÃO E REGRAS DE ACESSO\n'
-                      '2.1. O ingresso dá direito à participação no Bloco La Bomba pelo período contratado, mediante o recebimento do Kit do Folião, composto por: Abadá, Caneca e Pulseira oficiais.\n'
-                      '2.2. Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!\n'
-                      '2.3. Entrada na concentração apenas com abadá, pulseira e caneca oficiais. É terminantemente proibido o uso de materiais de outros modelos ou marcas.\n'
-                      '2.4. Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá). A perda de qualquer um dos itens não gera direito à reposição gratuita ou emissão de segunda via.\n\n'
-                      '3. POLÍTICA DE CONSUMO, BEBIDAS E COMPARTILHAMENTO\n'
-                      '3.1. O bloco poderá disponibilizar bebidas (como cerveja, vodka, tequila e correlatos) exclusivamente aos portadores legítimos do kit oficial.\n'
-                      '3.2. Proibido Compartilhar Bebida: Passível de expulsão. Os servidores e seguranças do bloco têm total autoridade para cortar a pulseira em caso de descumprimento.\n'
-                      '3.3. Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.\n'
-                      '3.4. É terminantemente proibida a venda ou fornecimento de bebidas alcoólicas para menores de 18 (dezoito) anos. A organização reserva-se o direito de recusar o fornecimento de álcool a participantes com sinais extremos de embriaguez ou comportamento inadequado.\n\n'
-                      '4. CÓDIGO DE CONDUTA, SEGURANÇA E TOLERÂNCIA ZERO\n'
-                      '4.1. Tolerância Zero para Brigas: Qualquer ato de agressão física ou verbal é passível de expulsão imediata do evento, sem direito a reembolso.\n'
-                      '4.2. Respeito Obrigatório: Aos garçons, seguranças, organizadores e demais servidores do bloco.\n'
-                      '4.3. Proibido Fumar: Dentro da área de concentração do bloco.\n'
-                      '4.4. Banheiro do Bloco: Exclusivo para mulheres.\n'
-                      '4.5. O folião concorda expressamente em submeter-se a revistas de segurança na entrada, visando impedir o porte de armas, objetos cortantes, garrafas de vidro de fora ou substâncias ilícitas. O descumprimento das normas de segurança acarreta expulsão com apoio de força policial, se necessário.\n\n'
-                      '5. DIREITO DE IMAGEM E VOZ\n'
-                      '5.1. Ao participar do Bloco La Bomba, o Usuário cede de forma gratuita, irrevogável e definitiva seus direitos de imagem e voz para fins de divulgação, materiais promocionais, redes sociais e vídeos oficiais, sem gerar direito a qualquer cachê ou indenização futura.\n\n'
-                      '6. CANCELAMENTOS E LEGISLAÇÃO (CDC)\n'
-                      '6.1. O direito de arrependimento (Art. 49 do CDC) é garantido pelo prazo de até 7 (sete) dias corridos após a compra, desde que formalizado até 48 horas antes do primeiro dia do evento.\n'
-                      '6.2. Ausências ("No-show"), expulsões por infração às regras ou desistências posteriores não dão direito a qualquer tipo de reembolso.',
-                      style: TextStyle(fontSize: 14, height: 1.5, color: Colors.white70),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: const Text('LI E CONCORDO', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      builder: (context) => const _TermsDialog(),
     );
-  }
 
-  String? _required(String? value, String label) =>
-      value == null || value.trim().isEmpty ? 'Informe $label' : null;
+    if (accepted == true) {
+      setState(() {
+        _acceptedTerms = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Cadastro do Comprador', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Cadastro do Comprador',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -286,7 +210,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 100, bottom: 24, left: 24, right: 24),
+            padding: const EdgeInsets.only(
+                top: 100, bottom: 24, left: 24, right: 24),
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -298,7 +223,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.05)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
@@ -312,12 +238,16 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(Icons.person_add_alt_1, color: AppTheme.primaryLight, size: 54),
+                          const Icon(Icons.person_add_alt_1,
+                              color: AppTheme.primaryLight, size: 54),
                           const SizedBox(height: 16),
                           Text(
                             'Antes de comprar',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                   letterSpacing: -0.5,
@@ -338,7 +268,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Colors.white24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -347,7 +278,11 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                               Expanded(child: Divider(color: Colors.white10)),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text('OU PREENCHA', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 12)),
+                                child: Text('OU PREENCHA',
+                                    style: TextStyle(
+                                        color: Colors.white38,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12)),
                               ),
                               Expanded(child: Divider(color: Colors.white10)),
                             ],
@@ -358,7 +293,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                             label: 'Nome completo',
                             icon: Icons.person_outline,
                             textCapitalization: TextCapitalization.words,
-                            validator: (value) => _required(value, 'seu nome completo'),
+                            validator: (value) =>
+                                _required(value, 'seu nome completo'),
                           ),
                           const SizedBox(height: 16),
                           _buildModernTextField(
@@ -368,7 +304,9 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                             icon: Icons.calendar_today_outlined,
                             keyboardType: TextInputType.number,
                             inputFormatters: [_dateMask],
-                            validator: (value) => _parseBirthDate() == null ? 'Informe uma data válida' : null,
+                            validator: (value) => _parseBirthDate() == null
+                                ? 'Informe uma data válida'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           _buildModernTextField(
@@ -378,7 +316,9 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                             icon: Icons.badge_outlined,
                             keyboardType: TextInputType.number,
                             inputFormatters: [_cpfMask],
-                            validator: (value) => !_isValidCPF(value) ? 'Informe um CPF válido' : null,
+                            validator: (value) => !_isValidCPF(value)
+                                ? 'Informe um CPF válido'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           _buildModernTextField(
@@ -388,20 +328,22 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                             icon: Icons.phone_outlined,
                             keyboardType: TextInputType.number,
                             inputFormatters: [_phoneMask],
-                            validator: (value) => _digits(value).length < 10 ? 'Informe um telefone válido' : null,
+                            validator: (value) => _digits(value).length < 10
+                                ? 'Informe um telefone válido'
+                                : null,
                           ),
                           const SizedBox(height: 24),
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: _acceptedTerms 
-                                  ? AppTheme.primary.withValues(alpha: 0.1) 
+                              color: _acceptedTerms
+                                  ? AppTheme.primary.withValues(alpha: 0.1)
                                   : Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: _acceptedTerms 
-                                    ? AppTheme.primary.withValues(alpha: 0.5) 
+                                color: _acceptedTerms
+                                    ? AppTheme.primary.withValues(alpha: 0.5)
                                     : Colors.transparent,
                               ),
                             ),
@@ -410,16 +352,21 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                                 Checkbox(
                                   value: _acceptedTerms,
                                   activeColor: AppTheme.primary,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4)),
                                   onChanged: _hasOpenedTerms
-                                      ? (v) => setState(() => _acceptedTerms = v ?? false)
+                                      ? (v) => setState(
+                                          () => _acceptedTerms = v ?? false)
                                       : null,
                                 ),
                                 Expanded(
                                   child: Wrap(
-                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
                                     children: [
-                                      const Text('Li e aceito os ', style: TextStyle(color: Colors.white70)),
+                                      const Text('Li e aceito os ',
+                                          style:
+                                              TextStyle(color: Colors.white70)),
                                       GestureDetector(
                                         onTap: _showTermsDialog,
                                         child: const Text(
@@ -427,7 +374,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                                           style: TextStyle(
                                             color: AppTheme.primaryLight,
                                             fontWeight: FontWeight.w700,
-                                            decoration: TextDecoration.underline,
+                                            decoration:
+                                                TextDecoration.underline,
                                           ),
                                         ),
                                       ),
@@ -438,29 +386,37 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> with Si
                             ),
                           ),
                           if (!_hasOpenedTerms)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 12, top: 8),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 12, top: 8),
                               child: Text(
                                 'Por favor, leia os termos antes de aceitar.',
-                                style: TextStyle(color: Colors.amber.shade400, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           const SizedBox(height: 32),
                           FilledButton(
-                            onPressed: (!_acceptedTerms || _saving) ? null : _submit,
+                            onPressed:
+                                (!_acceptedTerms || _saving) ? null : _submit,
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               backgroundColor: AppTheme.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: _saving
                                 ? const SizedBox.square(
                                     dimension: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
                                   )
                                 : const Text(
                                     'CONTINUAR PARA A COMPRA',
-                                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2),
                                   ),
                           ),
                         ],
@@ -543,4 +499,182 @@ bool _isValidCPF(String? cpf) {
   if (digits[10] != calc2) return false;
 
   return true;
+}
+
+class _TermsDialog extends StatefulWidget {
+  const _TermsDialog({Key? key}) : super(key: key);
+
+  @override
+  State<_TermsDialog> createState() => _TermsDialogState();
+}
+
+class _TermsDialogState extends State<_TermsDialog> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isAtBottom = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        if (_scrollController.position.maxScrollExtent <= 0) {
+          setState(() {
+            _isAtBottom = true;
+          });
+        }
+      }
+    });
+  }
+
+  void _scrollListener() {
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent - 20 &&
+        !_scrollController.position.outOfRange) {
+      if (!_isAtBottom) {
+        setState(() {
+          _isAtBottom = true;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: dart_ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: const Color(0xFF130A2A).withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+                color: AppTheme.primaryLight.withValues(alpha: 0.5),
+                width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.description_outlined,
+                          color: AppTheme.primaryLight, size: 28),
+                      SizedBox(width: 12),
+                      Text(
+                        'TERMOS DE USO',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(color: Colors.white24),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  child: const Text(
+                    'TERMOS DE USO, POLÍTICA DE ACESSO E REGRAS DO BLOCO – Bloco La Bomba\n\n'
+                    'Ao adquirir o ingresso para o Bloco La Bomba através deste sistema oficial e/ou ao fazer uso do abadá, caneca e pulseira, o Comprador/Folião ("Usuário") declara ter lido, compreendido e aceitado de forma expressa, irrevogável e irretratável todas as cláusulas, políticas de segurança e regras de conduta descritas abaixo:\n\n'
+                    '1. DA IDENTIDADE E RESPONSABILIDADE JURÍDICA DA PLATAFORMA E DO BLOCO\n'
+                    '1.1. O presente sistema e o Bloco La Bomba constituem uma operação unificada sob a responsabilidade de seus organizadores e desenvolvedores.\n'
+                    '1.2. O Usuário isenta integralmente os organizadores, produtores, equipe técnica e desenvolvedores do sistema de qualquer responsabilidade civil ou penal por danos materiais, corporais ou morais decorrentes de acidentes, tumultos, brigas, furtos, roubos ou casos fortuitos ocorridos antes, durante ou após a realização do bloco, ressalvadas as obrigações legais diretas da organização.\n\n'
+                    '2. DO KIT DO FOLIÃO E REGRAS DE ACESSO\n'
+                    '2.1. O ingresso dá direito à participação no Bloco La Bomba pelo período contratado, mediante o recebimento do Kit do Folião, composto por: Abadá, Caneca e Pulseira oficiais.\n'
+                    '2.2. Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!\n'
+                    '2.3. Entrada na concentração apenas com abadá, pulseira e caneca oficiais. É terminantemente proibido o uso de materiais de outros modelos ou marcas.\n'
+                    '2.4. Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá). A perda de qualquer um dos itens não gera direito à reposição gratuita ou emissão de segunda via.\n\n'
+                    '3. POLÍTICA DE CONSUMO, BEBIDAS E COMPARTILHAMENTO\n'
+                    '3.1. O bloco poderá disponibilizar bebidas (como cerveja, vodka, tequila e correlatos) exclusivamente aos portadores legítimos do kit oficial.\n'
+                    '3.2. Proibido Compartilhar Bebida: Passível de expulsão. Os servidores e seguranças do bloco têm total autoridade para cortar a pulseira em caso de descumprimento.\n'
+                    '3.3. Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.\n'
+                    '3.4. É terminantemente proibida a venda ou fornecimento de bebidas alcoólicas para menores de 18 (dezoito) anos. A organização reserva-se o direito de recusar o fornecimento de álcool a participantes com sinais extremos de embriaguez ou comportamento inadequado.\n\n'
+                    '4. CÓDIGO DE CONDUTA, SEGURANÇA E TOLERÂNCIA ZERO\n'
+                    '4.1. Tolerância Zero para Brigas: Qualquer ato de agressão física ou verbal é passível de expulsão imediata do evento, sem direito a reembolso.\n'
+                    '4.2. Respeito Obrigatório: Aos garçons, seguranças, organizadores e demais servidores do bloco.\n'
+                    '4.3. Proibido Fumar: Dentro da área de concentração do bloco.\n'
+                    '4.4. Banheiro do Bloco: Exclusivo para mulheres.\n'
+                    '4.5. O folião concorda expressamente em submeter-se a revistas de segurança na entrada, visando impedir o porte de armas, objetos cortantes, garrafas de vidro de fora ou substâncias ilícitas. O descumprimento das normas de segurança acarreta expulsão com apoio de força policial, se necessário.\n\n'
+                    '5. DIREITO DE IMAGEM E VOZ\n'
+                    '5.1. Ao participar do Bloco La Bomba, o Usuário cede de forma gratuita, irrevogável e definitiva seus direitos de imagem e voz para fins de divulgação, materiais promocionais, redes sociais e vídeos oficiais, sem gerar direito a qualquer cachê ou indenização futura.\n\n'
+                    '6. CANCELAMENTOS E LEGISLAÇÃO (CDC)\n'
+                    '6.1. O direito de arrependimento (Art. 49 do CDC) é garantido pelo prazo de até 7 (sete) dias corridos após a compra, desde que formalizado até 48 horas antes do primeiro dia do evento.\n'
+                    '6.2. Ausências ("No-show"), expulsões por infração às regras ou desistências posteriores não dão direito a qualquer tipo de reembolso.',
+                    style: TextStyle(
+                        fontSize: 14, height: 1.5, color: Colors.white70),
+                  ),
+                ),
+              ),
+              if (!_isAtBottom)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.arrow_downward,
+                          color: Colors.white54, size: 16),
+                      SizedBox(width: 8),
+                      Text('Role até o fim para aceitar',
+                          style:
+                              TextStyle(color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed:
+                    _isAtBottom ? () => Navigator.pop(context, true) : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor:
+                      _isAtBottom ? AppTheme.primary : Colors.grey.shade800,
+                  foregroundColor: _isAtBottom ? Colors.white : Colors.white38,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  disabledBackgroundColor: Colors.grey.shade900,
+                ),
+                child: const Text('LI E CONCORDO',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

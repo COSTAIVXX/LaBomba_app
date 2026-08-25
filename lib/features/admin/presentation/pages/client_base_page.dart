@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/client.dart';
-import '../../../providers/admin_auth_provider.dart';
-import '../../../providers/client_provider.dart';
+import '../../../../models/client.dart';
+import '../../../../providers/admin_auth_provider.dart';
+import '../../../../providers/client_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 import 'admin_login_page.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';

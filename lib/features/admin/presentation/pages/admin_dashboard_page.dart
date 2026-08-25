@@ -2,9 +2,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/ticket.dart';
-import '../../../providers/admin_auth_provider.dart';
-import '../../../providers/shop_provider.dart';
+import '../../../../models/ticket.dart';
+import '../../../../providers/admin_auth_provider.dart';
+import '../../../../providers/shop_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 import 'admin_login_page.dart';
 import 'client_base_page.dart';
@@ -194,32 +194,35 @@ class _DashboardOverviewTab extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1180),
                 child: Consumer<ShopProvider>(
-                  builder: (context, shop, _) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
-                      const SizedBox(height: 8),
-                      Text('Bom dia, equipe.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 4),
-                      const Text(
-                          'Acompanhe a operação e registre vendas em poucos toques.',
-                          style: TextStyle(color: Colors.white60)),
-                      const SizedBox(height: 24),
-                      _CriticalMetric(shop: shop),
-                      const SizedBox(height: 16),
-                      _DashboardGrid(compact: compact, shop: shop),
-                      const SizedBox(height: 16),
-                      _QuickSalePanel(shop: shop),
-                      const SizedBox(height: 28),
-                      Row(
+                  builder: (context, shop, _) {
+                    final totalCapacity = shop.totalCapacity;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
+                        const SizedBox(height: 8),
+                        Text('Bom dia, equipe.',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 4),
+                        const Text(
+                            'Acompanhe a operação e registre vendas em poucos toques.',
+                            style: TextStyle(color: Colors.white60)),
+                        const SizedBox(height: 24),
+                        _CriticalMetric(shop: shop),
+                        const SizedBox(height: 16),
+                        _DashboardGrid(compact: compact, shop: shop),
+                        const SizedBox(height: 16),
+                        _QuickSalePanel(shop: shop),
+                        const SizedBox(height: 28),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Desempenho por lote',
@@ -227,14 +230,15 @@ class _DashboardOverviewTab extends StatelessWidget {
                                     .textTheme
                                     .titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w800)),
-                            Text('${shop.totalCapacity} abadás no total',
-                                style:
-                                    const TextStyle(color: Colors.white54)),
-                          ]),
-                      const SizedBox(height: 14),
-                      _LotGrid(shop: shop),
-                    ],
-                  ),
+                            Text('$totalCapacity abadás no total',
+                                style: const TextStyle(color: Colors.white54)),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        _LotGrid(shop: shop),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -251,8 +255,11 @@ class _CriticalMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final occupancy =
-        shop.totalCapacity == 0 ? 0.0 : shop.totalSold / shop.totalCapacity;
+    final totalCapacity = shop.totalCapacity;
+    final sold = shop.totalSold;
+    final available = totalCapacity - sold;
+    final occupancy = totalCapacity == 0 ? 0.0 : sold / totalCapacity;
+
     return Card(
       color: AppTheme.accent.withValues(alpha: 0.13),
       child: Padding(
@@ -284,7 +291,7 @@ class _CriticalMetric extends StatelessWidget {
                   color: AppTheme.accent)),
           const SizedBox(height: 8),
           Text(
-              '${shop.totalSold} abadás vendidos  •  ${shop.totalCapacity - shop.totalSold} disponíveis',
+              '$sold abadás vendidos  •  $available disponíveis',
               style: const TextStyle(color: Colors.white60)),
         ]),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/admin_auth_provider.dart';
-import '../../../providers/google_auth_provider.dart';
+import '../../../../providers/admin_auth_provider.dart';
+import '../../../../providers/google_auth_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 
 class AdminLoginPage extends StatefulWidget {
