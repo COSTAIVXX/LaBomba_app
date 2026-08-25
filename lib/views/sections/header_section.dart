@@ -11,9 +11,9 @@ class HeaderSection extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.15),
+            color: AppTheme.primary.withValues(alpha:0.15),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+            border: Border.all(color: AppTheme.primary.withValues(alpha:0.3)),
           ),
           child: Text(
             'LOTE EXCLUSIVO E LIMITADO',
