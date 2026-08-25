@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:firebase_core/firebase_core.dart';
+
+// NOVO: Import do armazenamento seguro
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Configurações e Temas
 import 'theme/app_theme.dart';
+
+// NOVO: Adicione o import de onde você salvou a interface e a classe do repositório
+// import 'repositories/client_repository.dart'; // <-- Descomente e ajuste o caminho da pasta!
 
 // Providers com apelido (prefixo) para evitar conflitos de nome
 import 'providers/admin_auth_provider.dart' as admin_provider;
@@ -21,16 +26,29 @@ import 'views/admin/client_base_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   try {
     await Firebase.initializeApp();
   } catch (e) {
     debugPrint('Erro ao inicializar o Firebase: $e');
   }
-  runApp(const LaBombaApp());
+
+  // 1. Instancia o armazenamento seguro nativo (O Cofre)
+  const secureStorage = FlutterSecureStorage();
+
+  // 2. Injeta o armazenamento dentro do nosso Repositório
+  final clientRepository = SecureClientRepository(secureStorage);
+
+  // 3. Inicia o App injetando o repositório configurado
+  runApp(LaBombaApp(repository: clientRepository));
 }
 
 class LaBombaApp extends StatelessWidget {
-  const LaBombaApp({super.key});
+  // Recebe o repositório criado lá no main()
+  final IClientRepository repository;
+
+  // Exige o repositório no construtor
+  const LaBombaApp({super.key, required this.repository});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +58,8 @@ class LaBombaApp extends StatelessWidget {
           create: (_) => admin_provider.AdminAuthProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => ClientProvider(),
+          // 4. Injeta o repositório pronto para o ClientProvider usar!
+          create: (_) => ClientProvider(repository: repository),
         ),
         ChangeNotifierProvider(
           create: (_) => ShopProvider(),

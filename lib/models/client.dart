@@ -17,7 +17,29 @@ class Client {
   final String phone;
   final DateTime registeredAt;
   final bool acceptedTerms;
-  List<ClientPurchase> purchaseHistory;
+  final List<ClientPurchase> purchaseHistory;
+
+  Client copyWith({
+    String? id,
+    String? fullName,
+    DateTime? birthDate,
+    String? cpf,
+    String? phone,
+    DateTime? registeredAt,
+    bool? acceptedTerms,
+    List<ClientPurchase>? purchaseHistory,
+  }) {
+    return Client(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      birthDate: birthDate ?? this.birthDate,
+      cpf: cpf ?? this.cpf,
+      phone: phone ?? this.phone,
+      registeredAt: registeredAt ?? this.registeredAt,
+      acceptedTerms: acceptedTerms ?? this.acceptedTerms,
+      purchaseHistory: purchaseHistory ?? this.purchaseHistory,
+    );
+  }
 
   int get age {
     final today = DateTime.now();

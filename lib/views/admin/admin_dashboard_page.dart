@@ -6,6 +6,8 @@ import '../../models/ticket.dart';
 import '../../providers/admin_auth_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/admin/admin_sidebar.dart';
+import '../../widgets/admin/metric_card.dart';
 import 'admin_login_page.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
@@ -29,12 +31,33 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
-      return const AdminLoginPage();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/admin/login');
+        }
+      });
+      return const Scaffold(body: SizedBox.shrink());
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 850;
+        
+        final sidebar = AdminSidebar(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() => _selectedIndex = index);
+            if (!isDesktop && Scaffold.of(context).isDrawerOpen) {
+              Navigator.pop(context);
+            }
+          },
+          onLogout: () async {
+            await context.read<AdminAuthProvider>().logout();
+            if (mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
+            }
+          },
+        );
 
         return Scaffold(
           appBar: AppBar(
@@ -53,21 +76,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: 'Sair',
-                icon: const Icon(Icons.logout),
-                onPressed: () async {
-                  await context.read<AdminAuthProvider>().logout();
-                  if (!context.mounted) return;
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                },
-              ),
+              if (!isDesktop)
+                IconButton(
+                  tooltip: 'Sair',
+                  icon: const Icon(Icons.logout),
+                  onPressed: () async {
+                    await context.read<AdminAuthProvider>().logout();
+                    if (!mounted) return;
+                    Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
+                  },
+                ),
             ],
           ),
-          drawer: isDesktop ? null : _buildDrawer(context),
+          drawer: isDesktop ? null : Drawer(child: sidebar),
           body: Row(
             children: [
-              if (isDesktop) _buildNavigationRail(),
+              if (isDesktop) sidebar,
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
@@ -82,99 +106,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildNavigationRail() {
-    return NavigationRail(
-      selectedIndex: _selectedIndex,
-      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-      labelType: NavigationRailLabelType.all,
-      backgroundColor: Colors.black26,
-      leading: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Image.asset(
-          'assets/images/labomba_banner.png',
-          width: 36,
-          height: 36,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
-        ),
-      ),
-      destinations: const [
-        NavigationRailDestination(
-          icon: Icon(Icons.dashboard_outlined),
-          selectedIcon: Icon(Icons.dashboard, color: AppTheme.primary),
-          label: Text('Operação'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.people_alt_outlined),
-          selectedIcon: Icon(Icons.people_alt, color: AppTheme.primary),
-          label: Text('Clientes'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.auto_stories_outlined),
-          selectedIcon: Icon(Icons.auto_stories, color: AppTheme.primary),
-          label: Text('CMS'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: AppTheme.primary),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Image.asset(
-                    'assets/images/labomba_banner.png',
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: Colors.white, size: 32),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('OPERAÇÃO LABOMBA', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: const Text('Operação & Lotes'),
-              selected: _selectedIndex == 0,
-              onTap: () {
-                setState(() => _selectedIndex = 0);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people_alt_outlined),
-              title: const Text('Base de Clientes'),
-              selected: _selectedIndex == 1,
-              onTap: () {
-                setState(() => _selectedIndex = 1);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_stories_outlined),
-              title: const Text('CMS & Conteúdo'),
-              selected: _selectedIndex == 2,
-              onTap: () {
-                setState(() => _selectedIndex = 2);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -300,19 +231,19 @@ class _DashboardGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cards = [
-      _StatCard(
+      MetricCard(
           label: 'Abadás vendidos',
           value: '${shop.totalSold}',
           detail: 'de ${shop.totalCapacity}',
           icon: Icons.confirmation_number_outlined,
           color: AppTheme.primaryLight),
-      _StatCard(
+      MetricCard(
           label: 'Disponibilidade',
           value: '${shop.totalCapacity - shop.totalSold}',
           detail: 'restantes',
           icon: Icons.inventory_2_outlined,
           color: Colors.greenAccent),
-      _StatCard(
+      MetricCard(
           label: 'Ticket médio',
           value: shop.totalSold == 0
               ? 'R\$ 0'
@@ -351,50 +282,6 @@ class _PanelTitle extends StatelessWidget {
         const SizedBox(width: 8),
         Text(title, style: const TextStyle(fontWeight: FontWeight.w800))
       ]);
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard(
-      {required this.label,
-      required this.value,
-      required this.detail,
-      required this.icon,
-      required this.color});
-  final String label;
-  final String value;
-  final String detail;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Card(
-      child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Text(label,
-                      style:
-                          const TextStyle(color: Colors.white60, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(value,
-                            style: const TextStyle(
-                                fontSize: 21, fontWeight: FontWeight.w900)),
-                        const SizedBox(width: 5),
-                        Text(detail,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 12))
-                      ])
-                ]))
-          ])));
 }
 
 class _SalesChart extends StatelessWidget {

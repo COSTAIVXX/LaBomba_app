@@ -1,19 +1,76 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
+import 'package:cpf_cnpj_validator/cpf_validator.dart';
 
 import '../models/client.dart';
 
-class ClientProvider with ChangeNotifier {
-  static const _clientsKey = 'labomba_clients';
-  final List<Client> _clients = [];
+abstract class IClientRepository {
+  Future<List<Client>> fetchClients();
+  Future<void> saveClients(List<Client> clients);
+}
 
-  ClientProvider() {
+class SecureClientRepository implements IClientRepository {
+  final FlutterSecureStorage secureStorage;
+  static const _clientsKey = 'secure_labomba_clients';
+
+  SecureClientRepository(this.secureStorage);
+
+  @override
+  Future<List<Client>> fetchClients() async {
+    final saved = await secureStorage.read(key: _clientsKey);
+    if (saved == null) return [];
+    
+    // 3. Alta Performance: Utilizando Isolates (compute) para decode
+    return await compute(_decodeClients, saved);
+  }
+
+  @override
+  Future<void> saveClients(List<Client> clients) async {
+    // 3. Alta Performance: Utilizando Isolates (compute) para encode
+    final jsonStr = await compute(_encodeClients, clients);
+    await secureStorage.write(key: _clientsKey, value: jsonStr);
+  }
+
+  static List<Client> _decodeClients(String jsonString) {
+    final decoded = jsonDecode(jsonString) as List<dynamic>;
+    return decoded.map((e) => Client.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  static String _encodeClients(List<Client> clients) {
+    return jsonEncode(clients.map((c) => c.toJson()).toList());
+  }
+}
+
+class ClientProvider with ChangeNotifier {
+  final IClientRepository _repository;
+  List<Client> _clients = [];
+  bool _isLoading = false;
+
+  // 1. Separação de Responsabilidades (SRP) via Injeção de Dependência
+  ClientProvider({IClientRepository? repository}) 
+      : _repository = repository ?? SecureClientRepository(const FlutterSecureStorage()) {
     _loadClients();
   }
 
   List<Client> get clients => List.unmodifiable(_clients);
+  bool get isLoading => _isLoading;
+
+  Future<void> _loadClients() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _clients = await _repository.fetchClients();
+    } catch (e) {
+      debugPrint('Falha ao ler clientes seguros: $e');
+      // 6. Proteção de Dados: Não utilizamos _clients.clear() caso ocorra um erro de leitura.
+      // Isso protege contra race conditions ou falha de leitura corrompendo os dados gravados.
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<Client> registerClient({
     required String fullName,
@@ -23,33 +80,35 @@ class ClientProvider with ChangeNotifier {
     required bool acceptedTerms,
   }) async {
     if (!acceptedTerms) {
-      throw const ClientRegistrationException(
-          'É obrigatório aceitar o termo de responsabilidade.');
+      throw const ClientRegistrationException('É obrigatório aceitar o termo de responsabilidade.');
+    }
+    
+    // 5. Validação de Dados (CPF)
+    if (!CPFValidator.isValid(cpf)) {
+      throw const ClientRegistrationException('CPF inválido.');
     }
 
-    final client = Client(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+    final newClient = Client(
+      id: const Uuid().v4(), // 4. Identificadores Únicos Seguros (UUID v4)
       fullName: fullName.trim(),
       birthDate: birthDate,
-      cpf: cpf.trim(),
+      cpf: CPFValidator.strip(cpf), // 5. Higienização: Apenas os números
       phone: phone.trim(),
       registeredAt: DateTime.now(),
       acceptedTerms: acceptedTerms,
+      purchaseHistory: const [], // 7. Imutabilidade: Lista vazia constante
     );
 
-    if (client.age < 18) {
-      throw const ClientRegistrationException(
-        'O evento é restrito para maiores de 18 anos.',
-      );
+    if (newClient.age < 18) {
+      throw const ClientRegistrationException('O evento é restrito para maiores de 18 anos.');
     }
 
-    _clients.add(client);
+    _clients = [..._clients, newClient];
     notifyListeners();
-    await _saveClients();
-    return client;
+    await _repository.saveClients(_clients);
+    return newClient;
   }
 
-  /// Update basic client information (does not change registeredAt)
   Future<void> updateClient({
     required String clientId,
     String? fullName,
@@ -60,37 +119,42 @@ class ClientProvider with ChangeNotifier {
   }) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
+    
     final existing = _clients[index];
-    final updated = Client(
-      id: existing.id,
-      fullName: fullName?.trim() ?? existing.fullName,
-      birthDate: birthDate ?? existing.birthDate,
-      cpf: cpf?.trim() ?? existing.cpf,
-      phone: phone?.trim() ?? existing.phone,
-      registeredAt: existing.registeredAt,
-      acceptedTerms: acceptedTerms ?? existing.acceptedTerms,
-      purchaseHistory: existing.purchaseHistory,
+    
+    if (cpf != null && cpf != existing.cpf && !CPFValidator.isValid(cpf)) {
+      throw const ClientRegistrationException('CPF inválido.');
+    }
+
+    // 7. Imutabilidade de Estado: Criando cópia via copyWith
+    final updated = existing.copyWith(
+      fullName: fullName?.trim(),
+      birthDate: birthDate,
+      cpf: cpf != null ? CPFValidator.strip(cpf) : null,
+      phone: phone?.trim(),
+      acceptedTerms: acceptedTerms,
     );
+
     _clients[index] = updated;
     notifyListeners();
-    await _saveClients();
+    await _repository.saveClients(_clients);
   }
 
-  /// Delete a client from the list
   Future<void> deleteClient(String clientId) async {
     _clients.removeWhere((c) => c.id == clientId);
     notifyListeners();
-    await _saveClients();
+    await _repository.saveClients(_clients);
   }
 
-  /// Update the payment status of the latest purchase for a client
   Future<void> updateLatestPaymentStatus(String clientId, String status) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
+    
     final client = _clients[index];
     if (client.purchaseHistory.isEmpty) return;
+    
     final last = client.purchaseHistory.last;
-    final updated = ClientPurchase(
+    final updatedPurchase = ClientPurchase(
       description: last.description,
       quantity: last.quantity,
       amount: last.amount,
@@ -98,51 +162,30 @@ class ClientProvider with ChangeNotifier {
       paymentMethod: last.paymentMethod,
       paymentStatus: status,
     );
-    client.purchaseHistory[client.purchaseHistory.length - 1] = updated;
+    
+    // 7. Imutabilidade de Estado
+    final updatedHistory = List<ClientPurchase>.from(client.purchaseHistory);
+    updatedHistory[updatedHistory.length - 1] = updatedPurchase;
+    
+    _clients[index] = client.copyWith(purchaseHistory: updatedHistory);
     notifyListeners();
-    await _saveClients();
+    await _repository.saveClients(_clients);
   }
 
-  Future<void> _loadClients() async {
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      final saved = preferences.getString(_clientsKey);
-      if (saved == null) return;
-      
-      final decoded = jsonDecode(saved) as List<dynamic>;
-      _clients
-        ..clear()
-        ..addAll(decoded.map((item) => Client.fromJson(
-              Map<String, dynamic>.from(item as Map),
-            )));
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading clients: $e');
-      // Keep an empty list when local client data is invalid or corrupt.
-      _clients.clear();
-      notifyListeners();
-    }
-  }
-
-  Future<void> _saveClients() async {
-    try {
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setString(
-        _clientsKey,
-        jsonEncode(_clients.map((client) => client.toJson()).toList()),
-      );
-    } catch (e) {
-      debugPrint('Error saving clients: $e');
-    }
-  }
-
-  /// Adds a purchase record to an existing client and persists the change.
   Future<void> addPurchase(String clientId, ClientPurchase purchase) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
-    _clients[index].purchaseHistory.add(purchase);
+    
+    final client = _clients[index];
+    
+    // 7. Imutabilidade de Estado: Utilizando copyWith com spread operator
+    final updatedClient = client.copyWith(
+      purchaseHistory: [...client.purchaseHistory, purchase],
+    );
+
+    _clients[index] = updatedClient;
     notifyListeners();
-    await _saveClients();
+    await _repository.saveClients(_clients);
   }
 }
 

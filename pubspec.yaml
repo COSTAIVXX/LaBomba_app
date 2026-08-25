@@ -34,6 +34,9 @@ dependencies:
   url_launcher: ^6.3.0
   mask_text_input_formatter: ^2.9.0
   provider: ^6.1.2
+  flutter_secure_storage: ^10.3.1
+  uuid: ^4.6.0
+  cpf_cnpj_validator: ^2.0.0
 
 
 # For information on the generic Dart part of this file, see the

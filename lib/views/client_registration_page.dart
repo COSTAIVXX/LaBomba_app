@@ -1,4 +1,6 @@
+import 'dart:ui' as dart_ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
@@ -13,7 +15,7 @@ class ClientRegistrationPage extends StatefulWidget {
   State<ClientRegistrationPage> createState() => _ClientRegistrationPageState();
 }
 
-class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
+class _ClientRegistrationPageState extends State<ClientRegistrationPage> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _birthDateController = TextEditingController();
@@ -27,8 +29,27 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   final _cpfMask = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
   final _phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+    _animationController.forward();
+  }
+
   @override
   void dispose() {
+    _animationController.dispose();
     _nameController.dispose();
     _birthDateController.dispose();
     _cpfController.dispose();
@@ -137,45 +158,108 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
 
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Termos de Responsabilidade'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'TERMOS DE USO, POLÍTICA DE ACESSO E REGRAS DO BLOCO – Bloco La Bomba\n\n'
-            'Ao adquirir o ingresso para o Bloco La Bomba através deste sistema oficial e/ou ao fazer uso do abadá, caneca e pulseira, o Comprador/Folião ("Usuário") declara ter lido, compreendido e aceitado de forma expressa, irrevogável e irretratável todas as cláusulas, políticas de segurança e regras de conduta descritas abaixo:\n\n'
-            '1. DA IDENTIDADE E RESPONSABILIDADE JURÍDICA DA PLATAFORMA E DO BLOCO\n'
-            '1.1. O presente sistema e o Bloco La Bomba constituem uma operação unificada sob a responsabilidade de seus organizadores e desenvolvedores.\n'
-            '1.2. O Usuário isenta integralmente os organizadores, produtores, equipe técnica e desenvolvedores do sistema de qualquer responsabilidade civil ou penal por danos materiais, corporais ou morais decorrentes de acidentes, tumultos, brigas, furtos, roubos ou casos fortuitos ocorridos antes, durante ou após a realização do bloco, ressalvadas as obrigações legais diretas da organização.\n\n'
-            '2. DO KIT DO FOLIÃO E REGRAS DE ACESSO\n'
-            '2.1. O ingresso dá direito à participação no Bloco La Bomba pelo período contratado, mediante o recebimento do Kit do Folião, composto por: Abadá, Caneca e Pulseira oficiais.\n'
-            '2.2. Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!\n'
-            '2.3. Entrada na concentração apenas com abadá, pulseira e caneca oficiais. É terminantemente proibido o uso de materiais de outros modelos ou marcas.\n'
-            '2.4. Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá). A perda de qualquer um dos itens não gera direito à reposição gratuita ou emissão de segunda via.\n\n'
-            '3. POLÍTICA DE CONSUMO, BEBIDAS E COMPARTILHAMENTO\n'
-            '3.1. O bloco poderá disponibilizar bebidas (como cerveja, vodka, tequila e correlatos) exclusivamente aos portadores legítimos do kit oficial.\n'
-            '3.2. Proibido Compartilhar Bebida: Passível de expulsão. Os servidores e seguranças do bloco têm total autoridade para cortar a pulseira em caso de descumprimento.\n'
-            '3.3. Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.\n'
-            '3.4. É terminantemente proibida a venda ou fornecimento de bebidas alcoólicas para menores de 18 (dezoito) anos. A organização reserva-se o direito de recusar o fornecimento de álcool a participantes com sinais extremos de embriaguez ou comportamento inadequado.\n\n'
-            '4. CÓDIGO DE CONDUTA, SEGURANÇA E TOLERÂNCIA ZERO\n'
-            '4.1. Tolerância Zero para Brigas: Qualquer ato de agressão física ou verbal é passível de expulsão imediata do evento, sem direito a reembolso.\n'
-            '4.2. Respeito Obrigatório: Aos garçons, seguranças, organizadores e demais servidores do bloco.\n'
-            '4.3. Proibido Fumar: Dentro da área de concentração do bloco.\n'
-            '4.4. Banheiro do Bloco: Exclusivo para mulheres.\n'
-            '4.5. O folião concorda expressamente em submeter-se a revistas de segurança na entrada, visando impedir o porte de armas, objetos cortantes, garrafas de vidro de fora ou substâncias ilícitas. O descumprimento das normas de segurança acarreta expulsão com apoio de força policial, se necessário.\n\n'
-            '5. DIREITO DE IMAGEM E VOZ\n'
-            '5.1. Ao participar do Bloco La Bomba, o Usuário cede de forma gratuita, irrevogável e definitiva seus direitos de imagem e voz para fins de divulgação, materiais promocionais, redes sociais e vídeos oficiais, sem gerar direito a qualquer cachê ou indenização futura.\n\n'
-            '6. CANCELAMENTOS E LEGISLAÇÃO (CDC)\n'
-            '6.1. O direito de arrependimento (Art. 49 do CDC) é garantido pelo prazo de até 7 (sete) dias corridos após a compra, desde que formalizado até 48 horas antes do primeiro dia do evento.\n'
-            '6.2. Ausências ("No-show"), expulsões por infração às regras ou desistências posteriores não dão direito a qualquer tipo de reembolso.',
-            style: TextStyle(fontSize: 13, height: 1.4, color: Colors.white70),
+      barrierColor: Colors.black.withValues(alpha: 0.8),
+      builder: (context) => BackdropFilter(
+        filter: dart_ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.all(24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: const Color(0xFF130A2A).withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.5), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.description_outlined, color: AppTheme.primaryLight, size: 28),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'TERMOS DE USO',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(color: Colors.white24),
+                ),
+                const Expanded(
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: Text(
+                      'TERMOS DE USO, POLÍTICA DE ACESSO E REGRAS DO BLOCO – Bloco La Bomba\n\n'
+                      'Ao adquirir o ingresso para o Bloco La Bomba através deste sistema oficial e/ou ao fazer uso do abadá, caneca e pulseira, o Comprador/Folião ("Usuário") declara ter lido, compreendido e aceitado de forma expressa, irrevogável e irretratável todas as cláusulas, políticas de segurança e regras de conduta descritas abaixo:\n\n'
+                      '1. DA IDENTIDADE E RESPONSABILIDADE JURÍDICA DA PLATAFORMA E DO BLOCO\n'
+                      '1.1. O presente sistema e o Bloco La Bomba constituem uma operação unificada sob a responsabilidade de seus organizadores e desenvolvedores.\n'
+                      '1.2. O Usuário isenta integralmente os organizadores, produtores, equipe técnica e desenvolvedores do sistema de qualquer responsabilidade civil ou penal por danos materiais, corporais ou morais decorrentes de acidentes, tumultos, brigas, furtos, roubos ou casos fortuitos ocorridos antes, durante ou após a realização do bloco, ressalvadas as obrigações legais diretas da organização.\n\n'
+                      '2. DO KIT DO FOLIÃO E REGRAS DE ACESSO\n'
+                      '2.1. O ingresso dá direito à participação no Bloco La Bomba pelo período contratado, mediante o recebimento do Kit do Folião, composto por: Abadá, Caneca e Pulseira oficiais.\n'
+                      '2.2. Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!\n'
+                      '2.3. Entrada na concentração apenas com abadá, pulseira e caneca oficiais. É terminantemente proibido o uso de materiais de outros modelos ou marcas.\n'
+                      '2.4. Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá). A perda de qualquer um dos itens não gera direito à reposição gratuita ou emissão de segunda via.\n\n'
+                      '3. POLÍTICA DE CONSUMO, BEBIDAS E COMPARTILHAMENTO\n'
+                      '3.1. O bloco poderá disponibilizar bebidas (como cerveja, vodka, tequila e correlatos) exclusivamente aos portadores legítimos do kit oficial.\n'
+                      '3.2. Proibido Compartilhar Bebida: Passível de expulsão. Os servidores e seguranças do bloco têm total autoridade para cortar a pulseira em caso de descumprimento.\n'
+                      '3.3. Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.\n'
+                      '3.4. É terminantemente proibida a venda ou fornecimento de bebidas alcoólicas para menores de 18 (dezoito) anos. A organização reserva-se o direito de recusar o fornecimento de álcool a participantes com sinais extremos de embriaguez ou comportamento inadequado.\n\n'
+                      '4. CÓDIGO DE CONDUTA, SEGURANÇA E TOLERÂNCIA ZERO\n'
+                      '4.1. Tolerância Zero para Brigas: Qualquer ato de agressão física ou verbal é passível de expulsão imediata do evento, sem direito a reembolso.\n'
+                      '4.2. Respeito Obrigatório: Aos garçons, seguranças, organizadores e demais servidores do bloco.\n'
+                      '4.3. Proibido Fumar: Dentro da área de concentração do bloco.\n'
+                      '4.4. Banheiro do Bloco: Exclusivo para mulheres.\n'
+                      '4.5. O folião concorda expressamente em submeter-se a revistas de segurança na entrada, visando impedir o porte de armas, objetos cortantes, garrafas de vidro de fora ou substâncias ilícitas. O descumprimento das normas de segurança acarreta expulsão com apoio de força policial, se necessário.\n\n'
+                      '5. DIREITO DE IMAGEM E VOZ\n'
+                      '5.1. Ao participar do Bloco La Bomba, o Usuário cede de forma gratuita, irrevogável e definitiva seus direitos de imagem e voz para fins de divulgação, materiais promocionais, redes sociais e vídeos oficiais, sem gerar direito a qualquer cachê ou indenização futura.\n\n'
+                      '6. CANCELAMENTOS E LEGISLAÇÃO (CDC)\n'
+                      '6.1. O direito de arrependimento (Art. 49 do CDC) é garantido pelo prazo de até 7 (sete) dias corridos após a compra, desde que formalizado até 48 horas antes do primeiro dia do evento.\n'
+                      '6.2. Ausências ("No-show"), expulsões por infração às regras ou desistências posteriores não dão direito a qualquer tipo de reembolso.',
+                      style: TextStyle(fontSize: 14, height: 1.5, color: Colors.white70),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('LI E CONCORDO', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                ),
+              ],
+            ),
           ),
         ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Entendi'),
-          ),
-        ],
       ),
     );
   }
@@ -186,152 +270,241 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cadastro do comprador')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.person_add_alt_1,
-                      color: AppTheme.accent, size: 42),
-                  const SizedBox(height: 16),
-                  Text('Antes de comprar',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Preencha seus dados. O cadastro é obrigatório e o evento é exclusivo para maiores de 18 anos.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white60),
-                  ),
-                  const SizedBox(height: 28),
-                  FilledButton.icon(
-                    onPressed: _saving ? null : _handleGoogleSignIn,
-                    icon: const Icon(Icons.account_circle),
-                    label: const Text('Continuar com o Google'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Cadastro do Comprador', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppTheme.background, Color(0xFF130A2A)],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 100, bottom: 24, left: 24, right: 24),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.white24)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OU', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
-                      ),
-                      Expanded(child: Divider(color: Colors.white24)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _nameController,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        prefixIcon: Icon(Icons.person_outline)),
-                    validator: (value) => _required(value, 'seu nome completo'),
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _birthDateController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [_dateMask],
-                    decoration: const InputDecoration(
-                        labelText: 'Data de nascimento',
-                        hintText: 'DD/MM/AAAA',
-                        prefixIcon: Icon(Icons.calendar_today_outlined)),
-                    validator: (value) => _parseBirthDate() == null
-                        ? 'Informe uma data válida (DD/MM/AAAA)'
-                        : null,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _cpfController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [_cpfMask],
-                    decoration: const InputDecoration(
-                        labelText: 'CPF',
-                        hintText: '000.000.000-00',
-                        prefixIcon: Icon(Icons.badge_outlined)),
-                    validator: (value) =>
-                        !_isValidCPF(value) ? 'Informe um CPF válido' : null,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [_phoneMask],
-                    decoration: const InputDecoration(
-                        labelText: 'Telefone',
-                        hintText: '(00) 00000-0000',
-                        prefixIcon: Icon(Icons.phone_outlined)),
-                    validator: (value) => _digits(value).length < 10
-                        ? 'Informe um telefone válido'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _acceptedTerms,
-                        onChanged: _hasOpenedTerms
-                            ? (v) => setState(() => _acceptedTerms = v ?? false)
-                            : null,
-                      ),
-                      Expanded(
-                        child: Wrap(
-                          children: [
-                            const Text('Li e aceito os '),
-                            GestureDetector(
-                              onTap: _showTermsDialog,
-                              child: const Text(
-                                'Termos de Responsabilidade',
-                                style: TextStyle(
-                                  color: AppTheme.accent,
-                                  fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.underline,
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Icon(Icons.person_add_alt_1, color: AppTheme.primaryLight, size: 54),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Antes de comprar',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
                                 ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Preencha seus dados. O evento é exclusivo para maiores de 18 anos.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white60),
+                          ),
+                          const SizedBox(height: 32),
+                          OutlinedButton.icon(
+                            onPressed: _saving ? null : _handleGoogleSignIn,
+                            icon: const Icon(Icons.g_mobiledata, size: 28),
+                            label: const Text('Continuar com o Google'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white24),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const Row(
+                            children: [
+                              Expanded(child: Divider(color: Colors.white10)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text('OU PREENCHA', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 12)),
+                              ),
+                              Expanded(child: Divider(color: Colors.white10)),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          _buildModernTextField(
+                            controller: _nameController,
+                            label: 'Nome completo',
+                            icon: Icons.person_outline,
+                            textCapitalization: TextCapitalization.words,
+                            validator: (value) => _required(value, 'seu nome completo'),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildModernTextField(
+                            controller: _birthDateController,
+                            label: 'Data de nascimento',
+                            hint: 'DD/MM/AAAA',
+                            icon: Icons.calendar_today_outlined,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [_dateMask],
+                            validator: (value) => _parseBirthDate() == null ? 'Informe uma data válida' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildModernTextField(
+                            controller: _cpfController,
+                            label: 'CPF',
+                            hint: '000.000.000-00',
+                            icon: Icons.badge_outlined,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [_cpfMask],
+                            validator: (value) => !_isValidCPF(value) ? 'Informe um CPF válido' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildModernTextField(
+                            controller: _phoneController,
+                            label: 'Telefone',
+                            hint: '(00) 00000-0000',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [_phoneMask],
+                            validator: (value) => _digits(value).length < 10 ? 'Informe um telefone válido' : null,
+                          ),
+                          const SizedBox(height: 24),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _acceptedTerms 
+                                  ? AppTheme.primary.withValues(alpha: 0.1) 
+                                  : Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _acceptedTerms 
+                                    ? AppTheme.primary.withValues(alpha: 0.5) 
+                                    : Colors.transparent,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!_hasOpenedTerms)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12, top: 4),
-                      child: Text(
-                        'Você precisa abrir e ler os termos antes de marcar a caixa.',
-                        style: TextStyle(
-                            color: Colors.amber.shade400, fontSize: 12),
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  value: _acceptedTerms,
+                                  activeColor: AppTheme.primary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  onChanged: _hasOpenedTerms
+                                      ? (v) => setState(() => _acceptedTerms = v ?? false)
+                                      : null,
+                                ),
+                                Expanded(
+                                  child: Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      const Text('Li e aceito os ', style: TextStyle(color: Colors.white70)),
+                                      GestureDetector(
+                                        onTap: _showTermsDialog,
+                                        child: const Text(
+                                          'Termos de Responsabilidade',
+                                          style: TextStyle(
+                                            color: AppTheme.primaryLight,
+                                            fontWeight: FontWeight.w700,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!_hasOpenedTerms)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 12, top: 8),
+                              child: Text(
+                                'Por favor, leia os termos antes de aceitar.',
+                                style: TextStyle(color: Colors.amber.shade400, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          const SizedBox(height: 32),
+                          FilledButton(
+                            onPressed: (!_acceptedTerms || _saving) ? null : _submit,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              backgroundColor: AppTheme.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: _saving
+                                ? const SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text(
+                                    'CONTINUAR PARA A COMPRA',
+                                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                                  ),
+                          ),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 16),
-                  FilledButton.icon(
-                    onPressed: (!_acceptedTerms || _saving) ? null : _submit,
-                    icon: _saving
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.arrow_forward),
-                    label: const Text('CONTINUAR PARA A COMPRA'),
                   ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildModernTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? hint,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      textCapitalization: textCapitalization,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white38),
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.05),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      validator: validator,
     );
   }
 }
