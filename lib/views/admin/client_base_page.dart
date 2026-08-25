@@ -142,51 +142,62 @@ class _ClientRowSimple extends StatelessWidget {
           subtitle: Text(client.purchaseHistory.isEmpty
               ? client.phone
               : '${client.phone} • ${client.purchaseHistory.map((p) => p.description).join(', ')}'),
-          trailing: SizedBox(
-            width: 140,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('${client.age} anos', style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(client.purchaseHistory.isEmpty ? 'Pendente' : client.purchaseHistory.last.paymentStatus,
-                        style: TextStyle(color: client.purchaseHistory.isEmpty ? Colors.orangeAccent : (client.purchaseHistory.last.paymentStatus == 'Confirmado' ? Colors.greenAccent : Colors.orangeAccent), fontWeight: FontWeight.w700)),
-                    const SizedBox(width: 8),
-                    IconButton(
-                        tooltip: 'Editar',
-                        onPressed: () async {
-                          await showDialog<void>(
-                              context: context,
-                              builder: (context) => _EditClientDialog(client: client));
-                        },
-                        icon: const Icon(Icons.edit)),
-                    IconButton(
-                        tooltip: 'Excluir',
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                    title: const Text('Confirmar exclusão'),
-                                    content: const Text('Deseja realmente excluir este cliente?'),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                                      FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Excluir')),
-                                    ],
-                                  ));
-                          if (confirm == true) {
-                            if (!context.mounted) return;
-                            await context.read<ClientProvider>().deleteClient(client.id);
-                          }
-                        },
-                        icon: const Icon(Icons.delete)),
-                  ],
-                )
-              ],
-            ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('${client.age} anos', style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w800, fontSize: 12)),
+                  const SizedBox(height: 2),
+                  Text(
+                    client.purchaseHistory.isEmpty ? 'Pendente' : client.purchaseHistory.last.paymentStatus,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: client.purchaseHistory.isEmpty
+                          ? Colors.orangeAccent
+                          : (client.purchaseHistory.last.paymentStatus == 'Confirmado' ? Colors.greenAccent : Colors.orangeAccent),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(4),
+                tooltip: 'Editar',
+                onPressed: () async {
+                  await showDialog<void>(
+                      context: context,
+                      builder: (context) => _EditClientDialog(client: client));
+                },
+                icon: const Icon(Icons.edit, size: 18),
+              ),
+              IconButton(
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(4),
+                tooltip: 'Excluir',
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                            title: const Text('Confirmar exclusão'),
+                            content: const Text('Deseja realmente excluir este cliente?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Excluir')),
+                            ],
+                          ));
+                  if (confirm == true) {
+                    if (!context.mounted) return;
+                    await context.read<ClientProvider>().deleteClient(client.id);
+                  }
+                },
+                icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent),
+              ),
+            ],
           ),
           onTap: () => showDialog<void>(context: context, builder: (context) => _ClientDetailsDialog(client: client)),
         ),
