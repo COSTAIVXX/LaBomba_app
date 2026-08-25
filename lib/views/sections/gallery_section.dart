@@ -93,10 +93,10 @@ class _GallerySectionState extends State<GallerySection> {
 
                   return Center(
                     child: Transform(
-                      transform: Matrix4.identity()
+                      transform: Matrix4.identity()..multiply(Matrix4.diagonal3Values(1.05, 1.05, 1.0))
                         ..setEntry(3, 2, 0.002)
                         ..rotateY(-rotationY)
-                        ..scale(value, value),
+                        ..multiply(Matrix4.diagonal3Values(value, value, 1.0)),
                       alignment: Alignment.center,
                       child: Opacity(
                         opacity: value.clamp(0.4, 1.0),
@@ -147,7 +147,7 @@ class _GalleryItem extends StatelessWidget {
             end: Alignment.bottomRight),
         boxShadow: [
           BoxShadow(
-              color: gradient[0].withOpacity(0.4),
+              color: gradient[0].withValues(alpha: 0.4),
               blurRadius: 20,
               offset: const Offset(0, 10)),
         ],
@@ -162,7 +162,7 @@ class _GalleryItem extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Center(
                 child: Icon(Icons.camera_alt,
-                    size: 64, color: Colors.white.withOpacity(0.25)),
+                    size: 64, color: Colors.white.withValues(alpha: 0.25)),
               ),
             ),
             DecoratedBox(
@@ -172,7 +172,7 @@ class _GalleryItem extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withOpacity(0.75)
+                    Colors.black.withValues(alpha: 0.75)
                   ],
                 ),
               ),

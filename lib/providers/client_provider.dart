@@ -104,10 +104,11 @@ class ClientProvider with ChangeNotifier {
   }
 
   Future<void> _loadClients() async {
-    final preferences = await SharedPreferences.getInstance();
-    final saved = preferences.getString(_clientsKey);
-    if (saved == null) return;
     try {
+      final preferences = await SharedPreferences.getInstance();
+      final saved = preferences.getString(_clientsKey);
+      if (saved == null) return;
+      
       final decoded = jsonDecode(saved) as List<dynamic>;
       _clients
         ..clear()
@@ -115,17 +116,24 @@ class ClientProvider with ChangeNotifier {
               Map<String, dynamic>.from(item as Map),
             )));
       notifyListeners();
-    } catch (_) {
-      // Keep an empty list when local client data is invalid.
+    } catch (e) {
+      debugPrint('Error loading clients: $e');
+      // Keep an empty list when local client data is invalid or corrupt.
+      _clients.clear();
+      notifyListeners();
     }
   }
 
   Future<void> _saveClients() async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _clientsKey,
-      jsonEncode(_clients.map((client) => client.toJson()).toList()),
-    );
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(
+        _clientsKey,
+        jsonEncode(_clients.map((client) => client.toJson()).toList()),
+      );
+    } catch (e) {
+      debugPrint('Error saving clients: $e');
+    }
   }
 
   /// Adds a purchase record to an existing client and persists the change.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/admin_auth_provider.dart';
+import '../../providers/google_auth_provider.dart';
 import '../../theme/app_theme.dart';
 
 class AdminLoginPage extends StatefulWidget {
@@ -63,6 +64,36 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final googleProvider = context.read<GoogleAuthProvider>();
+      final googleData = await googleProvider.signInWithGoogle();
+      if (!mounted) return;
+
+      if (googleData == null) {
+        setState(() => _isLoading = false);
+        return; // User cancelled
+      }
+
+      // Redireciona diretamente para a listagem/gestão unificada de clientes
+      Navigator.pushReplacementNamed(context, '/admin/clients');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao acessar o Google. Tente novamente.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +136,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.15),
+                        color: Colors.redAccent.withValues(alpha: 0.15),
                         border: Border.all(color: Colors.redAccent),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -165,6 +196,28 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     label: Text(
                         _isLoading ? 'Autenticando...' : 'ACESSAR SISTEMA'),
                     style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.white24)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('OU', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(child: Divider(color: Colors.white24)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                    icon: const Icon(Icons.account_circle),
+                    label: const Text('Continuar com o Google'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),

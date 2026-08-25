@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../providers/client_provider.dart';
+import '../providers/google_auth_provider.dart';
 import '../theme/app_theme.dart';
 
 class ClientRegistrationPage extends StatefulWidget {
@@ -21,6 +22,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   bool _saving = false;
   bool _acceptedTerms = false;
   bool _hasOpenedTerms = false;
+
+  final _dateMask = MaskTextInputFormatter(mask: '##/##/####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
+  final _cpfMask = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
+  final _phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
 
   @override
   void dispose() {
@@ -74,11 +79,30 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
             phone: _phoneController.text,
             acceptedTerms: _acceptedTerms,
           );
-      if (mounted) Navigator.pop(context, client);
+      if (!mounted) return;
+      Navigator.pop(context, client);
     } on ClientRegistrationException catch (error) {
-      if (mounted) _showMessage(error.message);
+      if (!mounted) return;
+      _showMessage(error.message);
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final googleProvider = context.read<GoogleAuthProvider>();
+    try {
+      final googleData = await googleProvider.signInWithGoogle();
+      if (!mounted) return;
+      if (googleData == null) return; // User cancelled
+
+      setState(() {
+        _nameController.text = googleData.displayName ?? '';
+      });
+      _showMessage('Conta Google vinculada com sucesso. Complete os dados restantes.');
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage('Erro ao acessar o Google. Tente novamente.');
     }
   }
 
@@ -186,6 +210,28 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     style: TextStyle(color: Colors.white60),
                   ),
                   const SizedBox(height: 28),
+                  FilledButton.icon(
+                    onPressed: _saving ? null : _handleGoogleSignIn,
+                    icon: const Icon(Icons.account_circle),
+                    label: const Text('Continuar com o Google'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.white24)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('OU', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(child: Divider(color: Colors.white24)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   TextFormField(
                     controller: _nameController,
                     textCapitalization: TextCapitalization.words,
@@ -198,7 +244,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                   TextFormField(
                     controller: _birthDateController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [DateMaskFormatter()],
+                    inputFormatters: [_dateMask],
                     decoration: const InputDecoration(
                         labelText: 'Data de nascimento',
                         hintText: 'DD/MM/AAAA',
@@ -211,7 +257,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                   TextFormField(
                     controller: _cpfController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [CpfMaskFormatter()],
+                    inputFormatters: [_cpfMask],
                     decoration: const InputDecoration(
                         labelText: 'CPF',
                         hintText: '000.000.000-00',
@@ -223,7 +269,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [PhoneMaskFormatter()],
+                    inputFormatters: [_phoneMask],
                     decoration: const InputDecoration(
                         labelText: 'Telefone',
                         hintText: '(00) 00000-0000',
@@ -291,58 +337,6 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
 }
 
 String _digits(String? value) => (value ?? '').replaceAll(RegExp(r'\D'), '');
-
-String _mask(String value, List<int> groups, List<String> separators) {
-  final digits = _digits(value);
-  var result = '';
-  var offset = 0;
-  for (var index = 0;
-      index < groups.length && offset < digits.length;
-      index++) {
-    if (index > 0) {
-      result += separators[index - 1];
-    }
-    final end = (offset + groups[index]).clamp(0, digits.length);
-    result += digits.substring(offset, end);
-    offset = end;
-  }
-  return result;
-}
-
-class CpfMaskFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-          TextEditingValue oldValue, TextEditingValue value) =>
-      TextEditingValue(
-          text: _mask(value.text, [3, 3, 3, 2], ['.', '.', '-']),
-          selection: TextSelection.collapsed(
-              offset: _mask(value.text, [3, 3, 3, 2], ['.', '.', '-']).length));
-}
-
-class PhoneMaskFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue value) {
-    final digits = _digits(value.text);
-    final masked = digits.length > 10
-        ? _mask(digits, [2, 5, 4], ['(', ') ', '-'])
-        : _mask(digits, [2, 4, 4], ['(', ') ', '-']);
-
-    return TextEditingValue(
-        text: masked,
-        selection: TextSelection.collapsed(offset: masked.length));
-  }
-}
-
-class DateMaskFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-          TextEditingValue oldValue, TextEditingValue value) =>
-      TextEditingValue(
-          text: _mask(value.text, [2, 2, 4], ['/', '/']),
-          selection: TextSelection.collapsed(
-              offset: _mask(value.text, [2, 2, 4], ['/', '/']).length));
-}
 
 bool _isValidCPF(String? cpf) {
   if (cpf == null || cpf.isEmpty) return false;

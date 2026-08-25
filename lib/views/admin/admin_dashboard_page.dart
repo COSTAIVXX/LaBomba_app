@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,139 +7,239 @@ import '../../providers/admin_auth_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/app_theme.dart';
 import 'admin_login_page.dart';
+import 'client_base_page.dart';
+import 'content_dashboard_page.dart';
 
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  int _selectedIndex = 0;
+
+  final List<String> _sectionTitles = [
+    'Operação & Vendas',
+    'Base de Clientes',
+    'Gestão de Conteúdo (CMS)',
+  ];
 
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
       return const AdminLoginPage();
     }
-    return const _DashboardContent();
-  }
-}
 
-class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= 850;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LaBomba / Operação'),
-        actions: [
-          const Center(
-            child: Text('AO VIVO',
-                style: TextStyle(
-                    color: Colors.greenAccent,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800)),
-          ),
-          IconButton(
-            tooltip: 'Sair',
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AdminAuthProvider>().logout();
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-              }
-            },
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(color: AppTheme.primary),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Image.asset(
-                      'assets/images/labomba_banner.png.png',
-                      width: 32,
-                      height: 32,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 10),
-                    const Text('OPERAÇÃO LABOMBA',
-                        style: TextStyle(fontWeight: FontWeight.w900)),
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.people_alt_outlined),
-                title: const Text('Base de Clientes'),
-                onTap: () =>
-                    Navigator.pushReplacementNamed(context, '/admin/clients'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 760;
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                  compact ? 16 : 32, 12, compact ? 16 : 32, 32),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1180),
-                  child: Consumer<ShopProvider>(
-                    builder: (context, shop, _) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(
-                                    color: Colors.white54, letterSpacing: 1.2)),
-                        const SizedBox(height: 8),
-                        Text('Bom dia, equipe.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 4),
-                        const Text(
-                            'Acompanhe a operação e registre vendas em poucos toques.',
-                            style: TextStyle(color: Colors.white60)),
-                        const SizedBox(height: 24),
-                        _CriticalMetric(shop: shop),
-                        const SizedBox(height: 16),
-                        _DashboardGrid(compact: compact, shop: shop),
-                        const SizedBox(height: 16),
-                        _QuickSalePanel(shop: shop),
-                        const SizedBox(height: 28),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Desempenho por lote',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w800)),
-                              Text('${shop.totalCapacity} abadás no total',
-                                  style:
-                                      const TextStyle(color: Colors.white54)),
-                            ]),
-                        const SizedBox(height: 14),
-                        _LotGrid(shop: shop),
-                      ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('LaBomba Admin • ${_sectionTitles[_selectedIndex]}'),
+            actions: [
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    'AO VIVO',
+                    style: TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
               ),
-            );
-          },
+              IconButton(
+                tooltip: 'Sair',
+                icon: const Icon(Icons.logout),
+                onPressed: () async {
+                  await context.read<AdminAuthProvider>().logout();
+                  if (!context.mounted) return;
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                },
+              ),
+            ],
+          ),
+          drawer: isDesktop ? null : _buildDrawer(context),
+          body: Row(
+            children: [
+              if (isDesktop) _buildNavigationRail(),
+              Expanded(
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: const [
+                    _DashboardOverviewTab(),
+                    ClientBasePage(embedded: true),
+                    ContentDashboardPage(embedded: true),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNavigationRail() {
+    return NavigationRail(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+      labelType: NavigationRailLabelType.all,
+      backgroundColor: Colors.black26,
+      leading: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Image.asset(
+          'assets/images/labomba_banner.png',
+          width: 36,
+          height: 36,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
         ),
+      ),
+      destinations: const [
+        NavigationRailDestination(
+          icon: Icon(Icons.dashboard_outlined),
+          selectedIcon: Icon(Icons.dashboard, color: AppTheme.primary),
+          label: Text('Operação'),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.people_alt_outlined),
+          selectedIcon: Icon(Icons.people_alt, color: AppTheme.primary),
+          label: Text('Clientes'),
+        ),
+        NavigationRailDestination(
+          icon: Icon(Icons.auto_stories_outlined),
+          selectedIcon: Icon(Icons.auto_stories, color: AppTheme.primary),
+          label: Text('CMS'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: AppTheme.primary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Image.asset(
+                    'assets/images/labomba_banner.png',
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text('OPERAÇÃO LABOMBA', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: const Text('Operação & Lotes'),
+              selected: _selectedIndex == 0,
+              onTap: () {
+                setState(() => _selectedIndex = 0);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_alt_outlined),
+              title: const Text('Base de Clientes'),
+              selected: _selectedIndex == 1,
+              onTap: () {
+                setState(() => _selectedIndex = 1);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_stories_outlined),
+              title: const Text('CMS & Conteúdo'),
+              selected: _selectedIndex == 2,
+              onTap: () {
+                setState(() => _selectedIndex = 2);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardOverviewTab extends StatelessWidget {
+  const _DashboardOverviewTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 760;
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(compact ? 16 : 32, 12, compact ? 16 : 32, 32),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1180),
+                child: Consumer<ShopProvider>(
+                  builder: (context, shop, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
+                      const SizedBox(height: 8),
+                      Text('Bom dia, equipe.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 4),
+                      const Text(
+                          'Acompanhe a operação e registre vendas em poucos toques.',
+                          style: TextStyle(color: Colors.white60)),
+                      const SizedBox(height: 24),
+                      _CriticalMetric(shop: shop),
+                      const SizedBox(height: 16),
+                      _DashboardGrid(compact: compact, shop: shop),
+                      const SizedBox(height: 16),
+                      _QuickSalePanel(shop: shop),
+                      const SizedBox(height: 28),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Desempenho por lote',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w800)),
+                            Text('${shop.totalCapacity} abadás no total',
+                                style:
+                                    const TextStyle(color: Colors.white54)),
+                          ]),
+                      const SizedBox(height: 14),
+                      _LotGrid(shop: shop),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -155,7 +254,7 @@ class _CriticalMetric extends StatelessWidget {
     final occupancy =
         shop.totalCapacity == 0 ? 0.0 : shop.totalSold / shop.totalCapacity;
     return Card(
-      color: AppTheme.accent.withOpacity(0.13),
+      color: AppTheme.accent.withValues(alpha: 0.13),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -304,7 +403,7 @@ class _SalesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      color: Colors.white.withOpacity(0.045),
+      color: Colors.white.withValues(alpha: 0.045),
       child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 18, 20, 12),
           child: SizedBox(
@@ -388,7 +487,7 @@ class _QuickSalePanelState extends State<_QuickSalePanel> {
     _lotId ??= lots.first.id;
     final selected = lots.firstWhere((lot) => lot.id == _lotId);
     return Card(
-        color: AppTheme.primary.withOpacity(0.16),
+        color: AppTheme.primary.withValues(alpha: 0.16),
         child: Padding(
             padding: const EdgeInsets.all(18),
             child: LayoutBuilder(builder: (context, constraints) {
@@ -510,7 +609,8 @@ class _EditLotDialogState extends State<_EditLotDialog> {
                       price: double.tryParse(price.text.replaceAll(',', '.')) ??
                           widget.lot.price,
                       active: active);
-                  if (context.mounted) Navigator.pop(context);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
                 },
                 child: const Text('Salvar'))
           ]);
@@ -532,7 +632,6 @@ class _LotGrid extends StatelessWidget {
         final items = shop.lots
             .map((lot) => SizedBox(width: width, child: _LotCard(lot: lot)))
             .toList();
-        // Add an interactive card to create a new lot
         items.add(SizedBox(width: width, child: _AddLotCard(shop: shop)));
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Wrap(spacing: 14, runSpacing: 14, children: items),
@@ -550,7 +649,6 @@ class _LotCard extends StatelessWidget {
   Widget build(BuildContext context) => InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () async {
-        // Open the edit dialog when the card is tapped
         await showDialog<void>(
             context: context,
             builder: (context) =>
@@ -600,7 +698,6 @@ class _LotCard extends StatelessWidget {
                             backgroundColor: Colors.white12,
                             color: AppTheme.primaryLight)),
                     const SizedBox(height: 12),
-                    // Actions: quick sell, revert and edit
                     Row(children: [
                       FilledButton(
                           onPressed: lot.remaining >= 1 && lot.active
@@ -621,7 +718,6 @@ class _LotCard extends StatelessWidget {
                       OutlinedButton(
                           onPressed: lot.sold > 0
                               ? () async {
-                                  // revert a sale
                                   await context
                                       .read<ShopProvider>()
                                       .revertSale(lot.id, quantity: 1);
@@ -653,7 +749,7 @@ class _AddLotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      color: AppTheme.primary.withOpacity(0.06),
+      color: AppTheme.primary.withValues(alpha: 0.06),
       child: Padding(
           padding: const EdgeInsets.all(18),
           child:
@@ -687,7 +783,7 @@ class _LotSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final lots = shop.lots;
     return Card(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         child: Padding(
             padding: const EdgeInsets.all(12),
             child:
@@ -742,7 +838,6 @@ class _LotSummary extends StatelessWidget {
   }
 }
 
-// Dialog to create a new lot
 class _CreateLotDialog extends StatefulWidget {
   const _CreateLotDialog({required this.shop});
   final ShopProvider shop;
@@ -807,7 +902,8 @@ class _CreateLotDialogState extends State<_CreateLotDialog> {
                       total: parsedTotal,
                       price: parsedPrice,
                       active: active);
-                  if (context.mounted) Navigator.pop(context);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
                 },
                 child: const Text('Criar'))
           ]);

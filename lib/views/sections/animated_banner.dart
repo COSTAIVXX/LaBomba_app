@@ -67,8 +67,8 @@ class _AnimatedBannerState extends State<AnimatedBanner>
               ..setEntry(3, 2, 0.001)
               ..rotateX(_isHovered ? -_mouseOffset.dy * 0.0003 : 0)
               ..rotateY(_isHovered ? _mouseOffset.dx * 0.0003 : 0)
-              ..translate(0.0, floatingOffset, 0.0)
-              ..scale(scale, scale, 1.0),
+              ..setTranslationRaw(0.0, floatingOffset, 0.0)
+              ..multiply(Matrix4.diagonal3Values(scale, scale, 1.0)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(32),
               child: Container(
@@ -77,7 +77,7 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                   boxShadow: [
                     BoxShadow(
                       color: AppTheme.primary
-                          .withOpacity(_isHovered ? 0.6 : 0.2),
+                          .withValues(alpha: _isHovered ? 0.6 : 0.2),
                       blurRadius: _isHovered ? 50 : 30,
                       spreadRadius: _isHovered ? 5 : 0,
                     ),

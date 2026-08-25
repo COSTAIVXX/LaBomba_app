@@ -82,7 +82,8 @@ class _TicketSectionState extends State<TicketSection> {
     if (client == null || !context.mounted) return;
 
     final success = await context.read<ShopProvider>().launchWhatsApp();
-    if (!success && context.mounted) {
+    if (!context.mounted) return;
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Não foi possível abrir o WhatsApp.'),
@@ -102,8 +103,7 @@ class _TicketSectionState extends State<TicketSection> {
   Future<void> _handleSitePayment(BuildContext context) async {
     final client = await _ensureClient(context);
     if (client == null || !context.mounted) return;
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
               'Redirecionando para o Mercado Pago... (Integração pendente)'),
@@ -113,9 +113,7 @@ class _TicketSectionState extends State<TicketSection> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
-    }
 
-    if (!context.mounted) return;
     await _finalizePurchase(context, client, 'Mercado Pago');
   }
 
@@ -130,7 +128,7 @@ class _TicketSectionState extends State<TicketSection> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..scale(scale, scale, scale),
+        transform: Matrix4.identity()..multiply(Matrix4.diagonal3Values(scale, scale, 1.0)),
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -143,7 +141,7 @@ class _TicketSectionState extends State<TicketSection> {
           ),
           borderRadius: BorderRadius.circular(32),
           border: Border.all(
-              color: AppTheme.accent.withOpacity(_isHovered ? 0.6 : 0.2),
+              color: AppTheme.accent.withValues(alpha: _isHovered ? 0.6 : 0.2),
               width: _isHovered ? 2 : 1),
         ),
         child: Column(

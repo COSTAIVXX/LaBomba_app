@@ -6,21 +6,24 @@ import '../../providers/admin_auth_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../theme/app_theme.dart';
 import 'admin_login_page.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class ClientBasePage extends StatelessWidget {
-  const ClientBasePage({super.key});
+  final bool embedded;
+  const ClientBasePage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
       return const AdminLoginPage();
     }
-    return const _ClientBaseContent();
+    return _ClientBaseContent(embedded: embedded);
   }
 }
 
 class _ClientBaseContent extends StatefulWidget {
-  const _ClientBaseContent();
+  final bool embedded;
+  const _ClientBaseContent({this.embedded = false});
 
   @override
   State<_ClientBaseContent> createState() => _ClientBaseContentState();
@@ -38,67 +41,74 @@ class _ClientBaseContentState extends State<_ClientBaseContent> {
 
   @override
   Widget build(BuildContext context) {
+    final bodyContent = SafeArea(
+      child: Consumer<ClientProvider>(
+        builder: (context, provider, _) {
+          final clients = provider.clients
+              .where((c) => c.fullName.toLowerCase().contains(_query.toLowerCase()))
+              .toList();
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 680;
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Padding(
+                    padding: EdgeInsets.all(compact ? 16 : 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Compradores cadastrados',
+                            style: Theme.of(context).textTheme.headlineSmall),
+                        const SizedBox(height: 6),
+                        Text('${provider.clients.length} cliente(s) na base',
+                            style: const TextStyle(color: Colors.white60)),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            hintText: 'Buscar por nome',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                          onChanged: (v) => setState(() => _query = v),
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: clients.isEmpty
+                              ? const _EmptyClients()
+                              : ListView.separated(
+                                  itemCount: clients.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 10),
+                                  itemBuilder: (context, index) =>
+                                      _ClientRowSimple(client: clients[index]),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+
+    if (widget.embedded) {
+      return bodyContent;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Base de Clientes'),
         leading: IconButton(
-          tooltip: 'Voltar para operação',
+          tooltip: 'Voltar',
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/admin'),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: Consumer<ClientProvider>(
-          builder: (context, provider, _) {
-            final clients = provider.clients
-                .where((c) => c.fullName.toLowerCase().contains(_query.toLowerCase()))
-                .toList();
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final compact = constraints.maxWidth < 680;
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1180),
-                    child: Padding(
-                      padding: EdgeInsets.all(compact ? 16 : 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Compradores cadastrados',
-                              style: Theme.of(context).textTheme.headlineSmall),
-                          const SizedBox(height: 6),
-                          Text('${provider.clients.length} cliente(s) na base',
-                              style: const TextStyle(color: Colors.white60)),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _searchController,
-                            decoration: const InputDecoration(
-                              hintText: 'Buscar por nome',
-                              prefixIcon: Icon(Icons.search),
-                            ),
-                            onChanged: (v) => setState(() => _query = v),
-                          ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: clients.isEmpty
-                                ? const _EmptyClients()
-                                : ListView.separated(
-                                    itemCount: clients.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 10),
-                                    itemBuilder: (context, index) => _ClientRowSimple(client: clients[index]),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
+      body: bodyContent,
     );
   }
 }
@@ -125,7 +135,7 @@ class _ClientRowSimple extends StatelessWidget {
   Widget build(BuildContext context) => Card(
         child: ListTile(
           leading: CircleAvatar(
-            backgroundColor: AppTheme.primaryLight.withOpacity(.2),
+            backgroundColor: AppTheme.primaryLight.withValues(alpha: .2),
             child: Text(client.fullName.substring(0, 1).toUpperCase()),
           ),
           title: Text(client.fullName, style: const TextStyle(fontWeight: FontWeight.w800)),
@@ -180,7 +190,7 @@ class _ClientRowSimple extends StatelessWidget {
           ),
           onTap: () => showDialog<void>(context: context, builder: (context) => _ClientDetailsDialog(client: client)),
         ),
-            );
+      );
 }
 
 class _ClientDetailsDialog extends StatelessWidget {
@@ -240,13 +250,18 @@ class _EditClientDialog extends StatefulWidget {
 }
 
 class _EditClientDialogState extends State<_EditClientDialog> {
+  final _phoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: { "#": RegExp(r'[0-9]') },
+    type: MaskAutoCompletionType.lazy,
+  );
+
   late final _name = TextEditingController(text: widget.client.fullName);
   late final _birth = TextEditingController(
       text:
           '${widget.client.birthDate.day.toString().padLeft(2, '0')}/${widget.client.birthDate.month.toString().padLeft(2, '0')}/${widget.client.birthDate.year}');
   late final _cpf = TextEditingController(text: widget.client.cpf);
   late final _phone = TextEditingController(text: widget.client.phone);
-  late bool _accepted = widget.client.acceptedTerms;
 
   @override
   void dispose() {
@@ -272,10 +287,22 @@ class _EditClientDialogState extends State<_EditClientDialog> {
         title: const Text('Editar cliente'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nome completo')),
-          TextField(controller: _birth, decoration: const InputDecoration(labelText: 'Data de nascimento (DD/MM/AAAA)')),
-          TextField(controller: _cpf, decoration: const InputDecoration(labelText: 'CPF')),
-          TextField(controller: _phone, decoration: const InputDecoration(labelText: 'Telefone')),
-          SwitchListTile(value: _accepted, onChanged: (v) => setState(() => _accepted = v), title: const Text('Aceitou o termo')),
+          TextField(controller: _birth, readOnly: true, decoration: const InputDecoration(labelText: 'Data de nascimento (DD/MM/AAAA)')),
+          TextField(controller: _cpf, readOnly: true, decoration: const InputDecoration(labelText: 'CPF')),
+          TextField(
+            controller: _phone,
+            decoration: const InputDecoration(labelText: 'Telefone'),
+            inputFormatters: [_phoneMask],
+            keyboardType: TextInputType.phone,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Aceitou o termo'),
+            trailing: Icon(
+              widget.client.acceptedTerms ? Icons.check_circle : Icons.cancel,
+              color: widget.client.acceptedTerms ? Colors.green : Colors.red,
+            ),
+          ),
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
@@ -291,9 +318,10 @@ class _EditClientDialogState extends State<_EditClientDialog> {
                   birthDate: birthDate,
                   cpf: _cpf.text,
                   phone: _phone.text,
-                  acceptedTerms: _accepted,
+                  acceptedTerms: widget.client.acceptedTerms,
                 );
-            if (context.mounted) Navigator.pop(context);
+            if (!context.mounted) return;
+            Navigator.pop(context);
           }, child: const Text('Salvar')),
         ],
       );

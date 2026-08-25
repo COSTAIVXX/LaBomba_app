@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+
 // Configurações e Temas
 import 'theme/app_theme.dart';
 
@@ -8,15 +10,22 @@ import 'theme/app_theme.dart';
 import 'providers/admin_auth_provider.dart' as admin_provider;
 import 'providers/client_provider.dart';
 import 'providers/shop_provider.dart';
+import 'providers/google_auth_provider.dart';
 
 // Views e Páginas do Aplicativo
 import 'views/landing_page.dart';
 import 'views/client_registration_page.dart';
 import 'views/admin/admin_login_page.dart';
+import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Erro ao inicializar o Firebase: $e');
+  }
   runApp(const LaBombaApp());
 }
 
@@ -36,6 +45,9 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => ShopProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => GoogleAuthProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'La Bomba 2027',
@@ -46,7 +58,7 @@ class LaBombaApp extends StatelessWidget {
           '/': (context) => const LandingPage(),
           '/register': (context) => const ClientRegistrationPage(),
           '/admin/login': (context) => const AdminLoginPage(),
-          '/admin/dashboard': (context) => const ClientBasePage(),
+          '/admin/dashboard': (context) => const AdminDashboardPage(),
           '/admin/clients': (context) => const ClientBasePage(),
         },
       ),

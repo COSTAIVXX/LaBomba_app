@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "624692030196",
+    "project_id": "project-fdb4b65e-57ff-4b13-afc",
+    "storage_bucket": "project-fdb4b65e-57ff-4b13-afc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:624692030196:android:3fbd922c8eba045bda4ca1",
+        "android_client_info": {
+          "package_name": "com.example.labomba_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "624692030196-r6bpsknq4na3po7lfd39e6tntil68mau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-pc5alOLxBYYbi3awIPfF3--pcqY1gtI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "624692030196-r6bpsknq4na3po7lfd39e6tntil68mau.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
