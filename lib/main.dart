@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 // NOVO: Import do armazenamento seguro
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'dart:async';
+import 'services/observability_service.dart';
 
 // Configurações e Temas
 import 'theme/app_theme.dart';
@@ -27,11 +31,27 @@ import 'views/admin/client_base_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     await Firebase.initializeApp();
   } catch (e) {
     debugPrint('Erro ao inicializar o Firebase: $e');
+  }
+
+  // Initialize observability (Analytics, Crashlytics)
+  try {
+    await ObservabilityService.init();
+
+    // Route Flutter framework errors to Crashlytics
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      // Report to Crashlytics
+      try {
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+      } catch (_) {}
+    };
+  } catch (e) {
+    debugPrint('Observability init failed: $e');
   }
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)
@@ -40,8 +60,15 @@ void main() async {
   // 2. Injeta o armazenamento dentro do nosso Repositório
   final clientRepository = SecureClientRepository(secureStorage);
 
-  // 3. Inicia o App injetando o repositório configurado
-  runApp(LaBombaApp(repository: clientRepository));
+  // 3. Inicia o App injetando o repositório configurado dentro de runZonedGuarded
+  runZonedGuarded(() {
+    runApp(LaBombaApp(repository: clientRepository));
+  }, (Object error, StackTrace stack) {
+    // Report uncaught errors to Crashlytics as fatal
+    try {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    } catch (_) {}
+  });
 }
 
 class LaBombaApp extends StatelessWidget {
