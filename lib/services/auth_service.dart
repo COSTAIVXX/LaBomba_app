@@ -1,19 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'storage_service.dart';
+import 'storage_mobile.dart';
+import 'storage_web.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
 class AuthService {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  final FlutterSecureStorage _secureStorage;
+  final StorageService _storage;
 
   static const String _adminSessionKey = 'labomba_admin_session';
   static const String _idTokenKey = 'labomba_id_token';
 
-  AuthService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  AuthService({StorageService? storageService}) : _storage = storageService ?? (kIsWeb ? WebStorageService() : MobileStorageService());
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
@@ -75,7 +77,7 @@ class AuthService {
     // Persist id token for ApiService or other uses
     try {
       final token = await user.getIdToken();
-      await _secureStorage.write(key: _idTokenKey, value: token);
+      await _storage.write(key: _idTokenKey, value: token);
     } catch (_) {}
 
     return {
@@ -95,10 +97,10 @@ class AuthService {
       ]);
     } catch (_) {}
     try {
-      await _secureStorage.delete(key: _idTokenKey);
+      await _storage.delete(key: _idTokenKey);
     } catch (_) {}
     try {
-      await _secureStorage.delete(key: _adminSessionKey);
+      await _storage.delete(key: _adminSessionKey);
     } catch (_) {}
   }
 
@@ -106,16 +108,16 @@ class AuthService {
   Future<void> setAdminSession(bool value) async {
     try {
       if (value) {
-        await _secureStorage.write(key: _adminSessionKey, value: '1');
+        await _storage.write(key: _adminSessionKey, value: '1');
       } else {
-        await _secureStorage.delete(key: _adminSessionKey);
+        await _storage.delete(key: _adminSessionKey);
       }
     } catch (_) {}
   }
 
   Future<bool> isAdminAuthenticated() async {
     try {
-      final v = await _secureStorage.read(key: _adminSessionKey);
+      final v = await _storage.read(key: _adminSessionKey);
       return v == '1';
     } catch (_) {
       return false;
@@ -126,7 +128,7 @@ class AuthService {
   firebase_auth.User? get currentUser => _auth.currentUser;
 
   /// Read stored id token (if any)
-  Future<String?> readStoredIdToken() => _secureStorage.read(key: _idTokenKey);
+  Future<String?> readStoredIdToken() => _storage.read(key: _idTokenKey);
 
   /// Returns a valid ID token when possible. If [forceRefresh] is true
   /// it forces a refresh from Firebase; otherwise it will try to read from
@@ -139,22 +141,23 @@ class AuthService {
         final token = await user.getIdToken(forceRefresh);
         if (token != null) {
           try {
-            await _secureStorage.write(key: _idTokenKey, value: token);
+            await _storage.write(key: _idTokenKey, value: token);
           } catch (_) {}
           return token;
         }
       }
 
       // Fallback to stored token
-      final stored = await _secureStorage.read(key: _idTokenKey);
+      final stored = await _storage.read(key: _idTokenKey);
       return stored;
     } catch (_) {
       // On any error, attempt stored token
       try {
-        return await _secureStorage.read(key: _idTokenKey);
+        return await _storage.read(key: _idTokenKey);
       } catch (_) {
         return null;
       }
     }
   }
 }
+
