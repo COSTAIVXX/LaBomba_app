@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../theme/app_theme.dart';
 
 class AnimatedBanner extends StatefulWidget {
@@ -85,11 +86,21 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                 ),
                 child: AspectRatio(
                   aspectRatio: 16 / 7,
-                  child: Image.asset(
-                    'assets/images/labomba_banner.png',
-                    fit: BoxFit.contain, // Ajustado para exibir a imagem inteira
-                    errorBuilder: (_, __, ___) => _buildFallbackBanner(),
-                  ),
+                  child: ('assets/images/labomba_banner.png'.startsWith('http')
+                      ? CachedNetworkImage(
+                          imageUrl: 'assets/images/labomba_banner.png',
+                          fit: BoxFit.contain,
+                          placeholder: (context, url) => Center(
+                            child: CircularProgressIndicator(color: AppTheme.primary),
+                          ),
+                          errorWidget: (context, url, error) => _buildFallbackBanner(),
+                        )
+                      : Image.asset(
+                          'assets/images/labomba_banner.png',
+                          fit: BoxFit.contain, // Ajustado para exibir a imagem inteira
+                          errorBuilder: (_, __, ___) => _buildFallbackBanner(),
+                        )),
+
                 ),
               ),
             ),
