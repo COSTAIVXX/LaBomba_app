@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../theme/app_theme.dart';
 
 TextStyle _labombaTextStyle({
@@ -157,14 +158,26 @@ class _GalleryItem extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              imagePath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(
-                child: Icon(Icons.camera_alt,
-                    size: 64, color: Colors.white.withValues(alpha: 0.25)),
-              ),
-            ),
+            (imagePath.startsWith('http')
+                ? CachedNetworkImage(
+                    imageUrl: imagePath,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Center(
+                      child: CircularProgressIndicator(color: AppTheme.primary),
+                    ),
+                    errorWidget: (context, url, error) => Center(
+                      child: Icon(Icons.camera_alt,
+                          size: 64, color: Colors.white.withValues(alpha: 0.25)),
+                    ),
+                  )
+                : Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Center(
+                      child: Icon(Icons.camera_alt,
+                          size: 64, color: Colors.white.withValues(alpha: 0.25)),
+                    ),
+                  )),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

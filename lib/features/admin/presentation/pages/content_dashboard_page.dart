@@ -1,6 +1,8 @@
+import 'dart:io' show SocketException;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 import 'package:labomba_app/models/edition.dart';
 import 'package:labomba_app/services/api_service.dart';
@@ -37,13 +39,21 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
     try {
       // Simulação / Integração de upload de bytes
       final fakeBytes = <int>[0, 1, 2];
-      final url = await _apiService.uploadMedia(fakeBytes, '${category}_novo.png');
+      await _apiService.uploadMedia(fakeBytes, '${category}_novo.png');
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.green[800],
-          content: Text('Upload para $category concluído: $url'),
+          content: Text('Upload para $category concluído'),
+        ),
+      );
+    } on SocketException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text('Falha de rede durante upload. Verifique a conexão/API: $e'),
         ),
       );
     } catch (e) {
@@ -73,6 +83,14 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
         const SnackBar(
           backgroundColor: Colors.green,
           content: Text('Configurações salvas com sucesso!'),
+        ),
+      );
+    } on SocketException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text('Falha de rede ao salvar. Verifique a conexão/API: $e'),
         ),
       );
     } catch (e) {
@@ -183,17 +201,28 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Container(
+                    child: Container(
                     width: MediaQuery.of(context).size.width > 600 ? 520 : 320,
                     height: MediaQuery.of(context).size.width > 600 ? 180 : 120,
                     color: Colors.black38,
-                    child: Image.asset(
-                      'assets/images/labomba_banner.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.broken_image, color: Colors.white30),
-                      ),
-                    ),
+                    child: ('assets/images/labomba_banner.png'.startsWith('http')
+                        ? CachedNetworkImage(
+                            imageUrl: 'assets/images/labomba_banner.png',
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Center(
+                              child: CircularProgressIndicator(color: AppTheme.primary),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(Icons.broken_image, color: Colors.white30),
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/labomba_banner.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(Icons.broken_image, color: Colors.white30),
+                            ),
+                          )),
                   ),
                 ),
               ),
