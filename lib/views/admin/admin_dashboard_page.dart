@@ -43,6 +43,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         
         final sidebar = AdminSidebar(
           selectedIndex: _selectedIndex,
+          forceExpanded: !isDesktop,
           onDestinationSelected: (index) {
             setState(() => _selectedIndex = index);
             if (!isDesktop && Scaffold.of(context).isDrawerOpen) {

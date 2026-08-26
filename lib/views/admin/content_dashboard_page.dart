@@ -168,54 +168,49 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
   }
 
   Widget _buildBannerCard() {
-    return Card(
-      color: Colors.white.withValues(alpha: 0.03),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 140,
-              height: 90,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.black38,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/images/labomba_banner.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white30),
+      return Card(
+        color: Colors.white.withValues(alpha: 0.03),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Banner Principal', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              const Text('Altere o banner exibido na landing page. Dimensão recomendada: 1920x1080 (PNG/WebP, máx 2MB)',
+                  style: TextStyle(fontSize: 13, color: Colors.white60)),
+              const SizedBox(height: 16),
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width > 600 ? 520 : 320,
+                    height: MediaQuery.of(context).size.width > 600 ? 180 : 120,
+                    color: Colors.black38,
+                    child: Image.asset(
+                      'assets/images/labomba_banner.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Icon(Icons.broken_image, color: Colors.white30),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Banner Principal Ativo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                  SizedBox(height: 4),
-                  Text('Dimensão recomendada: 1920x1080 (PNG ou WebP, máx 2MB)', style: TextStyle(fontSize: 12, color: Colors.white54)),
-                ],
+              const SizedBox(height: 12),
+              Center(
+                child: FilledButton.icon(
+                  onPressed: () => _uploadMedia('banner_principal'),
+                  icon: const Icon(Icons.upload_file_rounded),
+                  label: const Text('Substituir Banner'),
+                ),
               ),
-            ),
-            FilledButton.icon(
-              onPressed: () => _uploadMedia('banner_principal'),
-              icon: const Icon(Icons.cloud_upload_outlined),
-              label: const Text('Substituir Banner'),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildTextEditorCard() {
     return Card(
