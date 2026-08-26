@@ -3,9 +3,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/edition.dart';
 import '../../services/api_service.dart';
+import '../../services/auth_service.dart';
 import '../../services/edition_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -18,8 +20,16 @@ class ContentDashboardPage extends StatefulWidget {
 }
 
 class _ContentDashboardPageState extends State<ContentDashboardPage> {
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Obtain AuthService from Provider and create ApiService with it
+    final authService = Provider.of<AuthService>(context, listen: false);
+    _apiService = ApiService(authService: authService);
+  }
 
   final _bannerTitleController = TextEditingController(text: 'LA BOMBA 2027 • O MAIOR CARNAVAL');
   final _eventDateController = TextEditingController(text: '05 de Fevereiro de 2027');

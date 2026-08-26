@@ -6,7 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 import 'package:labomba_app/models/edition.dart';
 import 'package:labomba_app/services/api_service.dart';
+import 'package:labomba_app/services/auth_service.dart';
 import 'package:labomba_app/services/edition_service.dart';
+import 'package:provider/provider.dart';
 
 class ContentDashboardPage extends StatefulWidget {
   final bool embedded;
@@ -17,8 +19,15 @@ class ContentDashboardPage extends StatefulWidget {
 }
 
 class _ContentDashboardPageState extends State<ContentDashboardPage> {
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final authService = Provider.of<AuthService>(context, listen: false);
+    _apiService = ApiService(authService: authService);
+  }
 
   final _bannerTitleController = TextEditingController(text: 'LA BOMBA 2027 • O MAIOR CARNAVAL');
   final _eventDateController = TextEditingController(text: '05 de Fevereiro de 2027');

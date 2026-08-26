@@ -127,4 +127,34 @@ class AuthService {
 
   /// Read stored id token (if any)
   Future<String?> readStoredIdToken() => _secureStorage.read(key: _idTokenKey);
+
+  /// Returns a valid ID token when possible. If [forceRefresh] is true
+  /// it forces a refresh from Firebase; otherwise it will try to read from
+  /// secure storage or current user.
+  Future<String?> getIdToken({bool forceRefresh = false}) async {
+    try {
+      // Prefer the Firebase User token (fresh)
+      final user = _auth.currentUser;
+      if (user != null) {
+        final token = await user.getIdToken(forceRefresh);
+        if (token != null) {
+          try {
+            await _secureStorage.write(key: _idTokenKey, value: token);
+          } catch (_) {}
+          return token;
+        }
+      }
+
+      // Fallback to stored token
+      final stored = await _secureStorage.read(key: _idTokenKey);
+      return stored;
+    } catch (_) {
+      // On any error, attempt stored token
+      try {
+        return await _secureStorage.read(key: _idTokenKey);
+      } catch (_) {
+        return null;
+      }
+    }
+  }
 }
