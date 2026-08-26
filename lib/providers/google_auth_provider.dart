@@ -19,7 +19,9 @@ class GoogleAuthData {
 
 class GoogleAuthProvider extends ChangeNotifier {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
+  // Use the singleton instance of GoogleSignIn (new API requires initialize() once)
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  static bool _googleInitialized = false;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -27,22 +29,59 @@ class GoogleAuthProvider extends ChangeNotifier {
   Future<GoogleAuthData?> signInWithGoogle() async {
     _setLoading(true);
     try {
+      // Ensure GoogleSignIn singleton is initialized exactly once as required by the new API.
+      if (!_googleInitialized) {
+        await _googleSignIn.initialize();
+        _googleInitialized = true;
+      }
+
+      // Sign out any previous session to ensure a fresh flow.
       await _googleSignIn.signOut();
-      
-      // Correção 1: Adicionado '?' para aceitar o retorno anulável (GoogleSignInAccount?)
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      // Perform an interactive authentication flow (new API).
+      // authenticate() is the interactive sign-in that returns a GoogleSignInAccount.
+      GoogleSignInAccount? googleUser;
+      try {
+        googleUser = await _googleSignIn.authenticate();
+      } catch (e) {
+        // Some platforms may not support a combined flow; try a lightweight attempt
+        // which may restore a previous sign-in. If it returns null, we bail out.
+        try {
+          final Future<GoogleSignInAccount?>? lightweight =
+              _googleSignIn.attemptLightweightAuthentication();
+          googleUser = await lightweight;
+        } catch (_) {
+          rethrow;
+        }
+      }
+
       if (googleUser == null) {
         return null;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      // Get the ID token (authentication). Note: google_sign_in v7 exposes idToken only.
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
 
-      final firebase_auth.OAuthCredential credential = firebase_auth.GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      // Try to obtain an access token (authorization) if available for the scopes.
+      String? accessToken;
+      try {
+        final clientAuth = await googleUser.authorizationClient
+            .authorizationForScopes(['email', 'profile', 'openid']);
+        accessToken = clientAuth?.accessToken;
+      } catch (_) {
+        // If we can't obtain an access token, proceed with idToken only.
+        accessToken = null;
+      }
+
+      final firebase_auth.OAuthCredential credential =
+          firebase_auth.GoogleAuthProvider.credential(
+        accessToken: accessToken,
+        idToken: idToken,
       );
 
-      final firebase_auth.UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final firebase_auth.UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
       final firebase_auth.User? user = userCredential.user;
 
       if (user != null) {
@@ -50,7 +89,6 @@ class GoogleAuthProvider extends ChangeNotifier {
           uid: user.uid,
           displayName: user.displayName ?? googleUser.displayName,
           email: user.email ?? googleUser.email,
-          // Correção 2: Mudança de photoUrl para photoURL (padrão correto do model User do Firebase)
           photoUrl: user.photoURL ?? googleUser.photoUrl,
         );
       }
