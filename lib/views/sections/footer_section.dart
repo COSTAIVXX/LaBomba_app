@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../config/event_config.dart';
+import '../../providers/event_config_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -8,7 +8,8 @@ class FooterSection extends StatelessWidget {
   const FooterSection({super.key});
 
   Future<void> _openSupport(BuildContext context) async {
-    await context.read<ShopProvider>().launchWhatsApp(message: EventConfig.whatsappSupportMessage);
+    final msg = context.read<EventConfigProvider>().whatsappSupportMessage;
+    await context.read<ShopProvider>().launchWhatsApp(message: msg);
   }
 
   @override

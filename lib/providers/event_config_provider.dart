@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../services/api_service.dart';
+import '../config/event_config.dart';
 
 class EventConfigProvider with ChangeNotifier {
   final ApiService _api = ApiService();
@@ -27,6 +28,21 @@ class EventConfigProvider with ChangeNotifier {
   String get date => _date;
   String get location => _location;
   bool get isLoading => _loading;
+
+  /// Returns a concrete DateTime for the configured event date when possible.
+  /// Falls back to the static EventConfig.eventDate when parsing fails.
+  DateTime get eventDate {
+    try {
+      return DateTime.parse(_date);
+    } catch (_) {
+      return EventConfig.eventDate;
+    }
+  }
+
+  // WhatsApp helpers (defaults kept in EventConfig)
+  String get whatsappSupportMessage => EventConfig.whatsappSupportMessage;
+  String get whatsappPurchaseMessage => EventConfig.whatsappPurchaseMessage;
+  String get whatsappPhone => EventConfig.whatsappPhone;
 
   Future<void> fetch() async {
     _loading = true;

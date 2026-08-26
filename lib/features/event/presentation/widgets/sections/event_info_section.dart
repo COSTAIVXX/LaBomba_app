@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:labomba_app/config/event_config.dart';
+import 'package:provider/provider.dart';
+import 'package:labomba_app/providers/event_config_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 
 class EventInfoSection extends StatelessWidget {
@@ -8,17 +9,15 @@ class EventInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cfg = context.watch<EventConfigProvider>();
     return Wrap(
       spacing: 16,
       runSpacing: 16,
       alignment: WrapAlignment.center,
-      children: const [
+      children: [
+        _InfoCard(icon: Icons.calendar_month, title: 'Data', value: cfg.date),
         _InfoCard(
-            icon: Icons.calendar_month, title: 'Data', value: '05 Fev 2027'),
-        _InfoCard(
-            icon: Icons.location_on,
-            title: 'Local',
-            value: EventConfig.eventLocation),
+            icon: Icons.location_on, title: 'Local', value: cfg.location),
         _InfoCard(icon: Icons.alarm, title: 'Abertura', value: '18:00 hrs'),
       ],
     );
