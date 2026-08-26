@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // Web implementation using window.localStorage
 import 'dart:html' as html;
 import 'storage_service.dart';

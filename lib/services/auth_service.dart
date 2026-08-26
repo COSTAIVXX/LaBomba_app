@@ -77,7 +77,9 @@ class AuthService {
     // Persist id token for ApiService or other uses
     try {
       final token = await user.getIdToken();
-      await _storage.write(key: _idTokenKey, value: token);
+      if (token != null) {
+        await _storage.write(key: _idTokenKey, value: token);
+      }
     } catch (_) {}
 
     return {
