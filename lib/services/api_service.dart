@@ -59,9 +59,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar configura��es do evento');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+      throw Exception('Falha ao carregar configurações do evento');
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.getEventConfig');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 
@@ -71,9 +72,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar conte�do');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+      throw Exception('Falha ao carregar conteúdo');
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.getContent');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 
@@ -83,9 +85,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar lotes de pre�o');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+      throw Exception('Falha ao carregar lotes de preço');
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.getPricing');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 
@@ -100,8 +103,9 @@ class ApiService {
             body: jsonEncode(data),
           ));
       if (response.statusCode != 200) throw Exception('Falha ao atualizar evento');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.updateEventConfig');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 
@@ -114,8 +118,9 @@ class ApiService {
             body: jsonEncode({'rules': rules}),
           ));
       if (response.statusCode != 200) throw Exception('Falha ao atualizar regras');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.updateRules');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 
@@ -140,9 +145,10 @@ class ApiService {
         final data = jsonDecode(response.body);
         return data['url'];
       }
-      throw Exception('Falha ao fazer upload da m�dia');
-    } on SocketException catch (e) {
-      throw Exception('Conex�o falhou: ' + e.toString());
+      throw Exception('Falha ao fazer upload da mídia');
+    } on SocketException catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'ApiService.uploadMedia');
+      throw Exception('Conexão falhou: ' + e.toString());
     }
   }
 }
