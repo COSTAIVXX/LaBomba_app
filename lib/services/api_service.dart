@@ -39,12 +39,18 @@ class ApiService {
       attempt++;
       try {
         return await operation().timeout(_defaultTimeout);
-      } on SocketException {
-        if (attempt >= _maxRetries) rethrow;
+      } on SocketException catch (e, s) {
+        if (attempt >= _maxRetries) {
+          await ObservabilityService.reportError(e, s, reason: 'ApiService.withRetriesExhausted');
+          rethrow;
+        }
         final delay = Duration(milliseconds: 500 * (1 << (attempt - 1)));
         await Future.delayed(delay);
-      } on TimeoutException {
-        if (attempt >= _maxRetries) rethrow;
+      } on TimeoutException catch (e, s) {
+        if (attempt >= _maxRetries) {
+          await ObservabilityService.reportError(e, s, reason: 'ApiService.withRetriesExhausted');
+          rethrow;
+        }
         final delay = Duration(milliseconds: 500 * (1 << (attempt - 1)));
         await Future.delayed(delay);
       }
