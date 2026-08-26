@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:labomba_app/config/event_config.dart';
+import 'package:provider/provider.dart';
+import 'package:labomba_app/providers/event_config_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
 
 TextStyle labombaTextStyle({
@@ -43,7 +44,8 @@ class _CountdownSectionState extends State<CountdownSection> {
 
   void _updateCountdown() {
     final now = DateTime.now();
-    final difference = EventConfig.eventDate.difference(now);
+    final eventDate = context.read<EventConfigProvider>().eventDate;
+    final difference = eventDate.difference(now);
     if (!mounted) return;
     setState(() {
       _remaining = difference.isNegative ? Duration.zero : difference;

@@ -16,6 +16,7 @@ import 'providers/admin_auth_provider.dart' as admin_provider;
 import 'providers/client_provider.dart';
 import 'providers/shop_provider.dart';
 import 'providers/google_auth_provider.dart';
+import 'providers/event_config_provider.dart';
 
 // Views e Páginas do Aplicativo
 import 'views/landing_page.dart';
@@ -66,6 +67,9 @@ class LaBombaApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => GoogleAuthProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => EventConfigProvider(),
         ),
       ],
       child: MaterialApp(
