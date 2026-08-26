@@ -19,7 +19,7 @@ class GoogleAuthData {
 
 class GoogleAuthProvider extends ChangeNotifier {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
