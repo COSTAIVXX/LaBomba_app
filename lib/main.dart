@@ -108,7 +108,7 @@ class LaBombaApp extends StatelessWidget {
           create: (context) => GoogleAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
-          create: (_) => EventConfigProvider(),
+          create: (context) => EventConfigProvider(authService: context.read<AuthService>()),
         ),
       ],
       child: MaterialApp(

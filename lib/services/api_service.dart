@@ -3,23 +3,25 @@ import 'dart:io' show SocketException;
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import 'auth_service.dart';
 
 class ApiService {
-  ApiService();
+  final AuthService? _authService;
 
-  String? _authToken;
-
-  void setToken(String token) {
-    _authToken = token;
-  }
-
-  Map<String, String> get _headers {
-    final headers = {'Content-Type': 'application/json'};
-    if (_authToken != null) headers['Authorization'] = 'Bearer ' + _authToken!;
-    return headers;
-  }
+  ApiService({AuthService? authService}) : _authService = authService;
 
   String get _base => ApiConfig.baseUrl;
+
+  Future<Map<String, String>> _authHeaders() async {
+    final headers = {'Content-Type': 'application/json'};
+    try {
+      final token = _authService == null ? null : await _authService!.getIdToken();
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {}
+    return headers;
+  }
 
   // --- Rotas Públicas ---
 
@@ -63,9 +65,10 @@ class ApiService {
 
   Future<void> updateEventConfig(Map<String, dynamic> data) async {
     try {
+      final headers = await _authHeaders();
       final response = await http.put(
         Uri.parse(_base + '/event'),
-        headers: _headers,
+        headers: headers,
         body: jsonEncode(data),
       );
       if (response.statusCode != 200) throw Exception('Falha ao atualizar evento');
@@ -76,9 +79,10 @@ class ApiService {
 
   Future<void> updateRules(List<String> rules) async {
     try {
+      final headers = await _authHeaders();
       final response = await http.put(
         Uri.parse(_base + '/content/rules'),
-        headers: _headers,
+        headers: headers,
         body: jsonEncode({'rules': rules}),
       );
       if (response.statusCode != 200) throw Exception('Falha ao atualizar regras');
@@ -91,9 +95,8 @@ class ApiService {
     try {
       var request = http.MultipartRequest('POST', Uri.parse(_base + '/media/upload'));
       
-      if (_authToken != null) {
-        request.headers['Authorization'] = 'Bearer ' + _authToken!;
-      }
+      final headers = await _authHeaders();
+      request.headers.addAll(headers);
 
       request.files.add(http.MultipartFile.fromBytes(
         'file',

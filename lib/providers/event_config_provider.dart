@@ -4,9 +4,16 @@ import 'package:flutter/foundation.dart';
 
 import '../services/api_service.dart';
 import '../config/event_config.dart';
+import '../services/auth_service.dart';
 
 class EventConfigProvider with ChangeNotifier {
-  final ApiService _api = ApiService();
+  late final ApiService _api;
+
+  EventConfigProvider({AuthService? authService}) {
+    _api = ApiService(authService: authService);
+    // initial load
+    fetch();
+  }
 
   String _title = 'LA BOMBA 2027 • O MAIOR CARNAVAL';
   String _date = '05 de Fevereiro de 2027';
@@ -16,11 +23,6 @@ class EventConfigProvider with ChangeNotifier {
 
   // Optional stream to allow fine-grained subscriptions
   final StreamController<Map<String, String>> _onChange = StreamController.broadcast();
-
-  EventConfigProvider() {
-    // initial load
-    fetch();
-  }
 
   Stream<Map<String, String>> get onChange => _onChange.stream;
 
