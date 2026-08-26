@@ -35,22 +35,32 @@ import 'views/admin/client_base_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  debugPrint('main: after WidgetsFlutterBinding.ensureInitialized');
+  await ObservabilityService.logEvent('app_starting');
+
   try {
+    debugPrint('main: initializing Firebase...');
+    await ObservabilityService.logEvent('firebase_initialization_start');
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
+    debugPrint('main: firebase initialized');
+    await ObservabilityService.logEvent('firebase_initialization_success');
   } catch (e, s) {
     debugPrint('Erro ao inicializar o Firebase: $e');
     // Report initialization error to Crashlytics/Observability if available
     try {
       await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
+      await ObservabilityService.logEvent('firebase_initialization_failure', parameters: {'error': e.toString()});
     } catch (_) {}
   }
 
   // Initialize observability (Analytics, Crashlytics)
   try {
+    debugPrint('main: initializing ObservabilityService');
+    await ObservabilityService.logEvent('observability_init_start');
     await ObservabilityService.init();
 
     // Route Flutter framework errors to Crashlytics
@@ -61,33 +71,54 @@ void main() async {
         FirebaseCrashlytics.instance.recordFlutterError(details);
       } catch (_) {}
     };
-  } catch (e) {
+    debugPrint('main: ObservabilityService initialized');
+    await ObservabilityService.logEvent('observability_init_success');
+  } catch (e, s) {
     debugPrint('Observability init failed: $e');
+    try {
+      await ObservabilityService.reportError(e, s, reason: 'Main.observabilityInit');
+    } catch (_) {}
   }
 
   // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
   try {
+    debugPrint('main: initializing GoogleSignIn');
+    await ObservabilityService.logEvent('google_signin_init_start');
     await GoogleSignIn.instance.initialize();
-  } catch (e) {
+    debugPrint('main: GoogleSignIn initialized');
+    await ObservabilityService.logEvent('google_signin_init_success');
+  } catch (e, s) {
     debugPrint('GoogleSignIn initialization failed: $e');
+    try {
+      await ObservabilityService.reportError(e, s, reason: 'Main.googleSignInInit');
+    } catch (_) {}
   }
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)
-  const secureStorage = FlutterSecureStorage();
+  debugPrint('main: creating secure storage');
+  final secureStorage = const FlutterSecureStorage();
+  await ObservabilityService.logEvent('secure_storage_created');
 
   // 2. Injeta o armazenamento dentro do nosso Repositório
+  debugPrint('main: creating client repository');
   final clientRepository = SecureClientRepository(secureStorage);
+  await ObservabilityService.logEvent('client_repository_created');
 
   // 3. Inicia o App injetando o repositório configurado dentro de runZonedGuarded
+  debugPrint('main: entering runZonedGuarded');
   runZonedGuarded(() {
+    debugPrint('main: before runApp');
     runApp(LaBombaApp(repository: clientRepository));
-  }, (Object error, StackTrace stack) {
+    debugPrint('main: runApp completed');
+  }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
+      await ObservabilityService.reportError(error, stack, reason: 'Main.uncaughtError');
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     } catch (_) {}
   });
 }
+
 
 class LaBombaApp extends StatelessWidget {
   // Recebe o repositório criado lá no main()

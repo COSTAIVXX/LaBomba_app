@@ -5,14 +5,18 @@ import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../config/event_config.dart';
 import '../services/auth_service.dart';
+import '../services/observability_service.dart';
 
 class EventConfigProvider with ChangeNotifier {
   late final ApiService _api;
 
   EventConfigProvider({AuthService? authService}) {
     _api = ApiService(authService: authService);
-    // initial load
-    fetch();
+    // initial load (deferred to avoid blocking synchronous startup)
+    // schedule fetch on next microtask so constructors/build won't be blocked
+    scheduleMicrotask(() async {
+      await fetch();
+    });
   }
 
   String _title = 'LA BOMBA 2027 • O MAIOR CARNAVAL';
@@ -50,13 +54,16 @@ class EventConfigProvider with ChangeNotifier {
     _loading = true;
     notifyListeners();
     try {
+      await ObservabilityService.logEvent('EventConfigProvider.fetch_start');
       final data = await _api.getEventConfig();
       _title = data['title']?.toString() ?? _title;
       _date = data['date']?.toString() ?? _date;
       _location = data['location']?.toString() ?? _location;
       _onChange.add({'title': _title, 'date': _date, 'location': _location});
-    } catch (e) {
-      // ignore, keep defaults
+      await ObservabilityService.logEvent('EventConfigProvider.fetch_success');
+    } catch (e, s) {
+      await ObservabilityService.reportError(e, s, reason: 'EventConfigProvider.fetch');
+      await ObservabilityService.logEvent('EventConfigProvider.fetch_failure', parameters: {'error': e.toString()});
     } finally {
       _loading = false;
       notifyListeners();
