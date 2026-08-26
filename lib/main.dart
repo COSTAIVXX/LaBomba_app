@@ -7,6 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'dart:async';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'services/observability_service.dart';
 
 // Configurações e Temas
@@ -52,6 +53,13 @@ void main() async {
     };
   } catch (e) {
     debugPrint('Observability init failed: $e');
+  }
+
+  // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
+  try {
+    await GoogleSignIn.instance.initialize();
+  } catch (e) {
+    debugPrint('GoogleSignIn initialization failed: $e');
   }
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)

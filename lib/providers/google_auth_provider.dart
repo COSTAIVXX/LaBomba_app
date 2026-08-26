@@ -19,9 +19,8 @@ class GoogleAuthData {
 
 class GoogleAuthProvider extends ChangeNotifier {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
-  // Use the singleton instance of GoogleSignIn (new API requires initialize() once)
+  // Use the singleton instance of GoogleSignIn (app bootstrap will initialize it)
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  static bool _googleInitialized = false;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -29,12 +28,6 @@ class GoogleAuthProvider extends ChangeNotifier {
   Future<GoogleAuthData?> signInWithGoogle() async {
     _setLoading(true);
     try {
-      // Ensure GoogleSignIn singleton is initialized exactly once as required by the new API.
-      if (!_googleInitialized) {
-        await _googleSignIn.initialize();
-        _googleInitialized = true;
-      }
-
       // Sign out any previous session to ensure a fresh flow.
       await _googleSignIn.signOut();
 
