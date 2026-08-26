@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
 
 // NOVO: Import do armazenamento seguro
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -35,9 +36,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await Firebase.initializeApp();
-  } catch (e) {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e, s) {
     debugPrint('Erro ao inicializar o Firebase: $e');
+    // Report initialization error to Crashlytics/Observability if available
+    try {
+      await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
+    } catch (_) {}
   }
 
   // Initialize observability (Analytics, Crashlytics)
