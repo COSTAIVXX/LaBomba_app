@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show SocketException;
 import 'package:http/http.dart' as http;
@@ -24,7 +24,11 @@ class ApiService {
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
-    } catch (_) {}
+    } catch (e) {
+      // Report non-fatal error for diagnostics. Replace with ObservabilityService when available.
+      // ignore: avoid_print
+      print(e);
+    }
     return headers;
   }
 
@@ -47,7 +51,7 @@ class ApiService {
     }
   }
 
-  // --- Rotas Públicas ---
+  // --- Rotas P�blicas ---
 
   Future<Map<String, dynamic>> getEventConfig() async {
     try {
@@ -55,9 +59,9 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar configurações do evento');
+      throw Exception('Falha ao carregar configura��es do evento');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 
@@ -67,9 +71,9 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar conteúdo');
+      throw Exception('Falha ao carregar conte�do');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 
@@ -79,9 +83,9 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
-      throw Exception('Falha ao carregar lotes de preço');
+      throw Exception('Falha ao carregar lotes de pre�o');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 
@@ -97,7 +101,7 @@ class ApiService {
           ));
       if (response.statusCode != 200) throw Exception('Falha ao atualizar evento');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 
@@ -111,7 +115,7 @@ class ApiService {
           ));
       if (response.statusCode != 200) throw Exception('Falha ao atualizar regras');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 
@@ -136,9 +140,11 @@ class ApiService {
         final data = jsonDecode(response.body);
         return data['url'];
       }
-      throw Exception('Falha ao fazer upload da mídia');
+      throw Exception('Falha ao fazer upload da m�dia');
     } on SocketException catch (e) {
-      throw Exception('Conexão falhou: ' + e.toString());
+      throw Exception('Conex�o falhou: ' + e.toString());
     }
   }
 }
+
+
