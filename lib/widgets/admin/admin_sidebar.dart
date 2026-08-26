@@ -5,12 +5,14 @@ class AdminSidebar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final VoidCallback onLogout;
+  final bool forceExpanded; // when used inside Drawer on mobile, show labels
 
   const AdminSidebar({
     super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
     required this.onLogout,
+    this.forceExpanded = false,
   });
 
   @override
@@ -22,20 +24,21 @@ class _AdminSidebarState extends State<AdminSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final expanded = widget.forceExpanded || _isExpanded;
     return MouseRegion(
-      onEnter: (_) => setState(() => _isExpanded = true),
-      onExit: (_) => setState(() => _isExpanded = false),
+      onEnter: widget.forceExpanded ? null : (_) => setState(() => _isExpanded = true),
+      onExit: widget.forceExpanded ? null : (_) => setState(() => _isExpanded = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubic,
-        width: _isExpanded ? 240 : 80,
+        width: expanded ? 240 : 80,
         decoration: BoxDecoration(
           color: AppTheme.background,
           border: Border(
             right: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           boxShadow: [
-            if (_isExpanded)
+            if (expanded)
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 20,
@@ -49,7 +52,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
             // Header Logo
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: _isExpanded
+              child: expanded
                   ? _buildExpandedHeader()
                   : _buildCollapsedHeader(),
             ),
@@ -63,7 +66,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
                     icon: Icons.dashboard_rounded,
                     label: 'Operação',
                     isSelected: widget.selectedIndex == 0,
-                    isExpanded: _isExpanded,
+                    isExpanded: expanded,
                     onTap: () => widget.onDestinationSelected(0),
                   ),
                   const SizedBox(height: 8),
@@ -71,7 +74,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
                     icon: Icons.people_alt_rounded,
                     label: 'Clientes',
                     isSelected: widget.selectedIndex == 1,
-                    isExpanded: _isExpanded,
+                    isExpanded: expanded,
                     onTap: () => widget.onDestinationSelected(1),
                   ),
                   const SizedBox(height: 8),
@@ -79,7 +82,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
                     icon: Icons.auto_stories_rounded,
                     label: 'CMS',
                     isSelected: widget.selectedIndex == 2,
-                    isExpanded: _isExpanded,
+                    isExpanded: expanded,
                     onTap: () => widget.onDestinationSelected(2),
                   ),
                 ],
@@ -92,7 +95,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
                 icon: Icons.logout_rounded,
                 label: 'Sair',
                 isSelected: false,
-                isExpanded: _isExpanded,
+                isExpanded: expanded,
                 onTap: widget.onLogout,
                 isDestructive: true,
               ),
