@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'services/observability_service.dart';
+import 'services/auth_service.dart';
 
 // Configurações e Temas
 import 'theme/app_theme.dart';
@@ -90,8 +91,11 @@ class LaBombaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Central AuthService provided first so other providers can consume it
+        Provider<AuthService>(create: (_) => AuthService()),
+
         ChangeNotifierProvider(
-          create: (_) => admin_provider.AdminAuthProvider(),
+          create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
           // 4. Injeta o repositório pronto para o ClientProvider usar!
@@ -101,7 +105,7 @@ class LaBombaApp extends StatelessWidget {
           create: (_) => ShopProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => GoogleAuthProvider(),
+          create: (context) => GoogleAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
           create: (_) => EventConfigProvider(),

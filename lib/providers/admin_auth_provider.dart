@@ -1,23 +1,23 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../services/auth_service.dart';
 
 class AdminAuthProvider extends ChangeNotifier {
-  static const String _sessionKey = 'labomba_admin_session';
-
   static const String defaultUsername = 'admin';
   static const String defaultPassword = 'LaBomba@2027';
+
+  final AuthService _authService;
 
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
-  AdminAuthProvider() {
+  AdminAuthProvider({required AuthService authService}) : _authService = authService {
     _restoreSession();
   }
 
   Future<void> _restoreSession() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _isAuthenticated = prefs.getBool(_sessionKey) ?? false;
+      _isAuthenticated = await _authService.isAdminAuthenticated();
       notifyListeners();
     } catch (_) {
       _isAuthenticated = false;
@@ -28,8 +28,7 @@ class AdminAuthProvider extends ChangeNotifier {
     if (username.trim() == defaultUsername && password == defaultPassword) {
       _isAuthenticated = true;
       try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_sessionKey, true);
+        await _authService.setAdminSession(true);
       } catch (_) {}
       notifyListeners();
       return true;
@@ -40,8 +39,7 @@ class AdminAuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _isAuthenticated = false;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_sessionKey);
+      await _authService.setAdminSession(false);
     } catch (_) {}
     notifyListeners();
   }
