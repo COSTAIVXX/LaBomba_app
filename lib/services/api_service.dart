@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import 'auth_service.dart';
+import 'observability_service.dart';
 
 class ApiService {
   final AuthService? _authService;
@@ -24,10 +25,9 @@ class ApiService {
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
-    } catch (e) {
-      // Report non-fatal error for diagnostics. Replace with ObservabilityService when available.
-      // ignore: avoid_print
-      print(e);
+    } catch (e, s) {
+      // Report non-fatal error for diagnostics via ObservabilityService
+      await ObservabilityService.reportError(e, s, reason: 'ApiService._authHeaders');
     }
     return headers;
   }
