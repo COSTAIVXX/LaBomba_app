@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
-import '../../services/auth_service.dart';
+import '../../../services/auth_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});

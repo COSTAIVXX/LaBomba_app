@@ -32,6 +32,10 @@ import 'providers/event_config_provider.dart';
 // Memories feature
 import 'features/memories/memories_module.dart';
 
+// Chat feature (views/providers)
+import 'features/chat/providers/chat_provider.dart';
+import 'features/chat/views/chat_page.dart';
+
 // Views e Páginas do Aplicativo
 import 'views/landing_page.dart';
 import 'views/client_registration_page.dart';
