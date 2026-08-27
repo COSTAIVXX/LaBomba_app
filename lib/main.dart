@@ -46,6 +46,7 @@ import 'views/terms_page.dart';
 import 'views/settings_page.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
+import 'views/notifications_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -201,6 +202,7 @@ class LaBombaApp extends StatelessWidget {
             '/chat': (context) => const ChatPage(),
             '/settings': (context) => const SettingsPage(),
             '/profile': (context) => const UserProfilePage(),
+            '/notifications': (context) => const NotificationsPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
           },
         );

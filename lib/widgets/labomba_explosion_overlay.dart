@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class LaBombaExplosionOverlay extends StatefulWidget {
+  final String message;
+  final VoidCallback? onFinished;
+
+  const LaBombaExplosionOverlay({
+    super.key,
+    this.message = 'LA BOMBA!',
+    this.onFinished,
+  });
+
+  static Future<void> show(
+    BuildContext context, {
+    String message = 'LA BOMBA!',
+  }) async {
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (_) => LaBombaExplosionOverlay(message: message),
+    );
+    overlay.insert(entry);
+    await Future<void>.delayed(const Duration(milliseconds: 1300));
+    entry.remove();
+  }
+
+  @override
+  State<LaBombaExplosionOverlay> createState() =>
+      _LaBombaExplosionOverlayState();
+}
+
+class _LaBombaExplosionOverlayState extends State<LaBombaExplosionOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..forward();
+    SystemSound.play(SystemSoundType.alert);
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) widget.onFinished?.call();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Material(
+        color: Colors.transparent,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final progress = CurvedAnimation(
+              parent: _controller,
+              curve: Curves.easeOutBack,
+            ).value;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(
+                  color: Colors.deepPurple.withValues(
+                    alpha: (1 - _controller.value) * .58,
+                  ),
+                ),
+                Center(
+                  child: Transform.scale(
+                    scale: progress,
+                    child: Transform.rotate(
+                      angle: (1 - progress) * .25,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF6A00), Color(0xFFEC4899)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.orangeAccent,
+                              blurRadius: 35,
+                              spreadRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          widget.message,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
