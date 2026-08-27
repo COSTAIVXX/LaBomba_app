@@ -29,6 +29,12 @@ class SettingsHubPage extends StatelessWidget {
         route: '/notifications',
       ),
       _SettingsSection(
+        icon: Icons.volume_up_outlined,
+        title: 'Sons e efeitos',
+        subtitle: 'Controle som, animações e vibração dos alertas',
+        route: '/settings/sound-alerts',
+      ),
+      _SettingsSection(
         icon: Icons.privacy_tip_outlined,
         title: 'Privacidade',
         subtitle: 'Termos, aceite e preferências de dados',

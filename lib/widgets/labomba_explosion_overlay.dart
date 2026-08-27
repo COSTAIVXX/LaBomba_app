@@ -1,23 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../services/storage_service.dart';
 
 class LaBombaExplosionOverlay extends StatefulWidget {
   final String message;
   final VoidCallback? onFinished;
+  final bool soundEnabled;
+  final bool visualEnabled;
+  final bool hapticEnabled;
 
   const LaBombaExplosionOverlay({
     super.key,
     this.message = 'LA BOMBA!',
     this.onFinished,
+    this.soundEnabled = true,
+    this.visualEnabled = true,
+    this.hapticEnabled = true,
   });
 
   static Future<void> show(
     BuildContext context, {
     String message = 'LA BOMBA!',
   }) async {
+    final storage = context.read<StorageService>();
+    final soundEnabled =
+        await storage.read(key: 'settings_alert_sound') != 'false';
+    final visualEnabled =
+        await storage.read(key: 'settings_alert_visual') != 'false';
+    final hapticEnabled =
+        await storage.read(key: 'settings_alert_haptic') != 'false';
+    if (!visualEnabled && !soundEnabled && !hapticEnabled) return;
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => LaBombaExplosionOverlay(message: message),
+      builder: (_) => LaBombaExplosionOverlay(
+        message: message,
+        soundEnabled: soundEnabled,
+        visualEnabled: visualEnabled,
+        hapticEnabled: hapticEnabled,
+      ),
     );
     overlay.insert(entry);
     await Future<void>.delayed(const Duration(milliseconds: 1300));
@@ -40,7 +62,12 @@ class _LaBombaExplosionOverlayState extends State<LaBombaExplosionOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..forward();
-    SystemSound.play(SystemSoundType.alert);
+    if (widget.soundEnabled) {
+      SystemSound.play(SystemSoundType.alert);
+    }
+    if (widget.hapticEnabled) {
+      HapticFeedback.mediumImpact();
+    }
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) widget.onFinished?.call();
     });
@@ -54,6 +81,7 @@ class _LaBombaExplosionOverlayState extends State<LaBombaExplosionOverlay>
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.visualEnabled) return const SizedBox.shrink();
     return IgnorePointer(
       child: Material(
         color: Colors.transparent,
