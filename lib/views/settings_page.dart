@@ -45,7 +45,9 @@ class _SettingsPageState extends State<SettingsPage> {
         try {
           final auth = context.read<AuthService>();
           if (auth.currentUser != null) {
-            final profile = await AdminProfileService().getCurrentUserProfile();
+            final profile = await AdminProfileService(
+              storage: _storage,
+            ).getCurrentUserProfile();
             if (profile?.displayName != null && profile!.displayName!.isNotEmpty) {
               dn = profile.displayName;
             }
@@ -136,7 +138,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     try {
                       final auth = context.read<AuthService>();
                       if (auth.currentUser != null) {
-                        await AdminProfileService().updateDisplayName(trimmed);
+                        await AdminProfileService(
+                          storage: _storage,
+                        ).updateDisplayName(trimmed);
                         // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
                         try {
                           await auth.reloadCurrentUser();
