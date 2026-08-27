@@ -51,6 +51,7 @@ import 'views/onboarding_page.dart';
 import 'views/settings_hub_page.dart';
 import 'views/privacy_data_management_page.dart';
 import 'views/sound_alerts_settings_page.dart';
+import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
@@ -219,6 +220,7 @@ class LaBombaApp extends StatelessWidget {
                 const PrivacyDataManagementPage(),
             '/settings/sound-alerts': (context) =>
                 const SoundAlertsSettingsPage(),
+            '/about': (context) => const AboutAndTermsPage(),
             '/profile': (context) => const UserProfilePage(),
             '/notifications': (context) => const NotificationsPage(),
             '/onboarding': (context) =>

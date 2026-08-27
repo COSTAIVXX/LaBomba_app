@@ -40,6 +40,12 @@ class SettingsHubPage extends StatelessWidget {
         subtitle: 'Termos, aceite e preferências de dados',
         route: '/settings/privacy/data',
       ),
+      _SettingsSection(
+        icon: Icons.info_outline,
+        title: 'Sobre o app e termos',
+        subtitle: 'Versão, créditos, termos e política de privacidade',
+        route: '/about',
+      ),
     ];
 
     return Scaffold(
