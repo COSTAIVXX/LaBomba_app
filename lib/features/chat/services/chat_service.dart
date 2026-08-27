@@ -6,7 +6,7 @@ class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String roomId;
 
-  ChatService({this.roomId = 'lobby'});
+  ChatService({this.roomId = 'general'});
 
   Stream<List<ChatMessage>> messagesStream() {
     return _firestore
@@ -30,5 +30,10 @@ class ChatService {
       createdAt: DateTime.now(),
     );
     await doc.set(msg.toMap());
+  }
+
+  static String privateRoomId(String firstUserId, String secondUserId) {
+    final users = [firstUserId, secondUserId]..sort();
+    return 'private_${users[0]}_${users[1]}';
   }
 }

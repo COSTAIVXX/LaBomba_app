@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/chat_service.dart';
 import '../../../services/auth_service.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
+import '../../../services/screen_protection_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -13,6 +15,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _privateUserController = TextEditingController();
   late ChatProvider _provider;
 
   @override
@@ -26,6 +29,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _controller.dispose();
+    _privateUserController.dispose();
     super.dispose();
   }
 
@@ -78,10 +82,43 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(builder: (context, chat, _) {
       final messages = chat.messages;
-      return Scaffold(
+      return SecureScreen(
+        child: Scaffold(
         appBar: AppBar(title: const Text('La Bomba • Chat'), backgroundColor: const Color(0xFF7C1AFF), actions: [UserAppBarActions()]),
         body: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Row(
+                children: [
+                  DropdownButton<String>(
+                    value: chat.roomId == 'general' ? 'general' : 'private',
+                    items: const [
+                      DropdownMenuItem(value: 'general', child: Text('Grupo geral')),
+                      DropdownMenuItem(value: 'private', child: Text('Chat privado')),
+                    ],
+                    onChanged: (value) async {
+                      if (value == 'general') {
+                        _provider.switchRoom('general');
+                      } else {
+                        final userId = await _requestPrivateUser();
+                        if (userId != null && userId.isNotEmpty) {
+                          final current =
+                              context.read<AuthService>().currentUser?.uid ?? 'anon';
+                          _provider.switchRoom(
+                              ChatService.privateRoomId(current, userId));
+                        }
+                      }
+                    },
+                  ),
+                  if (chat.roomId != 'general')
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Text('conversa privada'),
+                    ),
+                ],
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 reverse: true,
@@ -136,7 +173,32 @@ class _ChatPageState extends State<ChatPage> {
             )
           ],
         ),
+      ),
       );
     });
+  }
+
+  Future<String?> _requestPrivateUser() {
+    _privateUserController.clear();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Iniciar chat privado'),
+        content: TextField(
+          controller: _privateUserController,
+          decoration: const InputDecoration(labelText: 'UID do outro usuário'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(context, _privateUserController.text.trim()),
+            child: const Text('Abrir'),
+          ),
+        ],
+      ),
+    );
   }
 }

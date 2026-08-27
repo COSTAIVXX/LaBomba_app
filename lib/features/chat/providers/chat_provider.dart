@@ -4,7 +4,7 @@ import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 
 class ChatProvider with ChangeNotifier {
-  final ChatService _service;
+  ChatService _service;
   StreamSubscription<List<ChatMessage>>? _sub;
 
   List<ChatMessage> _messages = [];
@@ -12,10 +12,13 @@ class ChatProvider with ChangeNotifier {
 
   ChatProvider({ChatService? service}) : _service = service ?? ChatService();
 
+  String get roomId => _service.roomId;
+
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isConnected => _isConnected;
 
   void connect() {
+    _sub?.cancel();
     _sub = _service.messagesStream().listen((list) {
       _messages = list;
       _isConnected = true;
@@ -24,6 +27,14 @@ class ChatProvider with ChangeNotifier {
       _isConnected = false;
       notifyListeners();
     });
+  }
+
+  void switchRoom(String roomId) {
+    _service = ChatService(roomId: roomId);
+    _messages = [];
+    _isConnected = false;
+    notifyListeners();
+    connect();
   }
 
   Future<void> sendMessage({required String senderId, required String senderName, String? text, String? stickerUrl}) async {
