@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/storage_service.dart';
 import '../services/admin_profile_service.dart';
 import '../services/auth_service.dart';
+import '../providers/google_auth_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -135,6 +136,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       final auth = context.read<AuthService>();
                       if (auth.currentUser != null) {
                         await AdminProfileService().updateDisplayName(trimmed);
+                        // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
+                        try {
+                          await auth.reloadCurrentUser();
+                          // If a GoogleAuthProvider is registered, refresh it so listeners update
+                          try {
+                            final googleProvider = context.read<GoogleAuthProvider>();
+                            await googleProvider.refresh();
+                          } catch (_) {}
+                        } catch (_) {}
+
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas e perfil atualizado')));
                         return;
                       }

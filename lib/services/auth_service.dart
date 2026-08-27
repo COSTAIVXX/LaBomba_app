@@ -146,6 +146,13 @@ class AuthService {
   /// Expose current Firebase user (if any)
   firebase_auth.User? get currentUser => _auth.currentUser;
 
+  /// Reload the current Firebase user from the backend and refresh local state
+  Future<void> reloadCurrentUser() async {
+    try {
+      await _auth.currentUser?.reload();
+    } catch (_) {}
+  }
+
   /// Read stored id token (if any)
   Future<String?> readStoredIdToken() => _storage.read(key: _idTokenKey);
 
