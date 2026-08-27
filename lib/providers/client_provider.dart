@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../services/storage_service.dart';
+import '../services/storage_mobile.dart';
 import 'package:uuid/uuid.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
 
@@ -12,7 +13,7 @@ abstract class IClientRepository {
 }
 
 class SecureClientRepository implements IClientRepository {
-  final FlutterSecureStorage secureStorage;
+  final StorageService secureStorage;
   static const _clientsKey = 'secure_labomba_clients';
 
   SecureClientRepository(this.secureStorage);
@@ -50,7 +51,7 @@ class ClientProvider with ChangeNotifier {
 
   // 1. Separação de Responsabilidades (SRP) via Injeção de Dependência
   ClientProvider({IClientRepository? repository}) 
-      : _repository = repository ?? SecureClientRepository(const FlutterSecureStorage()) {
+      : _repository = repository ?? SecureClientRepository(MobileStorageService()) {
     _loadClients();
   }
 

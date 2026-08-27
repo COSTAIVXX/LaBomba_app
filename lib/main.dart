@@ -4,8 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
-// NOVO: Import do armazenamento seguro
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+// Storage service (platform implementations)
+import 'services/storage_service.dart';
+import 'services/storage_mobile.dart';
 
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -96,7 +97,7 @@ void main() async {
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)
   debugPrint('main: creating secure storage');
-  final secureStorage = const FlutterSecureStorage();
+  final secureStorage = MobileStorageService();
   await ObservabilityService.logEvent('secure_storage_created');
 
   // 2. Injeta o armazenamento dentro do nosso Repositório
