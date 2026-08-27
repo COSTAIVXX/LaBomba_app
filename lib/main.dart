@@ -46,6 +46,7 @@ import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
 import 'views/splash_page.dart';
+import 'widgets/member_access_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -195,12 +196,18 @@ class LaBombaApp extends StatelessWidget {
             '/admin/login': (context) => const AdminLoginPage(),
             '/admin/dashboard': (context) => const AdminDashboardPage(),
             '/admin/clients': (context) => const ClientBasePage(),
-            '/memories': (context) => const MemoriesListPage(),
-            '/chat': (context) => ChatPage(
+            '/memories': (context) => const MemberAccessGate(
+                  child: MemoriesListPage(),
+                ),
+            '/chat': (context) => MemberAccessGate(
+                  child: ChatPage(
                   privateUserId:
                       ModalRoute.of(context)?.settings.arguments as String?,
                 ),
-            '/foliaos': (context) => const FoliaoDirectoryPage(),
+            ),
+            '/foliaos': (context) => const MemberAccessGate(
+                  child: FoliaoDirectoryPage(),
+                ),
             '/settings': (context) => const SettingsHubPage(),
             '/settings/profile': (context) => const SettingsPage(),
             '/settings/theme': (context) => const SettingsThemePage(),
@@ -210,8 +217,12 @@ class LaBombaApp extends StatelessWidget {
             '/settings/sound-alerts': (context) =>
                 const SoundAlertsSettingsPage(),
             '/about': (context) => const AboutAndTermsPage(),
-            '/profile': (context) => const UserProfilePage(),
-            '/notifications': (context) => const NotificationsPage(),
+            '/profile': (context) => const MemberAccessGate(
+                  child: UserProfilePage(),
+                ),
+            '/notifications': (context) => const MemberAccessGate(
+                  child: NotificationsPage(),
+                ),
             '/onboarding': (context) =>
                 OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
