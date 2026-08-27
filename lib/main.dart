@@ -5,7 +5,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
 // Storage service (platform implementations)
-import 'services/storage_service.dart';
 import 'services/storage_mobile.dart';
 
 import 'dart:async';
