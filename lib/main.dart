@@ -5,7 +5,9 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
 // Storage service (platform implementations)
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'services/storage_mobile.dart';
+import 'services/storage_web.dart';
 
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -96,7 +98,7 @@ void main() async {
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)
   debugPrint('main: creating secure storage');
-  final secureStorage = MobileStorageService();
+  final secureStorage = kIsWeb ? WebStorageService() : MobileStorageService();
   await ObservabilityService.logEvent('secure_storage_created');
 
   // 2. Injeta o armazenamento dentro do nosso Repositório
