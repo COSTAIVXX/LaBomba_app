@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
+import 'package:image_picker/image_picker.dart';
+import 'instant_media_editor_page.dart';
 import 'package:labomba_app/theme/app_theme.dart';
 import 'package:labomba_app/widgets/main_navigation_drawer.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
-import 'package:labomba_app/features/memories/views/memory_editor_page.dart';
 
 class MemoriesListPage extends StatelessWidget {
   const MemoriesListPage({super.key});
@@ -19,6 +20,15 @@ class MemoriesListPage extends StatelessWidget {
   static const Color _bgGradientStart = Color(0xFF7C1AFF); // magenta/purple
   static const Color _bgGradientEnd = Color(0xFFFF6A00); // orange
   static const double _cardRadius = 16.0;
+  Future<void> _capture(BuildContext context) async {
+    final media = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (media == null || !context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => InstantMediaEditorPage(media: media, isVideo: false),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +174,7 @@ class MemoriesListPage extends StatelessWidget {
         backgroundColor: AppTheme.primary,
         tooltip: 'Criar nova memória',
         child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MemoryEditorPage()));
-        },
+        onPressed: () => _capture(context),
       ),
     );
   }
