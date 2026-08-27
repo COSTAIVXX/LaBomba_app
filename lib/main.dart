@@ -38,6 +38,7 @@ import 'views/client_registration_page.dart';
 import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
+import 'views/terms_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -141,6 +142,8 @@ class LaBombaApp extends StatelessWidget {
       providers: [
         // Central AuthService provided first so other providers can consume it
         Provider<AuthService>(create: (_) => AuthService()),
+        // Expose configured StorageService so pages/services can read/write persistent flags (e.g., terms acceptance)
+        Provider<StorageService>(create: (_) => storageService),
 
         ChangeNotifierProvider(
           create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
@@ -169,13 +172,15 @@ class LaBombaApp extends StatelessWidget {
         theme: AppTheme.darkTheme,
         initialRoute: '/',
         routes: {
-          '/': (context) => const LandingPage(),
+          '/': (context) => TermsGate(storageService: storageService),
+          '/landing': (context) => const LandingPage(),
           '/register': (context) => const ClientRegistrationPage(),
           '/admin/login': (context) => const AdminLoginPage(),
           '/admin/dashboard': (context) => const AdminDashboardPage(),
           '/admin/clients': (context) => const ClientBasePage(),
          // Memories route
          '/memories': (context) => const MemoriesListPage(),
+        '/terms': (context) => TermsPage(storageService: storageService),
         },
       ),
     );
