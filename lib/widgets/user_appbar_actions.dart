@@ -39,6 +39,21 @@ class UserAppBarActions extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _QuickNavButton(
+          tooltip: 'Memórias',
+          icon: Icons.photo_library_outlined,
+          onPressed: () => Navigator.pushNamed(context, '/memories'),
+        ),
+        _QuickNavButton(
+          tooltip: 'Chat',
+          icon: Icons.chat_bubble_outline,
+          onPressed: () => Navigator.pushNamed(context, '/chat'),
+        ),
+        _QuickNavButton(
+          tooltip: 'Foliões',
+          icon: Icons.groups_outlined,
+          onPressed: () => Navigator.pushNamed(context, '/foliaos'),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
@@ -73,6 +88,7 @@ class UserAppBarActions extends StatelessWidget {
                 } else if (auth != null) {
                   await auth.signOut();
                 }
+
                 // After sign out, navigate to landing
                 Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
               } catch (_) {}
@@ -89,6 +105,27 @@ class UserAppBarActions extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _QuickNavButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _QuickNavButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon),
+      onPressed: onPressed,
     );
   }
 }

@@ -45,6 +45,7 @@ import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
+import 'views/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -184,8 +185,10 @@ class LaBombaApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProv.themeMode,
-          initialRoute: '/',
+          initialRoute: '/splash',
           routes: {
+            '/splash': (context) =>
+                SplashPage(storageService: storageService),
             '/': (context) => TermsGate(storageService: storageService),
             '/landing': (context) => const LandingPage(),
             '/register': (context) => const ClientRegistrationPage(),
