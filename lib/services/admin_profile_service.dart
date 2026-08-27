@@ -108,4 +108,29 @@ class AdminProfileService {
       rethrow;
     }
   }
+
+  Future<void> updateProfile({
+    required String displayName,
+    required String bio,
+    required Map<String, String> socialLinks,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await user.updateDisplayName(displayName);
+    await user.reload();
+    final cached = await _readCachedProfile(user.uid);
+    final profile = AdminProfile(
+      uid: user.uid,
+      email: user.email,
+      displayName: displayName,
+      bio: bio,
+      socialLinks: socialLinks,
+      isAdmin: cached?.isAdmin ?? false,
+    );
+    await _firestore.collection('admin_profiles').doc(user.uid).set(
+          profile.toMap(),
+          SetOptions(merge: true),
+        );
+    await _cacheProfile(profile);
+  }
 }

@@ -5,6 +5,7 @@ import '../services/admin_profile_service.dart';
 import '../services/auth_service.dart';
 import '../providers/google_auth_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
+import '../models/admin_profile.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,6 +18,8 @@ class _SettingsPageState extends State<SettingsPage> {
   late final StorageService _storage;
   bool _loading = true;
   String _displayName = '';
+  String _bio = '';
+  final Map<String, String> _socialLinks = {};
   bool _notificationsEnabled = true;
   bool _darkTheme = true;
   bool _shareUsage = false;
@@ -39,6 +42,10 @@ class _SettingsPageState extends State<SettingsPage> {
       final notif = await _storage.read(key: _keyNotifications);
       final theme = await _storage.read(key: _keyDarkTheme);
       final share = await _storage.read(key: _keyShareUsage);
+      AdminProfile? profile;
+      if (context.read<AuthService>().currentUser != null) {
+        profile = await AdminProfileService(storage: _storage).getCurrentUserProfile();
+      }
 
       // If no local display name and user is signed in, try fetch from profile service
       if ((dn == null || dn.isEmpty) && mounted) {
@@ -57,7 +64,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (!mounted) return;
       setState(() {
-        _displayName = dn ?? '';
+        _displayName = dn ?? profile?.displayName ?? '';
+        _bio = profile?.bio ?? '';
+        _socialLinks
+          ..clear()
+          ..addAll(profile?.socialLinks ?? {});
         _notificationsEnabled = notif == null ? true : notif == 'true';
         _darkTheme = theme == null ? true : theme == 'true';
         _shareUsage = share == 'true';
@@ -100,6 +111,33 @@ class _SettingsPageState extends State<SettingsPage> {
                   onChanged: (v) => _displayName = v,
                   onSubmitted: (v) async => await _writeString(_keyDisplayName, v.trim()),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Bio',
+                    border: OutlineInputBorder(),
+                  ),
+                  controller: TextEditingController(text: _bio),
+                  onChanged: (value) => _bio = value,
+                ),
+                const SizedBox(height: 12),
+                ...['instagram', 'tiktok', 'twitter', 'whatsapp'].map(
+                  (network) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        labelText: network[0].toUpperCase() + network.substring(1),
+                        prefixIcon: Icon(_socialIcon(network)),
+                        border: const OutlineInputBorder(),
+                      ),
+                      controller: TextEditingController(
+                        text: _socialLinks[network] ?? '',
+                      ),
+                      onChanged: (value) => _socialLinks[network] = value.trim(),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const Text('Preferências', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 SwitchListTile(
@@ -138,9 +176,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     try {
                       final auth = context.read<AuthService>();
                       if (auth.currentUser != null) {
-                        await AdminProfileService(
-                          storage: _storage,
-                        ).updateDisplayName(trimmed);
+                        await AdminProfileService(storage: _storage).updateProfile(
+                          displayName: trimmed,
+                          bio: _bio.trim(),
+                          socialLinks: Map<String, String>.from(_socialLinks),
+                        );
                         // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
                         try {
                           await auth.reloadCurrentUser();
@@ -154,6 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas e perfil atualizado')));
                         return;
                       }
+
                     } catch (e) {
                       // fall through to local save notification
                     }
@@ -169,5 +210,20 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
     );
+  }
+}
+
+IconData _socialIcon(String network) {
+  switch (network) {
+    case 'instagram':
+      return Icons.camera_alt_outlined;
+    case 'tiktok':
+      return Icons.music_note_outlined;
+    case 'twitter':
+      return Icons.alternate_email;
+    case 'whatsapp':
+      return Icons.chat_outlined;
+    default:
+      return Icons.link;
   }
 }
