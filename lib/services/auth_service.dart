@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'storage_service.dart';
 import 'storage_platform.dart';
+import 'admin_profile_service.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
@@ -117,6 +118,24 @@ class AuthService {
 
   Future<bool> isAdminAuthenticated() async {
     try {
+      // Prefer authoritative check against Firestore admin_profiles if a Firebase user is present
+      final user = _auth.currentUser;
+      if (user != null) {
+        try {
+          final adminSvc = AdminProfileService();
+          final isAdmin = await adminSvc.isCurrentUserAdmin();
+          if (isAdmin) {
+            // persist local admin session for faster restores
+            try {
+              await _storage.write(key: _adminSessionKey, value: '1');
+            } catch (_) {}
+            return true;
+          }
+        } catch (_) {
+          // ignore and fall back to stored flag
+        }
+      }
+
       final v = await _storage.read(key: _adminSessionKey);
       return v == '1';
     } catch (_) {

@@ -356,8 +356,7 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-<<<<<<< HEAD
-                            (edition.imageUrl.startsWith('http')
+(edition.imageUrl.startsWith('http')
                                 ? CachedNetworkImage(
                                     imageUrl: edition.imageUrl,
                                     fit: BoxFit.cover,
@@ -398,33 +397,6 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                                 ),
                               ),
                             ),
-=======
-                            Image.asset(
-                              edition.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Center(
-                                child: Icon(
-                                  Icons.photo_library_outlined,
-                                  color: Colors.white30,
-                                  size: 40,
-                                ),
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Colors.black.withValues(alpha: 0.72),
-                                      Colors.black.withValues(alpha: 0.08),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
->>>>>>> 510a8c1 (Agent Host changes for agents/pasted-text-processing-c6dbe1b1)
                             Positioned(
                               left: 12,
                               right: 12,

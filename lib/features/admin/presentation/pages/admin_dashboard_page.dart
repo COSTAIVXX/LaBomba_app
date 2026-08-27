@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-<<<<<<< HEAD
-=======
-import '../../../../models/ticket.dart';
-import '../../../../providers/admin_auth_provider.dart';
-import '../../../../providers/shop_provider.dart';
->>>>>>> 0afffed (ature: Add Maven Wrapper and Update Admin Pages)
 import 'package:labomba_app/core/theme/app_theme.dart';
 import 'package:labomba_app/models/ticket.dart';
 import 'package:labomba_app/providers/admin_auth_provider.dart';
