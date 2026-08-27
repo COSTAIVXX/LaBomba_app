@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
+import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 import '../../../services/auth_service.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
@@ -122,51 +123,68 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: ListView.builder(
                 reverse: true,
-                padding: const EdgeInsets.all(12),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
                 itemCount: messages.length,
                 itemBuilder: (context, idx) {
                   final m = messages[messages.length - 1 - idx];
-                  final isMe = m.senderId == (context.read<AuthService>().currentUser?.uid ?? '');
-                  return Align(
-                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: isMe ? const Color(0xFFFF6A00) : Colors.white10,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (m.stickerUrl != null) Image.network(m.stickerUrl!, width: 160),
-                          if (m.text != null) Text(m.text!, style: const TextStyle(color: Colors.white)),
-                          const SizedBox(height: 6),
-                          Text(m.senderName, style: const TextStyle(fontSize: 11, color: Colors.white38)),
-                        ],
-                      ),
-                    ),
-                  );
+                  final isMe =
+                      m.senderId == (context.read<AuthService>().currentUser?.uid ?? '');
+                  return _ChatBubble(message: m, isMe: isMe);
                 },
               ),
             ),
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                 child: Row(
                   children: [
-                    IconButton(icon: const Icon(Icons.emoji_emotions), onPressed: _openEmojiPicker),
-                    IconButton(icon: const Icon(Icons.sticky_note_2), onPressed: _openStickers),
+                    IconButton(
+                      tooltip: 'Emoji',
+                      icon: const Icon(Icons.emoji_emotions_outlined),
+                      onPressed: _openEmojiPicker,
+                    ),
+                    IconButton(
+                      tooltip: 'Sticker',
+                      icon: const Icon(Icons.sticky_note_2_outlined),
+                      onPressed: _openStickers,
+                    ),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(hintText: 'Digite uma mensagem...', border: OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          hintText: 'Digite uma mensagem...',
+                          filled: true,
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: .7),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                         onSubmitted: (_) => _sendText(),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    IconButton(icon: const Icon(Icons.send), onPressed: _sendText),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF6A00),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: IconButton(
+                        tooltip: 'Enviar',
+                        color: Colors.white,
+                        icon: const Icon(Icons.send_rounded),
+                        onPressed: _sendText,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -200,5 +218,90 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+}
+
+class _ChatBubble extends StatelessWidget {
+  const _ChatBubble({required this.message, required this.isMe});
+
+  final ChatMessage message;
+  final bool isMe;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isMe
+        ? const Color(0xFFFF6A00)
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
+    final alignment = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final radius = BorderRadius.only(
+      topLeft: const Radius.circular(18),
+      topRight: const Radius.circular(18),
+      bottomLeft: Radius.circular(isMe ? 18 : 4),
+      bottomRight: Radius.circular(isMe ? 4 : 18),
+    );
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 320),
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.fromLTRB(14, 9, 14, 8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: radius,
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: alignment,
+          children: [
+            if (!isMe)
+              Text(
+                message.senderName,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            if (message.stickerUrl != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(message.stickerUrl!, width: 170),
+                ),
+              ),
+            if (message.text != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  message.text!,
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                ),
+              ),
+            const SizedBox(height: 4),
+            Text(
+              _formatTime(message.createdAt),
+              style: TextStyle(
+                color: isMe ? Colors.white70 : Colors.white54,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }
