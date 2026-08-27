@@ -49,6 +49,7 @@ import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
+import 'views/foliao_directory_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -201,7 +202,11 @@ class LaBombaApp extends StatelessWidget {
             '/admin/clients': (context) => const ClientBasePage(),
             // Memories route
             '/memories': (context) => const MemoriesListPage(),
-            '/chat': (context) => const ChatPage(),
+            '/chat': (context) => ChatPage(
+                  privateUserId:
+                      ModalRoute.of(context)?.settings.arguments as String?,
+                ),
+            '/foliaos': (context) => const FoliaoDirectoryPage(),
             '/settings': (context) => const SettingsPage(),
             '/profile': (context) => const UserProfilePage(),
             '/notifications': (context) => const NotificationsPage(),

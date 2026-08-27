@@ -8,7 +8,9 @@ import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import '../../../services/screen_protection_service.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final String? privateUserId;
+
+  const ChatPage({super.key, this.privateUserId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -24,7 +26,16 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _provider = context.read<ChatProvider>();
     // connect to stream
-    WidgetsBinding.instance.addPostFrameCallback((_) => _provider.connect());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.privateUserId != null) {
+        final current = context.read<AuthService>().currentUser?.uid ?? 'anon';
+        _provider.switchRoom(
+          ChatService.privateRoomId(current, widget.privateUserId!),
+        );
+      } else {
+        _provider.connect();
+      }
+    });
   }
 
   @override
