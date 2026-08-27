@@ -60,7 +60,7 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
         final liked = likes.any((like) => like.id == _userId);
         final content = Row(
           children: [
-            IconButton(
+            _SocialActionButton(
               tooltip: liked ? 'Remover curtida' : 'Curtir',
               icon: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
@@ -78,7 +78,7 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
               ),
             ),
             Text('${likes.length}'),
-            IconButton(
+            _SocialActionButton(
               tooltip: 'Comentários',
               icon: const Icon(Icons.mode_comment_outlined),
               onPressed: widget.compact ? () => _showComments(context) : null,
@@ -179,6 +179,66 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
           ),
         );
       },
+    );
+  }
+}
+
+class _SocialActionButton extends StatefulWidget {
+  final String tooltip;
+  final Widget icon;
+  final VoidCallback? onPressed;
+
+  const _SocialActionButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  State<_SocialActionButton> createState() => _SocialActionButtonState();
+}
+
+class _SocialActionButtonState extends State<_SocialActionButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      child: GestureDetector(
+        onTapDown: widget.onPressed == null
+            ? null
+            : (_) => setState(() => _pressed = true),
+        onTapCancel: widget.onPressed == null
+            ? null
+            : () => setState(() => _pressed = false),
+        onTapUp: widget.onPressed == null
+            ? null
+            : (_) {
+                setState(() => _pressed = false);
+                widget.onPressed!();
+              },
+        child: AnimatedScale(
+          scale: _pressed ? 0.82 : 1,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: _pressed
+                  ? [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.secondary,
+                        blurRadius: 12,
+                      ),
+                    ]
+                  : null,
+            ),
+            padding: const EdgeInsets.all(8),
+            child: widget.icon,
+          ),
+        ),
+      ),
     );
   }
 }

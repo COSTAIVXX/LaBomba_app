@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:labomba_app/theme/app_theme.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
@@ -13,7 +16,6 @@ class MemoriesListPage extends StatelessWidget {
   // Vibrant palette tuned for carnival
   static const Color _bgGradientStart = Color(0xFF7C1AFF); // magenta/purple
   static const Color _bgGradientEnd = Color(0xFFFF6A00); // orange
-  static const Color _cardColor = Color(0xFF161616);
   static const double _cardRadius = 16.0;
 
   @override
@@ -69,17 +71,29 @@ class MemoriesListPage extends StatelessWidget {
                     builder: (_) => MemoryDetailPage(memory: m),
                   ));
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: _cardColor,
-                    borderRadius: BorderRadius.circular(_cardRadius),
-                    boxShadow: [
-                                          BoxShadow(color: const Color.fromRGBO(0, 0, 0, 0.4), blurRadius: 8, offset: const Offset(0, 4)),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(_cardRadius),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(_cardRadius),
+                        border: Border.all(
+                          color: AppTheme.primaryLight.withValues(alpha: 0.55),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.28),
+                            blurRadius: 18,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(14),
+                      child: Row(
+                        children: [
                       if (m.imageUrls.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -118,8 +132,10 @@ class MemoriesListPage extends StatelessWidget {
                         ),
                       )
                       ,
-                      MemorySocialPanel(memoryId: m.id, compact: true),
-                    ],
+                          MemorySocialPanel(memoryId: m.id, compact: true),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -151,10 +167,19 @@ class MemoryDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              color: Colors.white10,
-              child: Padding(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.primaryLight.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,6 +188,8 @@ class MemoryDetailPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text('Data: ${memory.date.toLocal()}', style: const TextStyle(color: Colors.white70)),
                   ],
+                    ),
+                  ),
                 ),
               ),
             ),
