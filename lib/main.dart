@@ -165,6 +165,10 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => MemoryProvider(service: StorageMemoryService(storageService)),
         ),
+        // Chat provider (real-time)
+        ChangeNotifierProvider(
+          create: (_) => ChatProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'La Bomba 2027',
@@ -180,6 +184,7 @@ class LaBombaApp extends StatelessWidget {
           '/admin/clients': (context) => const ClientBasePage(),
          // Memories route
          '/memories': (context) => const MemoriesListPage(),
+         '/chat': (context) => const ChatPage(),
         '/terms': (context) => TermsPage(storageService: storageService),
         },
       ),
