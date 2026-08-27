@@ -43,6 +43,7 @@ import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
 import 'views/terms_page.dart';
+import 'views/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -189,6 +190,7 @@ class LaBombaApp extends StatelessWidget {
          // Memories route
          '/memories': (context) => const MemoriesListPage(),
          '/chat': (context) => const ChatPage(),
+         '/settings': (context) => const SettingsPage(),
         '/terms': (context) => TermsPage(storageService: storageService),
         },
       ),
