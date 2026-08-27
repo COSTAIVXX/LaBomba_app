@@ -9,6 +9,7 @@ class Memory {
   final DateTime date;
   final List<String> imageUrls;
   final DateTime createdAt;
+  final String? ownerId;
 
   Memory({
     required this.id,
@@ -17,6 +18,7 @@ class Memory {
     DateTime? date,
     this.imageUrls = const [],
     DateTime? createdAt,
+    this.ownerId,
   })  : date = date ?? DateTime.now(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -27,6 +29,7 @@ class Memory {
     DateTime? date,
     List<String>? imageUrls,
     DateTime? createdAt,
+    String? ownerId,
   }) {
     return Memory(
       id: id ?? this.id,
@@ -35,6 +38,7 @@ class Memory {
       date: date ?? this.date,
       imageUrls: imageUrls ?? this.imageUrls,
       createdAt: createdAt ?? this.createdAt,
+      ownerId: ownerId ?? this.ownerId,
     );
   }
 
@@ -45,6 +49,7 @@ class Memory {
         'date': date.toIso8601String(),
         'imageUrls': imageUrls,
         'createdAt': createdAt.toIso8601String(),
+        'ownerId': ownerId,
       };
 
   factory Memory.fromJson(Map<String, dynamic> json) => Memory(
@@ -54,5 +59,6 @@ class Memory {
         date: DateTime.parse(json['date'] as String),
         imageUrls: (json['imageUrls'] as List<dynamic>?)?.cast<String>() ?? const [],
         createdAt: DateTime.parse(json['createdAt'] as String),
+        ownerId: json['ownerId'] as String?,
       );
 }

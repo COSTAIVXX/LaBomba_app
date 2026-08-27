@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
+import 'package:labomba_app/providers/google_auth_provider.dart';
 
 class MemoryEditorPage extends StatefulWidget {
   const MemoryEditorPage({super.key});
@@ -167,6 +168,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
       description: desc.isEmpty ? null : desc,
       imageUrls: List<String>.from(_attachments),
       createdAt: DateTime.now(),
+      ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
     );
 
     final provider = context.read<MemoryProvider>();
