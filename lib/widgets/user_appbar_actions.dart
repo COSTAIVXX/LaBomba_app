@@ -62,6 +62,8 @@ class UserAppBarActions extends StatelessWidget {
               Navigator.pushNamed(context, '/notifications');
             } else if (v == 'moderation') {
               Navigator.pushNamed(context, '/admin/moderation');
+            } else if (v == 'badge') {
+              Navigator.pushNamed(context, '/badge');
             } else if (v == 'signout') {
               try {
                 if (google != null) {
@@ -79,6 +81,7 @@ class UserAppBarActions extends StatelessWidget {
             const PopupMenuItem(value: 'profile', child: Text('Meu perfil')),
             const PopupMenuItem(value: 'notifications', child: Text('Notificações')),
             const PopupMenuItem(value: 'moderation', child: Text('Moderação')),
+            const PopupMenuItem(value: 'badge', child: Text('Meu crachá Folião Raiz')),
             const PopupMenuItem(value: 'signout', child: Text('Sair')),
           ],
         ),
