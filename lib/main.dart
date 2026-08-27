@@ -47,6 +47,7 @@ import 'views/settings_page.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
+import 'views/admin/admin_moderation_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -203,6 +204,7 @@ class LaBombaApp extends StatelessWidget {
             '/settings': (context) => const SettingsPage(),
             '/profile': (context) => const UserProfilePage(),
             '/notifications': (context) => const NotificationsPage(),
+            '/admin/moderation': (context) => const AdminModerationPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
           },
         );

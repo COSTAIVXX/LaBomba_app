@@ -60,6 +60,8 @@ class UserAppBarActions extends StatelessWidget {
               Navigator.pushNamed(context, '/profile');
             } else if (v == 'notifications') {
               Navigator.pushNamed(context, '/notifications');
+            } else if (v == 'moderation') {
+              Navigator.pushNamed(context, '/admin/moderation');
             } else if (v == 'signout') {
               try {
                 if (google != null) {
@@ -76,6 +78,7 @@ class UserAppBarActions extends StatelessWidget {
             const PopupMenuItem(value: 'settings', child: Text('Configurações')),
             const PopupMenuItem(value: 'profile', child: Text('Meu perfil')),
             const PopupMenuItem(value: 'notifications', child: Text('Notificações')),
+            const PopupMenuItem(value: 'moderation', child: Text('Moderação')),
             const PopupMenuItem(value: 'signout', child: Text('Sair')),
           ],
         ),
