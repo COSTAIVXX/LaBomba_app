@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/views/memory_editor_page.dart';
 

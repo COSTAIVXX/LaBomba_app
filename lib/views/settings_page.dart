@@ -4,6 +4,7 @@ import '../services/storage_service.dart';
 import '../services/admin_profile_service.dart';
 import '../services/auth_service.dart';
 import '../providers/google_auth_provider.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

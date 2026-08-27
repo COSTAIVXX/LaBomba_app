@@ -9,6 +9,7 @@ import 'sections/event_info_section.dart';
 import 'sections/gallery_section.dart';
 import 'sections/rules_section.dart';
 import 'sections/footer_section.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});

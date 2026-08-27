@@ -6,6 +6,7 @@ import '../../providers/admin_auth_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/admin/admin_sidebar.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import '../../widgets/admin/metric_card.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
