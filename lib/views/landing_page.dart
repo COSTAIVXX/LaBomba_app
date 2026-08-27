@@ -57,6 +57,8 @@ class _LandingPageState extends State<LandingPage> {
                 onPressed: () => Navigator.pushNamed(context, '/settings'),
               ),
               const SizedBox(width: 8),
+              // User info and quick actions
+              const UserAppBarActions(),
             ],
           ),
           body: Listener(

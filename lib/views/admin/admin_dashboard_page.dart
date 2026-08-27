@@ -85,6 +85,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
                   },
                 ),
+              const UserAppBarActions(),
             ],
           ),
           drawer: isDesktop ? null : Drawer(child: sidebar),

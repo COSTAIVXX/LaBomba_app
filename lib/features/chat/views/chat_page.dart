@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../../../services/auth_service.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -78,7 +79,7 @@ class _ChatPageState extends State<ChatPage> {
     return Consumer<ChatProvider>(builder: (context, chat, _) {
       final messages = chat.messages;
       return Scaffold(
-        appBar: AppBar(title: const Text('La Bomba • Chat'), backgroundColor: const Color(0xFF7C1AFF)),
+        appBar: AppBar(title: const Text('La Bomba • Chat'), backgroundColor: const Color(0xFF7C1AFF), actions: const [UserAppBarActions()]),
         body: Column(
           children: [
             Expanded(

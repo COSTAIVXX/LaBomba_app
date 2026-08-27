@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/storage_service.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class TermsPage extends StatefulWidget {
   final StorageService storageService;
@@ -84,7 +85,7 @@ class _TermsPageState extends State<TermsPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Termos e Privacidade')),
+      appBar: AppBar(title: const Text('Termos e Privacidade'), actions: const [UserAppBarActions()]),
       body: SafeArea(child: content),
     );
   }

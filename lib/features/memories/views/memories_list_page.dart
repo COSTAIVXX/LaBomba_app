@@ -22,6 +22,7 @@ class MemoriesListPage extends StatelessWidget {
         title: const Text('Memórias'),
         backgroundColor: _bgGradientStart,
         elevation: 2,
+        actions: const [UserAppBarActions()],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -139,7 +140,7 @@ class MemoryDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(memory.title), backgroundColor: const Color(0xFF7C1AFF)),
+      appBar: AppBar(title: Text(memory.title), backgroundColor: const Color(0xFF7C1AFF), actions: const [UserAppBarActions()]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -283,7 +284,7 @@ class _FullScreenStoryViewerState extends State<_FullScreenStoryViewer> {
     final images = widget.memory.imageUrls;
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, title: Text(widget.memory.title)),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, title: Text(widget.memory.title), actions: const [UserAppBarActions()]),
       body: PageView.builder(
         controller: _controller,
         itemCount: images.length,
