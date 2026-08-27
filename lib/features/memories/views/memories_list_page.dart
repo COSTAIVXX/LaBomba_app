@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:labomba_app/theme/app_theme.dart';
+import 'package:labomba_app/widgets/main_navigation_drawer.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
@@ -23,7 +24,15 @@ class MemoriesListPage extends StatelessWidget {
     final provider = context.watch<MemoryProvider>();
 
     return Scaffold(
+      drawer: const MainNavigationDrawer(),
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            tooltip: 'Abrir navegação',
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: const Text('Memórias'),
         backgroundColor: _bgGradientStart,
         elevation: 2,
@@ -144,8 +153,9 @@ class MemoriesListPage extends StatelessWidget {
         }),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: _bgGradientEnd,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: AppTheme.primary,
+        tooltip: 'Criar nova memória',
+        child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MemoryEditorPage()));
         },
