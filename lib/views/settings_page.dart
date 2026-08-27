@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/storage_service.dart';
+import '../services/admin_profile_service.dart';
+import '../services/auth_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -31,10 +33,23 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSettings() async {
     try {
-      final dn = await _storage.read(key: _keyDisplayName);
+      String? dn = await _storage.read(key: _keyDisplayName);
       final notif = await _storage.read(key: _keyNotifications);
       final theme = await _storage.read(key: _keyDarkTheme);
       final share = await _storage.read(key: _keyShareUsage);
+
+      // If no local display name and user is signed in, try fetch from profile service
+      if ((dn == null || dn.isEmpty) && mounted) {
+        try {
+          final auth = context.read<AuthService>();
+          if (auth.currentUser != null) {
+            final profile = await AdminProfileService().getCurrentUserProfile();
+            if (profile?.displayName != null && profile!.displayName!.isNotEmpty) {
+              dn = profile.displayName;
+            }
+          }
+        } catch (_) {}
+      }
 
       if (!mounted) return;
       setState(() {
@@ -111,8 +126,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {
-                    // Persist display name explicitly
-                    await _writeString(_keyDisplayName, _displayName.trim());
+                    // Persist display name locally
+                    final trimmed = _displayName.trim();
+                    await _writeString(_keyDisplayName, trimmed);
+
+                    // If user is logged in, update profile (Auth + Firestore)
+                    try {
+                      final auth = context.read<AuthService>();
+                      if (auth.currentUser != null) {
+                        await AdminProfileService().updateDisplayName(trimmed);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas e perfil atualizado')));
+                        return;
+                      }
+                    } catch (e) {
+                      // fall through to local save notification
+                    }
+
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas')));
                   },
                   child: const Text('Salvar preferências'),

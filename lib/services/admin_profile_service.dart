@@ -38,4 +38,22 @@ class AdminProfileService {
       rethrow;
     }
   }
+
+  /// Update the Firebase Auth user's displayName and mirror to Firestore admin_profiles
+  Future<void> updateDisplayName(String displayName) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await user.updateDisplayName(displayName);
+      await user.reload();
+      // update Firestore profile as well (merge)
+      await _firestore.collection('admin_profiles').doc(user.uid).set({
+        'displayName': displayName,
+        'email': user.email,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('AdminProfileService.updateDisplayName error: $e');
+      rethrow;
+    }
+  }
 }
