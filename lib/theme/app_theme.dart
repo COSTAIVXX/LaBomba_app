@@ -24,4 +24,22 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryLight,
+        brightness: Brightness.light,
+      ),
+      scaffoldBackgroundColor: Colors.white,
+      textTheme: ThemeData.light().textTheme,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        centerTitle: true,
+      ),
+    );
+  }
 }

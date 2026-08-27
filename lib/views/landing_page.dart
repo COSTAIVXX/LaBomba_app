@@ -51,6 +51,11 @@ class _LandingPageState extends State<LandingPage> {
                 icon: const Icon(Icons.admin_panel_settings_outlined),
                 onPressed: () => Navigator.pushNamed(context, '/admin/login'),
               ),
+              IconButton(
+                tooltip: 'Configurações',
+                icon: const Icon(Icons.settings),
+                onPressed: () => Navigator.pushNamed(context, '/settings'),
+              ),
               const SizedBox(width: 8),
             ],
           ),

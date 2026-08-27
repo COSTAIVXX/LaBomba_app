@@ -44,6 +44,7 @@ import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
 import 'views/terms_page.dart';
 import 'views/settings_page.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -174,26 +175,34 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => ChatProvider(),
         ),
+        // Theme provider (observes persisted preference)
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(storageService),
+        ),
       ],
-      child: MaterialApp(
-        title: 'La Bomba 2027',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => TermsGate(storageService: storageService),
-          '/landing': (context) => const LandingPage(),
-          '/register': (context) => const ClientRegistrationPage(),
-          '/admin/login': (context) => const AdminLoginPage(),
-          '/admin/dashboard': (context) => const AdminDashboardPage(),
-          '/admin/clients': (context) => const ClientBasePage(),
-         // Memories route
-         '/memories': (context) => const MemoriesListPage(),
-         '/chat': (context) => const ChatPage(),
-         '/settings': (context) => const SettingsPage(),
-        '/terms': (context) => TermsPage(storageService: storageService),
-        },
-      ),
+      child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
+        return MaterialApp(
+          title: 'La Bomba 2027',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProv.themeMode,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => TermsGate(storageService: storageService),
+            '/landing': (context) => const LandingPage(),
+            '/register': (context) => const ClientRegistrationPage(),
+            '/admin/login': (context) => const AdminLoginPage(),
+            '/admin/dashboard': (context) => const AdminDashboardPage(),
+            '/admin/clients': (context) => const ClientBasePage(),
+            // Memories route
+            '/memories': (context) => const MemoriesListPage(),
+            '/chat': (context) => const ChatPage(),
+            '/settings': (context) => const SettingsPage(),
+            '/terms': (context) => TermsPage(storageService: storageService),
+          },
+        );
+      }),
     );
   }
 }
