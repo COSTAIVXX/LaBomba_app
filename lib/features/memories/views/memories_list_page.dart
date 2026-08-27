@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:video_player/video_player.dart';
 import 'package:labomba_app/theme/app_theme.dart';
 import 'package:labomba_app/widgets/main_navigation_drawer.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
@@ -64,6 +65,9 @@ class MemoriesListPage extends StatelessWidget {
 
           return ListView.separated(
            padding: const EdgeInsets.all(16),
+           physics: const BouncingScrollPhysics(
+             parent: AlwaysScrollableScrollPhysics(),
+           ),
            itemCount: items.length + 1, // +1 for the stories carousel header
            separatorBuilder: (_, __) => const SizedBox(height: 12),
            itemBuilder: (context, index) {
@@ -106,7 +110,11 @@ class MemoriesListPage extends StatelessWidget {
                       if (m.imageUrls.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: CachedNetworkImage(imageUrl: m.imageUrls.first, width: 84, height: 84, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)), errorWidget: (_, __, ___) => const Icon(Icons.broken_image)),
+                          child: _MemoryMediaPreview(
+                            url: m.imageUrls.first,
+                            width: 84,
+                            height: 84,
+                          ),
                         )
                       else
                         Container(
@@ -212,13 +220,122 @@ class MemoryDetailPage extends StatelessWidget {
                 height: 120,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, idx) => ClipRRect(borderRadius: BorderRadius.circular(12), child: CachedNetworkImage(imageUrl: memory.imageUrls[idx], width: 160, fit: BoxFit.cover)),
+                  physics: const BouncingScrollPhysics(),
+                  itemBuilder: (_, idx) => ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _MemoryMediaPreview(
+                      url: memory.imageUrls[idx],
+                      width: 160,
+                      height: 120,
+                    ),
+                  ),
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemCount: memory.imageUrls.length,
                 ),
               )
             ]
           ],
+        ),
+      ),
+    );
+  }
+
+}
+
+class _MemoryMediaPreview extends StatefulWidget {
+  final String url;
+  final double width;
+  final double height;
+
+  const _MemoryMediaPreview({
+    required this.url,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  State<_MemoryMediaPreview> createState() => _MemoryMediaPreviewState();
+}
+
+class _MemoryMediaPreviewState extends State<_MemoryMediaPreview>
+    with WidgetsBindingObserver {
+  VideoPlayerController? _controller;
+  bool _isVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _isVideo = _looksLikeVideo(widget.url);
+    if (_isVideo) _initializeVideo();
+  }
+
+  bool _looksLikeVideo(String url) {
+    final path = Uri.tryParse(url)?.path.toLowerCase() ?? url.toLowerCase();
+    return path.endsWith('.mp4') ||
+        path.endsWith('.mov') ||
+        path.endsWith('.webm') ||
+        path.endsWith('.m3u8');
+  }
+
+  Future<void> _initializeVideo() async {
+    final controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _controller = controller;
+    await controller.initialize();
+    await controller.setLooping(true);
+    await controller.play();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (state == AppLifecycleState.resumed) {
+      controller.play();
+    } else {
+      controller.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (!_isVideo) {
+      return CachedNetworkImage(
+        imageUrl: widget.url,
+        width: widget.width,
+        height: widget.height,
+        fit: BoxFit.cover,
+        placeholder: (_, __) =>
+            const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorWidget: (_, __, ___) => const Icon(Icons.broken_image),
+      );
+    }
+    if (controller == null || !controller.value.isInitialized) {
+      return SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: controller.value.size.width,
+          height: controller.value.size.height,
+          child: VideoPlayer(controller),
         ),
       ),
     );
