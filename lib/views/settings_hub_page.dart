@@ -32,7 +32,7 @@ class SettingsHubPage extends StatelessWidget {
         icon: Icons.privacy_tip_outlined,
         title: 'Privacidade',
         subtitle: 'Termos, aceite e preferências de dados',
-        route: '/settings/privacy',
+        route: '/settings/privacy/data',
       ),
     ];
 
