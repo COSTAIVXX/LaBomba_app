@@ -40,17 +40,25 @@ class MemoriesListPage extends StatelessWidget {
             return Center(child: Text('Erro: ${provider.error}', style: const TextStyle(color: Colors.white)));
           }
 
-          final List<Memory> items = provider.memories;
+          // Sort memories chronologically (newest first)
+          final List<Memory> items = List.from(provider.memories)
+           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
           if (items.isEmpty) {
-            return const Center(child: Text('Nenhuma memória encontrada', style: TextStyle(color: Colors.white70)));
+           return const Center(child: Text('Nenhuma memória encontrada', style: TextStyle(color: Colors.white70)));
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final m = items[index];
+           padding: const EdgeInsets.all(16),
+           itemCount: items.length + 1, // +1 for the stories carousel header
+           separatorBuilder: (_, __) => const SizedBox(height: 12),
+           itemBuilder: (context, index) {
+             if (index == 0) {
+               // Stories / Status carousel header
+               final stories = items.where((m) => m.imageUrls.isNotEmpty).take(12).toList();
+               return _StoriesCarousel(memories: stories, accentColor: _bgGradientStart);
+             }
+
+             final m = items[index - 1];
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
@@ -168,6 +176,124 @@ class MemoryDetailPage extends StatelessWidget {
             ]
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+// STORIES / STATUS CAROUSEL
+class _StoriesCarousel extends StatelessWidget {
+  final List<Memory> memories;
+  final Color accentColor;
+  const _StoriesCarousel({required this.memories, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    if (memories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 110,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
+            child: Text('Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+          Expanded(
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: memories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final m = memories[index];
+                final thumb = m.imageUrls.first;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullScreenStoryViewer(memory: m, initialIndex: 0)));
+                  },
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: accentColor, width: 3),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .4), blurRadius: 6, offset: const Offset(0,4))],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Image.network(thumb, fit: BoxFit.cover, width: 72, height: 72),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          m.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FullScreenStoryViewer extends StatefulWidget {
+  final Memory memory;
+  final int initialIndex;
+  const _FullScreenStoryViewer({required this.memory, this.initialIndex = 0});
+
+  @override
+  State<_FullScreenStoryViewer> createState() => _FullScreenStoryViewerState();
+}
+
+class _FullScreenStoryViewerState extends State<_FullScreenStoryViewer> {
+  late PageController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final images = widget.memory.imageUrls;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, title: Text(widget.memory.title)),
+      body: PageView.builder(
+        controller: _controller,
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          return InteractiveViewer(
+            child: Center(
+              child: Image.network(images[index], fit: BoxFit.contain),
+            ),
+          );
+        },
       ),
     );
   }
