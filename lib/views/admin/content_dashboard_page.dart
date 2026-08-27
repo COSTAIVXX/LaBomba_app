@@ -166,7 +166,7 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestão de Conteúdo (CMS)'), actions: const [UserAppBarActions()]),
+      appBar: AppBar(title: const Text('Gestão de Conteúdo (CMS)'), actions: [UserAppBarActions()]),
       body: content,
     );
   }

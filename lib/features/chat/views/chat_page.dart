@@ -79,7 +79,7 @@ class _ChatPageState extends State<ChatPage> {
     return Consumer<ChatProvider>(builder: (context, chat, _) {
       final messages = chat.messages;
       return Scaffold(
-        appBar: AppBar(title: const Text('La Bomba • Chat'), backgroundColor: const Color(0xFF7C1AFF), actions: const [UserAppBarActions()]),
+        appBar: AppBar(title: const Text('La Bomba • Chat'), backgroundColor: const Color(0xFF7C1AFF), actions: [UserAppBarActions()]),
         body: Column(
           children: [
             Expanded(

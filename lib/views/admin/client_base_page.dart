@@ -108,7 +108,7 @@ class _ClientBaseContentState extends State<_ClientBaseContent> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: const [UserAppBarActions()],
+        actions: [UserAppBarActions()],
       ),
       body: bodyContent,
     );

@@ -83,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurações'), actions: const [UserAppBarActions()]),
+      appBar: AppBar(title: const Text('Configurações'), actions: [UserAppBarActions()]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

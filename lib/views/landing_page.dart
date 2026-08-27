@@ -58,7 +58,7 @@ class _LandingPageState extends State<LandingPage> {
               ),
               const SizedBox(width: 8),
               // User info and quick actions
-              const UserAppBarActions(),
+              UserAppBarActions(),
             ],
           ),
           body: Listener(

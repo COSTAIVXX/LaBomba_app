@@ -200,7 +200,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
             style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-      actions: const [UserAppBarActions()],
+      actions: [UserAppBarActions()],
       ),
       body: Container(
         decoration: const BoxDecoration(

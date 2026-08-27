@@ -85,7 +85,7 @@ class _TermsPageState extends State<TermsPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Termos e Privacidade'), actions: const [UserAppBarActions()]),
+      appBar: AppBar(title: const Text('Termos e Privacidade'), actions: [UserAppBarActions()]),
       body: SafeArea(child: content),
     );
   }
