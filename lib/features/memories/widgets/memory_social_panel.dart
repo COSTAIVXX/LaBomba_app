@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../providers/google_auth_provider.dart';
+import '../services/memory_social_service.dart';
+
+class MemorySocialPanel extends StatefulWidget {
+  final String memoryId;
+  final bool compact;
+
+  const MemorySocialPanel({
+    super.key,
+    required this.memoryId,
+    this.compact = false,
+  });
+
+  @override
+  State<MemorySocialPanel> createState() => _MemorySocialPanelState();
+}
+
+class _MemorySocialPanelState extends State<MemorySocialPanel> {
+  final MemorySocialService _service = MemorySocialService();
+  final TextEditingController _commentController = TextEditingController();
+  String? _replyTo;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  String get _userId =>
+      context.read<GoogleAuthProvider>().currentUserData?.uid ?? 'anonymous';
+
+  String get _userName =>
+      context.read<GoogleAuthProvider>().currentUserData?.displayName ??
+      'Usuário';
+
+  Future<void> _sendComment() async {
+    final text = _commentController.text;
+    if (text.trim().isEmpty) return;
+    await _service.addComment(
+      memoryId: widget.memoryId,
+      authorId: _userId,
+      authorName: _userName,
+      text: text,
+      parentId: _replyTo,
+    );
+    _commentController.clear();
+    setState(() => _replyTo = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _service.likesStream(widget.memoryId),
+      builder: (context, likesSnapshot) {
+        final likes = likesSnapshot.data?.docs ?? const [];
+        final liked = likes.any((like) => like.id == _userId);
+        final content = Row(
+          children: [
+            IconButton(
+              tooltip: liked ? 'Remover curtida' : 'Curtir',
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  liked ? Icons.favorite : Icons.favorite_border,
+                  key: ValueKey<bool>(liked),
+                  color: liked ? Colors.pinkAccent : null,
+                ),
+              ),
+              onPressed: () => _service.toggleLike(
+                memoryId: widget.memoryId,
+                userId: _userId,
+              ),
+            ),
+            Text('${likes.length}'),
+            IconButton(
+              tooltip: 'Comentários',
+              icon: const Icon(Icons.mode_comment_outlined),
+              onPressed: widget.compact ? () => _showComments(context) : null,
+            ),
+            if (widget.compact)
+              StreamBuilder<List<MemoryComment>>(
+                stream: _service.commentsStream(widget.memoryId),
+                builder: (_, snapshot) =>
+                    Text('${snapshot.data?.length ?? 0}'),
+              ),
+          ],
+        );
+        return widget.compact ? content : _commentsBody(content);
+      },
+    );
+  }
+
+  Widget _commentsBody(Widget header) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [header, _commentComposer(), _commentList()],
+    );
+  }
+
+  Future<void> _showComments(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .72,
+          child: Column(
+            children: [
+              const ListTile(title: Text('Comentários')),
+              _commentList(),
+              _commentComposer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _commentComposer() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _commentController,
+              decoration: InputDecoration(
+                hintText: _replyTo == null ? 'Escreva um comentário...' : 'Responder...',
+              ),
+            ),
+          ),
+          IconButton(onPressed: _sendComment, icon: const Icon(Icons.send)),
+        ],
+      ),
+    );
+  }
+
+  Widget _commentList() {
+    return StreamBuilder<List<MemoryComment>>(
+      stream: _service.commentsStream(widget.memoryId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Não foi possível carregar comentários.'));
+        }
+        final comments = snapshot.data ?? const <MemoryComment>[];
+        if (comments.isEmpty) {
+          return const Expanded(
+            child: Center(child: Text('Seja o primeiro a comentar!')),
+          );
+        }
+        return Expanded(
+          child: ListView.builder(
+            itemCount: comments.length,
+            itemBuilder: (context, index) {
+              final comment = comments[index];
+              final depth = comment.parentId == null ? 0 : 1;
+              return Padding(
+                padding: EdgeInsets.only(left: 12.0 + depth * 24, right: 12),
+                child: ListTile(
+                  dense: true,
+                  title: Text(comment.authorName),
+                  subtitle: Text(comment.text),
+                  trailing: TextButton(
+                    onPressed: () => setState(() => _replyTo = comment.id),
+                    child: const Text('Responder'),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
+import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/views/memory_editor_page.dart';
 
@@ -115,6 +116,8 @@ class MemoriesListPage extends StatelessWidget {
                           ],
                         ),
                       )
+                      ,
+                      MemorySocialPanel(memoryId: m.id, compact: true),
                     ],
                   ),
                 ),
@@ -162,6 +165,7 @@ class MemoryDetailPage extends StatelessWidget {
                 ),
               ),
             ),
+            MemorySocialPanel(memoryId: memory.id),
             const SizedBox(height: 12),
             if (memory.imageUrls.isNotEmpty) ...[
               const Text('Imagens:', style: TextStyle(color: Colors.white70)),
