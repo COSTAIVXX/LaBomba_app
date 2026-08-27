@@ -86,7 +86,21 @@ class _LandingPageState extends State<LandingPage> {
                       child: Column(
                         children: [
                           AnimatedBanner(),
-                          SizedBox(height: 50),
+                          const SizedBox(height: 24),
+                          // Prominent Memories button
+                          SizedBox(
+                            width: isCompact ? double.infinity : 320,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.pushNamed(context, '/memories'),
+                              icon: const Icon(Icons.photo_library),
+                              label: const Text('Memórias'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 26),
                           HeaderSection(),
                           SizedBox(height: 50),
                           EventInfoSection(),

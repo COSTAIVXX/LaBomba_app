@@ -1,9 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'storage_service.dart';
-import 'storage_mobile.dart';
-import 'storage_web.dart';
+import 'storage_platform.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
@@ -15,7 +13,7 @@ class AuthService {
   static const String _adminSessionKey = 'labomba_admin_session';
   static const String _idTokenKey = 'labomba_id_token';
 
-  AuthService({StorageService? storageService}) : _storage = storageService ?? (kIsWeb ? WebStorageService() : MobileStorageService());
+  AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService();
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
