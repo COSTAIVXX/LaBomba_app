@@ -105,6 +105,7 @@ class _TermsGateState extends State<TermsGate> {
   bool _accepted = false;
 
   static const _storageKey = 'terms_accepted';
+  static const _onboardingKey = 'onboarding_completed';
 
   @override
   void initState() {
@@ -120,8 +121,13 @@ class _TermsGateState extends State<TermsGate> {
         _checked = true;
       });
       if (_accepted) {
-        // Navigate to landing page replacing this gate
-        if (mounted) Navigator.pushReplacementNamed(context, '/landing');
+        final onboarding = await widget.storageService.read(key: _onboardingKey);
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            onboarding == '1' ? '/landing' : '/onboarding',
+          );
+        }
       }
     } catch (_) {
       setState(() => _checked = true);

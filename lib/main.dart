@@ -47,6 +47,7 @@ import 'views/settings_page.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
+import 'views/onboarding_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
@@ -210,6 +211,8 @@ class LaBombaApp extends StatelessWidget {
             '/settings': (context) => const SettingsPage(),
             '/profile': (context) => const UserProfilePage(),
             '/notifications': (context) => const NotificationsPage(),
+            '/onboarding': (context) =>
+                OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
