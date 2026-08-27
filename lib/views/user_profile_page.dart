@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../features/memories/models/memory.dart';
 import '../features/memories/providers/memory_provider.dart';
@@ -131,7 +132,7 @@ class _MemoryTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                 ),
               )
-            : Image.network(memory.imageUrls.first, fit: BoxFit.cover),
+            : CachedNetworkImage(imageUrl: memory.imageUrls.first, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
       ),
     );
   }

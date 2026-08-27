@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
@@ -82,7 +83,7 @@ class MemoriesListPage extends StatelessWidget {
                       if (m.imageUrls.isNotEmpty)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(m.imageUrls.first, width: 84, height: 84, fit: BoxFit.cover),
+                          child: CachedNetworkImage(imageUrl: m.imageUrls.first, width: 84, height: 84, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)), errorWidget: (_, __, ___) => const Icon(Icons.broken_image)),
                         )
                       else
                         Container(
@@ -174,7 +175,7 @@ class MemoryDetailPage extends StatelessWidget {
                 height: 120,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, idx) => ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(memory.imageUrls[idx], width: 160, fit: BoxFit.cover)),
+                  itemBuilder: (_, idx) => ClipRRect(borderRadius: BorderRadius.circular(12), child: CachedNetworkImage(imageUrl: memory.imageUrls[idx], width: 160, fit: BoxFit.cover)),
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemCount: memory.imageUrls.length,
                 ),
@@ -234,7 +235,7 @@ class _StoriesCarousel extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(14),
-                          child: Image.network(thumb, fit: BoxFit.cover, width: 72, height: 72),
+                          child: CachedNetworkImage(imageUrl: thumb, fit: BoxFit.cover, width: 72, height: 72, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -296,7 +297,7 @@ class _FullScreenStoryViewerState extends State<_FullScreenStoryViewer> {
         itemBuilder: (context, index) {
           return InteractiveViewer(
             child: Center(
-              child: Image.network(images[index], fit: BoxFit.contain),
+              child: CachedNetworkImage(imageUrl: images[index], fit: BoxFit.contain, placeholder: (_, __) => const Center(child: CircularProgressIndicator())),
             ),
           );
         },

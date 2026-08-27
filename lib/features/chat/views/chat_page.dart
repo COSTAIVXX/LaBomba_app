@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/chat_provider.dart';
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
@@ -80,7 +81,7 @@ class _ChatPageState extends State<ChatPage> {
       return GridView.count(
         crossAxisCount: 3,
         padding: const EdgeInsets.all(12),
-        children: stickers.map((s) => GestureDetector(onTap: () => Navigator.pop(context, s), child: Padding(padding: const EdgeInsets.all(8), child: Image.network(s)))).toList(),
+        children: stickers.map((s) => GestureDetector(onTap: () => Navigator.pop(context, s), child: Padding(padding: const EdgeInsets.all(8), child: CachedNetworkImage(imageUrl: s, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)))))).toList(),
       );
     });
     if (sticker != null) {
@@ -285,7 +286,7 @@ class _ChatBubble extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(message.stickerUrl!, width: 170),
+                  child: CachedNetworkImage(imageUrl: message.stickerUrl!, width: 170, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
                 ),
               ),
             if (message.text != null)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:uuid/uuid.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
@@ -109,7 +110,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(g, fit: BoxFit.cover),
+                        child: CachedNetworkImage(imageUrl: g, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
                       ),
                     );
                   }).toList(),
@@ -141,7 +142,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
-                    child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(s)),
+                    child: ClipRRect(borderRadius: BorderRadius.circular(12), child: CachedNetworkImage(imageUrl: s, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)))),
                   ),
                 );
               }).toList(),
@@ -213,7 +214,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (_, idx) => Stack(
                     children: [
-                      Image.network(_attachments[idx], width: 120, fit: BoxFit.cover),
+                      CachedNetworkImage(imageUrl: _attachments[idx], width: 120, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
                       Positioned(
                         right: 4,
                         top: 4,
