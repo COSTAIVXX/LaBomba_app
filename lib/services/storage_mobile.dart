@@ -21,3 +21,8 @@ class MobileStorageService implements StorageService {
     await _storage.delete(key: key);
   }
 }
+
+// Platform-aliased class used by conditional imports
+class PlatformStorageService extends MobileStorageService {
+  PlatformStorageService({FlutterSecureStorage? storage}) : super(storage: storage);
+}

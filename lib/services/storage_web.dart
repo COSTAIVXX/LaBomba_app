@@ -21,3 +21,8 @@ class WebStorageService implements StorageService {
     html.window.localStorage.remove(key);
   }
 }
+
+// Platform-aliased class used by conditional imports
+class PlatformStorageService extends WebStorageService {
+  PlatformStorageService();
+}

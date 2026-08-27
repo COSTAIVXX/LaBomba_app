@@ -5,9 +5,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
 // Storage service (platform implementations)
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'services/storage_mobile.dart';
-import 'services/storage_web.dart';
+import 'services/storage_service.dart';
+import 'services/storage_platform.dart';
+
+// Memories storage-backed service
+import 'features/memories/services/storage_memory_service.dart';
 
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -26,6 +28,9 @@ import 'providers/client_provider.dart';
 import 'providers/shop_provider.dart';
 import 'providers/google_auth_provider.dart';
 import 'providers/event_config_provider.dart';
+
+// Memories feature
+import 'features/memories/memories_module.dart';
 
 // Views e Páginas do Aplicativo
 import 'views/landing_page.dart';
@@ -98,7 +103,7 @@ void main() async {
 
   // 1. Instancia o armazenamento seguro nativo (O Cofre)
   debugPrint('main: creating secure storage');
-  final secureStorage = kIsWeb ? WebStorageService() : MobileStorageService();
+  final secureStorage = PlatformStorageService();
   await ObservabilityService.logEvent('secure_storage_created');
 
   // 2. Injeta o armazenamento dentro do nosso Repositório
@@ -110,7 +115,7 @@ void main() async {
   debugPrint('main: entering runZonedGuarded');
   runZonedGuarded(() {
     debugPrint('main: before runApp');
-    runApp(LaBombaApp(repository: clientRepository));
+      runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
     debugPrint('main: runApp completed');
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
@@ -125,9 +130,10 @@ void main() async {
 class LaBombaApp extends StatelessWidget {
   // Recebe o repositório criado lá no main()
   final IClientRepository repository;
+  final StorageService storageService;
 
-  // Exige o repositório no construtor
-  const LaBombaApp({super.key, required this.repository});
+  // Exige o repositório e storage no construtor
+  const LaBombaApp({super.key, required this.repository, required this.storageService});
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +158,10 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => EventConfigProvider(authService: context.read<AuthService>()),
         ),
+        // Memories provider (storage-backed)
+        ChangeNotifierProvider(
+          create: (context) => MemoryProvider(service: StorageMemoryService(storageService)),
+        ),
       ],
       child: MaterialApp(
         title: 'La Bomba 2027',
@@ -164,6 +174,8 @@ class LaBombaApp extends StatelessWidget {
           '/admin/login': (context) => const AdminLoginPage(),
           '/admin/dashboard': (context) => const AdminDashboardPage(),
           '/admin/clients': (context) => const ClientBasePage(),
+         // Memories route
+         '/memories': (context) => const MemoriesListPage(),
         },
       ),
     );
