@@ -157,14 +157,21 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                   child: Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.03),
+                      // Slightly elevated translucent card to contrast against the blue gradient
+                      color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                      boxShadow: [
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      boxShadow: const [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 40,
-                          offset: const Offset(0, 10),
+                          color: Color.fromRGBO(0, 0, 0, 0.35),
+                          blurRadius: 44,
+                          spreadRadius: 2,
+                          offset: Offset(0, 14),
+                        ),
+                        BoxShadow(
+                          color: Color.fromRGBO(255, 255, 255, 0.03),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
@@ -177,7 +184,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                           const Icon(
                             Icons.admin_panel_settings_rounded,
                             size: 72,
-                            color: AppTheme.primaryLight,
+                              color: Colors.white,
                           ),
                           const SizedBox(height: 24),
                           Text(
