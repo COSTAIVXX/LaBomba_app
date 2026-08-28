@@ -45,15 +45,32 @@ class AdminProfileService {
     final user = _auth.currentUser;
     if (user == null) return null;
     try {
-      final doc = await _firestore.collection('admin_profiles').doc(user.uid).get();
+      final docRef = _firestore.collection('admin_profiles').doc(user.uid);
+      final doc = await docRef.get();
+
+      // If profile does not exist, create a default one. If the user's email
+      // is present in the ADMIN_WHITELIST (set via --dart-define at build time)
+      // we grant admin privileges immediately and persist to Firestore.
+      bool whitelistedAdmin = _isEmailWhitelisted(user.email);
+
       final profile = !doc.exists
           ? AdminProfile(
               uid: user.uid,
               email: user.email,
               displayName: user.displayName,
-              isAdmin: false,
+              isAdmin: whitelistedAdmin,
             )
           : AdminProfile.fromMap(user.uid, doc.data());
+
+      // If doc didn't exist and we detected whitelist, ensure Firestore has the admin flag
+      if (!doc.exists && whitelistedAdmin) {
+        try {
+          await docRef.set(profile.toMap(), SetOptions(merge: true));
+        } catch (e) {
+          debugPrint('Failed to persist whitelisted admin profile: $e');
+        }
+      }
+
       await _cacheProfile(profile);
       return profile;
     } catch (e) {
@@ -64,6 +81,55 @@ class AdminProfileService {
         debugPrint('AdminProfileService cache read error: $cacheError');
         return null;
       }
+    }
+  }
+
+  /// Returns true when the provided email is present in the admin whitelist.
+  /// The whitelist can be provided at build/runtime via the Dart define
+  /// `--dart-define=ADMIN_WHITELIST=example@domain.com,other@domain.com`.
+  /// Use lowercase, comma-separated emails. This check avoids hardcoding any
+  /// specific email in source control.
+  bool _isEmailWhitelisted(String? email) {
+    if (email == null || email.isEmpty) return false;
+    // Compile-time / build-time override via --dart-define
+    const envList = String.fromEnvironment('ADMIN_WHITELIST', defaultValue: '');
+    if (envList.isNotEmpty) {
+      final entries = envList.split(',').map((e) => e.trim().toLowerCase()).toSet();
+      return entries.contains(email.toLowerCase());
+    }
+
+    // No whitelist provided via dart-define; fallback to storage key (secure, local dev use)
+    // Read synchronously is not possible, so attempt asynchronously via StorageService if caller prefers.
+    // For safety we return false here — callers can separately call ensureAdminByStorage if desired.
+    return false;
+  }
+
+  /// Helper to grant admin using a locally-stored whitelist entry (development only).
+  /// This reads a storage key 'admin_whitelist' containing comma-separated emails
+  /// and returns true if the current user matches and the profile was updated.
+  Future<bool> ensureAdminByLocalStorage() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    try {
+      final raw = await _storage.read(key: 'admin_whitelist');
+      if (raw == null || raw.isEmpty) return false;
+      final entries = raw.split(',').map((e) => e.trim().toLowerCase()).toSet();
+      if (!entries.contains(user.email?.toLowerCase())) return false;
+
+      final profile = AdminProfile(
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        isAdmin: true,
+      );
+      await setAdminProfile(profile);
+
+      // Persist a secure session flag so other services can read it quickly
+      await _storage.write(key: 'admin_session_${user.uid}', value: '1');
+      return true;
+    } catch (e) {
+      debugPrint('ensureAdminByLocalStorage error: $e');
+      return false;
     }
   }
 
