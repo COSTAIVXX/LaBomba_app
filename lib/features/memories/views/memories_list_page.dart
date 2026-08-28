@@ -13,6 +13,7 @@ import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/services/memory_social_service.dart';
+import 'package:labomba_app/widgets/heat_explosion_widget.dart';
 
 class MemoriesListPage extends StatelessWidget {
   const MemoriesListPage({super.key});
@@ -169,11 +170,19 @@ class MemoriesListPage extends StatelessWidget {
           );
         }),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.primary,
-        tooltip: 'Criar nova memória',
-        child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
-        onPressed: () => _capture(context),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const HeatExplosionWidget(),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'create-memory',
+            backgroundColor: AppTheme.primary,
+            tooltip: 'Criar nova memória',
+            child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
+            onPressed: () => _capture(context),
+          ),
+        ],
       ),
     );
   }
