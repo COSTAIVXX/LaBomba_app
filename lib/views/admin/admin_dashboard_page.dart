@@ -6,9 +6,11 @@ import '../../providers/admin_auth_provider.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/admin/admin_sidebar.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import '../../widgets/admin/metric_card.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
+import '../../features/notifications/services/official_horn_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -85,6 +87,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
                   },
                 ),
+              UserAppBarActions(),
             ],
           ),
           drawer: isDesktop ? null : Drawer(child: sidebar),
@@ -107,6 +110,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       },
     );
   }
+
 }
 
 class _DashboardOverviewTab extends StatelessWidget {
@@ -146,6 +150,8 @@ class _DashboardOverviewTab extends StatelessWidget {
                       _DashboardGrid(compact: compact, shop: shop),
                       const SizedBox(height: 16),
                       _QuickSalePanel(shop: shop),
+                      const SizedBox(height: 16),
+                      const _OfficialAnnouncementPanel(),
                       const SizedBox(height: 28),
                       Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,6 +179,79 @@ class _DashboardOverviewTab extends StatelessWidget {
   }
 }
 
+class _OfficialAnnouncementPanel extends StatefulWidget {
+    const _OfficialAnnouncementPanel();
+
+    @override
+    State<_OfficialAnnouncementPanel> createState() => _OfficialAnnouncementPanelState();
+}
+
+  class _OfficialAnnouncementPanelState extends State<_OfficialAnnouncementPanel> {
+    final _titleController = TextEditingController(text: 'Aviso da direção');
+    final _messageController = TextEditingController();
+    final _service = OfficialHornService();
+    bool _publishing = false;
+
+    @override
+    void dispose() {
+      _titleController.dispose();
+      _messageController.dispose();
+      super.dispose();
+    }
+
+    Future<void> _publish() async {
+      final message = _messageController.text.trim();
+      if (message.isEmpty || _publishing) return;
+      setState(() => _publishing = true);
+      try {
+        await _service.publish(
+          title: _titleController.text.trim().isEmpty
+              ? 'Aviso da direção'
+              : _titleController.text,
+          message: message,
+        );
+        _messageController.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aviso enviado aos foliões ativos.')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _publishing = false);
+      }
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Buzina oficial', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              const Text('Envie um aviso rápido para quem está no bloco.'),
+              const SizedBox(height: 12),
+              TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Título')),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _messageController,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'Comunicado'),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: _publishing ? null : _publish,
+                icon: const Icon(Icons.campaign_outlined),
+                label: Text(_publishing ? 'Enviando...' : 'Disparar aviso'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
 class _DashboardGrid extends StatelessWidget {
   const _DashboardGrid({required this.compact, required this.shop});
   final bool compact;

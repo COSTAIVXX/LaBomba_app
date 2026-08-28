@@ -1,9 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'storage_service.dart';
-import 'storage_mobile.dart';
-import 'storage_web.dart';
+import 'storage_platform.dart';
+import 'admin_profile_service.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
@@ -15,7 +14,7 @@ class AuthService {
   static const String _adminSessionKey = 'labomba_admin_session';
   static const String _idTokenKey = 'labomba_id_token';
 
-  AuthService({StorageService? storageService}) : _storage = storageService ?? (kIsWeb ? WebStorageService() : MobileStorageService());
+  AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService();
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
@@ -119,6 +118,24 @@ class AuthService {
 
   Future<bool> isAdminAuthenticated() async {
     try {
+      // Prefer authoritative check against Firestore admin_profiles if a Firebase user is present
+      final user = _auth.currentUser;
+      if (user != null) {
+        try {
+          final adminSvc = AdminProfileService();
+          final isAdmin = await adminSvc.isCurrentUserAdmin();
+          if (isAdmin) {
+            // persist local admin session for faster restores
+            try {
+              await _storage.write(key: _adminSessionKey, value: '1');
+            } catch (_) {}
+            return true;
+          }
+        } catch (_) {
+          // ignore and fall back to stored flag
+        }
+      }
+
       final v = await _storage.read(key: _adminSessionKey);
       return v == '1';
     } catch (_) {
@@ -128,6 +145,13 @@ class AuthService {
 
   /// Expose current Firebase user (if any)
   firebase_auth.User? get currentUser => _auth.currentUser;
+
+  /// Reload the current Firebase user from the backend and refresh local state
+  Future<void> reloadCurrentUser() async {
+    try {
+      await _auth.currentUser?.reload();
+    } catch (_) {}
+  }
 
   /// Read stored id token (if any)
   Future<String?> readStoredIdToken() => _storage.read(key: _idTokenKey);

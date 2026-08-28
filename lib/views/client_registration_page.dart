@@ -7,6 +7,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../providers/client_provider.dart';
 import '../providers/google_auth_provider.dart';
 import '../theme/app_theme.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class ClientRegistrationPage extends StatefulWidget {
   const ClientRegistrationPage({super.key});
@@ -199,6 +200,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
             style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+      actions: [UserAppBarActions()],
       ),
       body: Container(
         decoration: const BoxDecoration(

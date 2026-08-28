@@ -2,6 +2,7 @@ import 'dart:io' show SocketException;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
@@ -165,7 +166,7 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestão de Conteúdo (CMS)')),
+      appBar: AppBar(title: const Text('Gestão de Conteúdo (CMS)'), actions: [UserAppBarActions()]),
       body: content,
     );
   }
@@ -356,7 +357,7 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            (edition.imageUrl.startsWith('http')
+(edition.imageUrl.startsWith('http')
                                 ? CachedNetworkImage(
                                     imageUrl: edition.imageUrl,
                                     fit: BoxFit.cover,
