@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'firebase_options.dart';
 
 import 'services/storage_service.dart';
@@ -202,6 +204,10 @@ class LaBombaApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProv.themeMode,
+          // Firebase Analytics navigator observer to automatically log screen transitions
+          navigatorObservers: [
+            FirebaseAnalyticsObserver(analytics: ObservabilityService.analytics ?? FirebaseAnalytics.instance),
+          ],
           initialRoute: '/splash',
           routes: {
             '/splash': (context) =>
