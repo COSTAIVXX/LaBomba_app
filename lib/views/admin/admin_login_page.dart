@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../../providers/admin_auth_provider.dart';
 import '../../providers/google_auth_provider.dart';
 import '../../theme/app_theme.dart';
@@ -140,11 +141,42 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
       } catch (_) {}
 
       Navigator.pushReplacementNamed(context, '/admin/dashboard');
+    } on fb_auth.FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      String friendly;
+      switch (e.code) {
+        case 'user-not-found':
+          friendly = 'Conta Google não encontrada. Verifique o e-mail.';
+          break;
+        case 'invalid-credential':
+          friendly = 'Credenciais inválidas fornecidas. Tente novamente.';
+          break;
+        case 'user-disabled':
+          friendly = 'Esta conta foi desativada. Contate o suporte.';
+          break;
+        case 'too-many-requests':
+          friendly = 'Muitas tentativas. Tente novamente mais tarde.';
+          break;
+        default:
+          friendly = 'Erro de autenticação: ${e.message ?? e.code}';
+      }
+      setState(() {
+        _errorMessage = friendly;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendly)));
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      final msg = e.message ?? 'Erro na plataforma durante o login com Google.';
+      setState(() {
+        _errorMessage = msg;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Erro ao acessar o Google. Tente novamente.';
       });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao acessar o Google. Tente novamente.')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
