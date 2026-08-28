@@ -57,17 +57,12 @@ class _LandingPageState extends State<LandingPage> {
             ),
             actions: [
               IconButton(
-                tooltip: 'Área administrativa',
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                onPressed: () => Navigator.pushNamed(context, '/admin/login'),
-              ),
-              IconButton(
                 tooltip: 'Configurações',
                 icon: const Icon(Icons.settings),
                 onPressed: () => Navigator.pushNamed(context, '/settings'),
               ),
               const SizedBox(width: 8),
-              // User info and quick actions
+              // User info and quick actions (includes profile/admin access)
               UserAppBarActions(),
             ],
           ),

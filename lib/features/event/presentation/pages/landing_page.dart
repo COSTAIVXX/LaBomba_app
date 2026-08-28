@@ -46,11 +46,6 @@ class _LandingPageState extends State<LandingPage> {
               ),
             ),
             actions: [
-              IconButton(
-                tooltip: 'Área administrativa',
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                onPressed: () => Navigator.pushNamed(context, '/admin/login'),
-              ),
               const SizedBox(width: 8),
             ],
           ),
