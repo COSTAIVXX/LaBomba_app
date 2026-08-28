@@ -12,6 +12,7 @@ import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
+import 'package:labomba_app/features/memories/services/memory_social_service.dart';
 
 class MemoriesListPage extends StatelessWidget {
   const MemoriesListPage({super.key});
@@ -82,9 +83,7 @@ class MemoriesListPage extends StatelessWidget {
            separatorBuilder: (_, __) => const SizedBox(height: 12),
            itemBuilder: (context, index) {
              if (index == 0) {
-               // Stories / Status carousel header
-               final stories = items.where((m) => m.imageUrls.isNotEmpty).take(12).toList();
-               return _StoriesCarousel(memories: stories, accentColor: _bgGradientStart);
+               return _FameWallCarousel(memories: items, accentColor: AppTheme.primary);
              }
 
              final m = items[index - 1];
@@ -351,118 +350,180 @@ class _MemoryMediaPreviewState extends State<_MemoryMediaPreview>
 }
 
 
-// STORIES / STATUS CAROUSEL
-class _StoriesCarousel extends StatelessWidget {
+class _FameWallCarousel extends StatefulWidget {
   final List<Memory> memories;
   final Color accentColor;
-  const _StoriesCarousel({required this.memories, required this.accentColor});
+
+  const _FameWallCarousel({
+    required this.memories,
+    required this.accentColor,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    if (memories.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return SizedBox(
-      height: 110,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 6.0),
-            child: Text('Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-          ),
-          Expanded(
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: memories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final m = memories[index];
-                final thumb = m.imageUrls.first;
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullScreenStoryViewer(memory: m, initialIndex: 0)));
-                  },
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: accentColor, width: 3),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .4), blurRadius: 6, offset: const Offset(0,4))],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: CachedNetworkImage(imageUrl: thumb, fit: BoxFit.cover, width: 72, height: 72, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 80,
-                        child: Text(
-                          m.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      )
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<_FameWallCarousel> createState() => _FameWallCarouselState();
 }
 
-class _FullScreenStoryViewer extends StatefulWidget {
-  final Memory memory;
-  final int initialIndex;
-  const _FullScreenStoryViewer({required this.memory, this.initialIndex = 0});
-
-  @override
-  State<_FullScreenStoryViewer> createState() => _FullScreenStoryViewerState();
-}
-
-class _FullScreenStoryViewerState extends State<_FullScreenStoryViewer> {
-  late PageController _controller;
+class _FameWallCarouselState extends State<_FameWallCarousel> {
+  final MemorySocialService _socialService = MemorySocialService();
+  late Future<List<_EngagedMemory>> _highlights;
 
   @override
   void initState() {
     super.initState();
-    _controller = PageController(initialPage: widget.initialIndex);
+    _highlights = _loadHighlights();
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void didUpdateWidget(covariant _FameWallCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.memories != widget.memories) {
+      _highlights = _loadHighlights();
+    }
+  }
+
+  Future<List<_EngagedMemory>> _loadHighlights() async {
+    final today = DateTime.now();
+    final candidates = widget.memories.where((memory) {
+      final created = memory.createdAt.toLocal();
+      return created.year == today.year &&
+          created.month == today.month &&
+          created.day == today.day &&
+          memory.imageUrls.isNotEmpty;
+    }).take(20);
+    final scored = await Future.wait(candidates.map((memory) async {
+      final score = await _socialService.engagementCount(memory.id);
+      return _EngagedMemory(memory: memory, score: score);
+    }));
+    scored.sort((a, b) => b.score.compareTo(a.score));
+    return scored.take(8).toList(growable: false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final images = widget.memory.imageUrls;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, title: Text(widget.memory.title), actions: [UserAppBarActions()]),
-      body: PageView.builder(
-        controller: _controller,
-        itemCount: images.length,
-        itemBuilder: (context, index) {
-          return InteractiveViewer(
-            child: Center(
-              child: CachedNetworkImage(imageUrl: images[index], fit: BoxFit.contain, placeholder: (_, __) => const Center(child: CircularProgressIndicator())),
-            ),
+    return FutureBuilder<List<_EngagedMemory>>(
+      future: _highlights,
+      builder: (context, snapshot) {
+        final highlights = snapshot.data ?? const <_EngagedMemory>[];
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 190,
+            child: Center(child: CircularProgressIndicator(color: Colors.white)),
           );
-        },
+        }
+        if (highlights.isEmpty) return const SizedBox.shrink();
+
+        return SizedBox(
+          height: 190,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
+                child: Text(
+                  'Mural da fama',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: highlights.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final highlight = highlights[index];
+                    return _FameWallCard(
+                      highlight: highlight,
+                      accentColor: widget.accentColor,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EngagedMemory {
+  final Memory memory;
+  final int score;
+
+  const _EngagedMemory({required this.memory, required this.score});
+}
+
+class _FameWallCard extends StatelessWidget {
+  final _EngagedMemory highlight;
+  final Color accentColor;
+
+  const _FameWallCard({
+    required this.highlight,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final memory = highlight.memory;
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => MemoryDetailPage(memory: memory)),
+      ),
+      child: Container(
+        width: 142,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: Colors.white.withValues(alpha: 0.16),
+          border: Border.all(color: accentColor.withValues(alpha: 0.9), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.35),
+              blurRadius: 14,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _MemoryMediaPreview(url: memory.imageUrls.first, width: 142, height: 154),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.82)],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    memory.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${highlight.score} interações',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -46,6 +46,14 @@ class MemorySocialService {
   Stream<QuerySnapshot<Map<String, dynamic>>> likesStream(String memoryId) =>
       _likes(memoryId).snapshots();
 
+  Future<int> engagementCount(String memoryId) async {
+    final results = await Future.wait([
+      _likes(memoryId).get(),
+      _comments(memoryId).get(),
+    ]);
+    return results[0].size + results[1].size;
+  }
+
   Stream<List<MemoryComment>> commentsStream(String memoryId) =>
       _comments(memoryId)
           .orderBy('createdAt', descending: false)
