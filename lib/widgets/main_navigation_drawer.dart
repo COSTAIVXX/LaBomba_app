@@ -41,12 +41,12 @@ class MainNavigationDrawer extends StatelessWidget {
             ),
             _NavigationItem(
               icon: AppIcons.chat,
-              label: 'Chat híbrido',
+              label: 'Chat',
               route: '/chat',
             ),
             _NavigationItem(
               icon: AppIcons.foliaos,
-              label: 'Diretório de foliões',
+              label: 'Foliões',
               route: '/foliaos',
             ),
             _NavigationItem(

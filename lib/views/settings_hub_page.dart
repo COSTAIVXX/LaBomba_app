@@ -133,7 +133,7 @@ class SettingsPrivacyPage extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.pushNamed(context, '/terms'),
-            child: const Text('Ver termos completos'),
+            child: const Text('Ler termos completos'),
           ),
         ],
       ),

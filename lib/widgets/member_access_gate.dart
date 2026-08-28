@@ -78,7 +78,7 @@ class _MemberAccessGateState extends State<MemberAccessGate> {
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: const Text('Ainda não sou cadastrado'),
+                    child: const Text('Criar cadastro'),
                   ),
                 ],
               ),

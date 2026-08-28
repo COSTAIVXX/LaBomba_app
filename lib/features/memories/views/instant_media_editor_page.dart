@@ -225,13 +225,13 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
           OutlinedButton.icon(
             onPressed: _pickGif,
             icon: const Icon(Icons.gif_box_outlined),
-            label: Text(_selectedGif == null ? 'Inserir GIF' : 'GIF selecionado'),
+            label: Text(_selectedGif == null ? 'Adicionar GIF' : 'GIF adicionado'),
           ),
           const SizedBox(height: 18),
           FilledButton.icon(
             onPressed: _publishing ? null : _publish,
             icon: const Icon(Icons.publish),
-            label: const Text('Publicar na memória'),
+            label: const Text('Publicar memória'),
           ),
         ],
       ),

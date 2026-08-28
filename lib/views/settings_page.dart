@@ -201,7 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas')));
                   },
-                  child: const Text('Salvar preferências'),
+                  child: const Text('Salvar alterações'),
                 ),
                 const SizedBox(height: 24),
                 const Text('Privacidade', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
