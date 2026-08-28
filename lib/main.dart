@@ -42,6 +42,8 @@ import 'views/settings_page.dart';
 import 'services/push_notification_service.dart';
 import 'services/remote_config_service.dart';
 import 'providers/theme_provider.dart';
+import 'features/social/providers/social_provider.dart';
+import 'features/social/views/social_feed_page.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
 import 'views/onboarding_page.dart';
@@ -207,6 +209,10 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => StreetModeService(storageService),
         ),
+        // Social provider (friendships, close friends, interactions)
+        ChangeNotifierProvider(
+          create: (_) => SocialProvider(),
+        ),
       ],
       child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
         return MaterialApp(
@@ -254,6 +260,9 @@ class LaBombaApp extends StatelessWidget {
             '/about': (context) => const AboutAndTermsPage(),
             '/profile': (context) => const MemberAccessGate(
                   child: UserProfilePage(),
+                ),
+            '/social/feed': (context) => const MemberAccessGate(
+                  child: SocialFeedPage(),
                 ),
             '/notifications': (context) => const MemberAccessGate(
                   child: NotificationsPage(),

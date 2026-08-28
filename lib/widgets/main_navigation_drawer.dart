@@ -50,6 +50,16 @@ class MainNavigationDrawer extends StatelessWidget {
               route: '/chat',
             ),
             _NavigationItem(
+              icon: Icons.rss_feed,
+              label: 'Feed Social',
+              route: '/social/feed',
+            ),
+            _NavigationItem(
+              icon: Icons.person_outline,
+              label: 'Perfil',
+              route: '/profile',
+            ),
+            _NavigationItem(
               icon: AppIcons.foliaos,
               label: 'Foliões',
               route: '/foliaos',
