@@ -101,7 +101,7 @@ class UserAppBarActions extends StatelessWidget {
             const PopupMenuItem(value: 'notifications', child: Text('Notificações')),
             const PopupMenuItem(value: 'moderation', child: Text('Moderação')),
             const PopupMenuItem(value: 'badge', child: Text('Meu crachá Folião Raiz')),
-            const PopupMenuItem(value: 'foliaos', child: Text('Diretório de foliões')),
+            const PopupMenuItem(value: 'foliaos', child: Text('Foliões')),
             const PopupMenuItem(value: 'signout', child: Text('Sair')),
           ],
         ),

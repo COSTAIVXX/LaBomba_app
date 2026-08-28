@@ -45,24 +45,27 @@ class _PrimaryButtonState extends State<PrimaryButton> {
             ),
           ],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: enabled
-                ? () {
-                    HapticFeedback.selectionClick();
-                    widget.onPressed!();
-                  }
-                : null,
-            onHighlightChanged: (value) => setState(() => _pressed = value),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-              child: _ButtonContent(
-                label: widget.label,
-                icon: widget.icon,
-                isLoading: widget.isLoading,
-                color: Colors.white,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: enabled
+                  ? () {
+                      HapticFeedback.selectionClick();
+                      widget.onPressed!();
+                    }
+                  : null,
+              onHighlightChanged: (value) => setState(() => _pressed = value),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                child: _ButtonContent(
+                  label: widget.label,
+                  icon: widget.icon,
+                  isLoading: widget.isLoading,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
