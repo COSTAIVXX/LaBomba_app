@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/storage_platform.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/outbox_service.dart';
 import '../../social/models/post_interaction_model.dart';
 
 /// Social feed page. Shows posts from 'posts' collection and allows simple
@@ -363,8 +364,18 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         'reactions': FieldValue.arrayUnion([map])
       });
     } catch (e) {
-      // best effort fallback - could persist locally or show error
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível registrar a reação.')));
+      // enqueue to outbox
+      try {
+        await OutboxService.instance.enqueue({
+          'id': 'post_reaction_add:${postId}:${map['id']}',
+          'type': 'post_reaction_add',
+          'payload': {'postId': postId, 'reaction': map},
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reação enfileirada e será sincronizada quando online')));
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível registrar a reação.')));
+      }
     }
   }
 
@@ -403,7 +414,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário enviado')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar comentário')));
+      try {
+        await OutboxService.instance.enqueue({
+          'id': 'post_comment_add:${postId}:${map['id']}',
+          'type': 'post_comment_add',
+          'payload': {'postId': postId, 'comment': map},
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário enfileirado e será sincronizado quando online')));
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar comentário')));
+      }
     }
   }
 
@@ -429,7 +450,25 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário marcado como removido')));
       } catch (_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao remover comentário')));
+        // enqueue delete attempt
+        try {
+          final fallbackMap = {
+            'id': comment.id,
+            'authorId': comment.authorId,
+            'text': comment.text,
+            'createdAt': comment.createdAt.toIso8601String(),
+            'deleted': comment.deleted,
+          };
+          await OutboxService.instance.enqueue({
+            'id': 'post_comment_delete:${postId}:${comment.id}:${DateTime.now().millisecondsSinceEpoch}',
+            'type': 'post_comment_delete',
+            'payload': {'postId': postId, 'comment': fallbackMap},
+            'createdAt': DateTime.now().toIso8601String(),
+          });
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Remoção enfileirada e será sincronizada quando online')));
+        } catch (_) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao remover comentário')));
+        }
       }
     }
   }

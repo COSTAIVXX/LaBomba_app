@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/storage_platform.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/outbox_service.dart';
 
 class MemoryComment {
   final String id;
@@ -156,17 +157,29 @@ class MemorySocialService {
     required String userId,
   }) async {
     final like = _likes(memoryId).doc(userId);
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(like);
-      if (snapshot.exists) {
-        transaction.delete(like);
-      } else {
-        transaction.set(like, {
-          'userId': userId,
-          'createdAt': FieldValue.serverTimestamp(),
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(like);
+        if (snapshot.exists) {
+          transaction.delete(like);
+        } else {
+          transaction.set(like, {
+            'userId': userId,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+      });
+    } catch (e) {
+      // enqueue to outbox for later sync
+      try {
+        await OutboxService.instance.enqueue({
+          'id': 'mem_like:${memoryId}:${userId}:${DateTime.now().millisecondsSinceEpoch}',
+          'type': 'mem_like',
+          'payload': {'memoryId': memoryId, 'userId': userId},
+          'createdAt': DateTime.now().toIso8601String(),
         });
-      }
-    });
+      } catch (_) {}
+    }
   }
 
   Future<void> addComment({
@@ -178,19 +191,42 @@ class MemorySocialService {
   }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
-    await _comments(memoryId).add({
+    final commentMap = {
       'authorId': authorId,
       'authorName': authorName,
       'text': trimmed,
       'parentId': parentId,
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    };
+    try {
+      await _comments(memoryId).add(commentMap);
+    } catch (e) {
+      try {
+        await OutboxService.instance.enqueue({
+          'id': 'mem_comment_add:${memoryId}:${DateTime.now().millisecondsSinceEpoch}',
+          'type': 'mem_comment_add',
+          'payload': {'memoryId': memoryId, 'comment': commentMap},
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+      } catch (_) {}
+    }
   }
 
   Future<void> deleteComment({
     required String memoryId,
     required String commentId,
   }) async {
-    await _comments(memoryId).doc(commentId).delete();
+    try {
+      await _comments(memoryId).doc(commentId).delete();
+    } catch (e) {
+      try {
+        await OutboxService.instance.enqueue({
+          'id': 'mem_comment_delete:${memoryId}:${commentId}:${DateTime.now().millisecondsSinceEpoch}',
+          'type': 'mem_comment_delete',
+          'payload': {'memoryId': memoryId, 'commentId': commentId},
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+      } catch (_) {}
+    }
   }
 }
