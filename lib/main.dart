@@ -10,6 +10,7 @@ import 'services/storage_platform.dart';
 import 'features/memories/services/storage_memory_service.dart';
 
 import 'dart:async';
+import 'dart:ui';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'services/observability_service.dart';
 import 'services/auth_service.dart';
@@ -79,14 +80,25 @@ void main() async {
     await ObservabilityService.logEvent('observability_init_start');
     await ObservabilityService.init();
 
-    // Route Flutter framework errors to Crashlytics
+    // Route Flutter framework errors to ObservabilityService / Crashlytics
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-      // Report to Crashlytics
+      // Report to Crashlytics via central service
       try {
-        FirebaseCrashlytics.instance.recordFlutterError(details);
+        ObservabilityService.recordFlutterError(details);
       } catch (_) {}
     };
+
+    // Capture uncaught async errors from the engine/platform and report
+    try {
+      // PlatformDispatcher.instance.onError returns a bool that indicates whether the
+      // error was handled. We return true after reporting to avoid default propagation.
+      PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+        ObservabilityService.reportError(error, stack, reason: 'PlatformDispatcher.onError');
+        return true;
+      };
+    } catch (_) {}
+
     await ObservabilityService.logEvent('observability_init_success');
   } catch (e, s) {
     debugPrint('Observability init failed: $e');

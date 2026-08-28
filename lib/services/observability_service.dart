@@ -28,12 +28,25 @@ class ObservabilityService {
   static Future<void> setUserId(String? id) async {
     try {
       await analytics?.setUserId(id: id);
+      // Also set Crashlytics user identifier for cross-correlation
+      await FirebaseCrashlytics.instance.setUserIdentifier(id ?? '');
     } catch (_) {}
   }
 
+  /// Record a non-fatal error with Crashlytics (object + stacktrace)
   static Future<void> reportError(Object error, StackTrace stack, {String? reason}) async {
     try {
       await FirebaseCrashlytics.instance.recordError(error, stack, reason: reason);
     } catch (_) {}
+  }
+
+  /// Record Flutter framework errors (FlutterErrorDetails) into Crashlytics
+  static Future<void> recordFlutterError(FlutterErrorDetails details) async {
+    try {
+      // Forward to Crashlytics
+      await FirebaseCrashlytics.instance.recordFlutterError(details);
+    } catch (_) {
+      if (kDebugMode) debugPrint('Failed to record flutter error to Crashlytics');
+    }
   }
 }
