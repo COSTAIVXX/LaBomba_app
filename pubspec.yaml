@@ -100,4 +100,5 @@ flutter_icons:
   image_path: "assets/images/icon_master.png"
   adaptive_icon_background: "#0D1117"
   adaptive_icon_foreground: "assets/images/icon_master.png"
+  remove_alpha_ios: true
 
