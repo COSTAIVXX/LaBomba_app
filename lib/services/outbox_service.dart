@@ -16,6 +16,7 @@ class OutboxService {
   final StorageService _storage;
   StreamSubscription<ConnectivityResult>? _connSub;
   final String _key = 'social:outbox_v1';
+  final String _deadLetterKey = 'social:outbox_deadletter_v1';
   bool _processing = false;
 
   OutboxService._internal()
@@ -57,9 +58,28 @@ class OutboxService {
     } catch (_) {}
   }
 
+  Future<void> _appendDeadLetter(Map<String, dynamic> item, {String? reason}) async {
+    try {
+      final raw = await _storage.read(key: _deadLetterKey);
+      final list = raw == null || raw.isEmpty ? <dynamic>[] : (jsonDecode(raw) as List<dynamic>);
+      final entry = Map<String, dynamic>.from(item)
+        ..['deadLetterAt'] = DateTime.now().toIso8601String()
+        ..['deadReason'] = reason ?? 'max attempts reached or corrupted';
+      list.add(entry);
+      await _storage.write(key: _deadLetterKey, value: jsonEncode(list));
+    } catch (_) {}
+  }
+
   Future<void> enqueue(Map<String, dynamic> action) async {
     final list = await _readQueue();
-    list.add(action);
+    final nowIso = DateTime.now().toIso8601String();
+    // Normalize and initialize metadata
+    final item = Map<String, dynamic>.from(action);
+    item['id'] = item['id'] ?? 'outbox:${nowIso}:${list.length}';
+    item['attempts'] = 0;
+    item['nextAttemptAt'] = null;
+    item['createdAt'] = item['createdAt'] ?? nowIso;
+    list.add(item);
     await _writeQueue(list);
   }
 
@@ -91,7 +111,8 @@ class OutboxService {
         }
 
         if (attempts >= _maxRetries) {
-          // drop item (exhausted)
+          // exhausted - move to dead-letter for auditing
+          await _appendDeadLetter(item, reason: 'max attempts reached');
           continue;
         }
 
@@ -143,7 +164,8 @@ class OutboxService {
               });
             }
           } else {
-            // Unknown or corrupt item - treat as corrupted and drop
+            // Unknown or corrupt item - record in dead-letter and drop
+            await _appendDeadLetter(item, reason: 'unknown type or corrupt payload');
             continue;
           }
         } catch (e) {
