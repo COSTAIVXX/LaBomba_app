@@ -23,6 +23,7 @@ import 'providers/google_auth_provider.dart';
 import 'providers/event_config_provider.dart';
 
 import 'features/memories/memories_module.dart';
+import 'features/memories/views/block_gallery_page.dart';
 
 import 'features/chat/providers/chat_provider.dart';
 import 'features/chat/views/chat_page.dart';
@@ -198,6 +199,9 @@ class LaBombaApp extends StatelessWidget {
             '/admin/clients': (context) => const ClientBasePage(),
             '/memories': (context) => const MemberAccessGate(
                   child: MemoriesListPage(),
+                ),
+            '/gallery': (context) => const MemberAccessGate(
+                  child: BlockGalleryPage(),
                 ),
             '/chat': (context) => MemberAccessGate(
                   child: ChatPage(

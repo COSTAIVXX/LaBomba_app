@@ -40,6 +40,11 @@ class MainNavigationDrawer extends StatelessWidget {
               route: '/memories',
             ),
             _NavigationItem(
+              icon: Icons.photo_library_outlined,
+              label: 'Galeria do bloco',
+              route: '/gallery',
+            ),
+            _NavigationItem(
               icon: AppIcons.chat,
               label: 'Chat',
               route: '/chat',
