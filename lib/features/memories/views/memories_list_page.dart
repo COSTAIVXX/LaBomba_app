@@ -14,6 +14,7 @@ import 'package:labomba_app/features/memories/widgets/memory_social_panel.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/services/memory_social_service.dart';
 import 'package:labomba_app/widgets/heat_explosion_widget.dart';
+import 'package:labomba_app/widgets/official_horn_listener.dart';
 
 class MemoriesListPage extends StatelessWidget {
   const MemoriesListPage({super.key});
@@ -51,15 +52,17 @@ class MemoriesListPage extends StatelessWidget {
         elevation: 2,
         actions: [UserAppBarActions()],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_bgGradientStart, _bgGradientEnd],
-          ),
-        ),
-        child: Builder(builder: (context) {
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_bgGradientStart, _bgGradientEnd],
+              ),
+            ),
+            child: Builder(builder: (context) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator(color: Colors.white));
           }
@@ -168,7 +171,10 @@ class MemoriesListPage extends StatelessWidget {
               );
             },
           );
-        }),
+            }),
+          ),
+          const OfficialHornListener(),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,

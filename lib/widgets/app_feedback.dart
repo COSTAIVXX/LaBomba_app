@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../features/notifications/services/official_horn_service.dart';
 
 enum AppFeedbackType { success, warning, error }
 
@@ -17,6 +18,43 @@ class AppFeedback {
 
   static void showError(BuildContext context, String message) {
     _show(context, message, AppFeedbackType.error);
+  }
+
+  static void showAnnouncement(
+    BuildContext context,
+    OfficialAnnouncement announcement,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.campaign_outlined, color: AppTheme.accent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(announcement.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Text(announcement.message),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 8),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppTheme.accent),
+          ),
+          backgroundColor: scheme.surfaceContainerHighest,
+        ),
+      );
   }
 
   static void _show(
