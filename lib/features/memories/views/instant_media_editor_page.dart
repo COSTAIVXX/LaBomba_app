@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../services/storage_platform.dart';
 
 import '../../../providers/google_auth_provider.dart';
@@ -103,7 +105,7 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
             .map(
               (gif) => InkWell(
                 onTap: () => Navigator.pop(context, gif),
-                child: Image.network(gif, fit: BoxFit.cover),
+                child: CachedNetworkImage(imageUrl: gif, fit: BoxFit.cover, placeholder: (_, __) => Shimmer.fromColors(baseColor: Colors.grey.shade300, highlightColor: Colors.grey.shade100, child: Container(color: Colors.grey.shade300)), errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
               ),
             )
             .toList(),

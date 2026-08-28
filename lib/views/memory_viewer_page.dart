@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MemoryViewerPage extends StatelessWidget {
   final String url;
@@ -17,13 +19,15 @@ class MemoryViewerPage extends StatelessWidget {
         child: Hero(
           tag: url,
           child: InteractiveViewer(
-            child: Image.network(
-              url,
+            child: CachedNetworkImage(
+              imageUrl: url,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white)),
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : const Center(child: CircularProgressIndicator(color: Colors.white)),
+              placeholder: (context, _) => Shimmer.fromColors(
+                baseColor: Colors.grey.shade800,
+                highlightColor: Colors.grey.shade700,
+                child: Container(color: Colors.grey.shade800),
+              ),
+              errorWidget: (context, _, __) => const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white)),
             ),
           ),
         ),

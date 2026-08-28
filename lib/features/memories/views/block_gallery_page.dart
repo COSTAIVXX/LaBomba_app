@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../theme/app_theme.dart';
 import '../../../widgets/app_feedback.dart';
@@ -257,17 +258,15 @@ class _GalleryTile extends StatelessWidget {
       }
       return Hero(
         tag: widget.url,
-        child: Image.network(
-          widget.url,
+        child: CachedNetworkImage(
+          imageUrl: widget.url,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined)),
-          loadingBuilder: (context, child, progress) => progress == null
-              ? child
-              : Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(color: Colors.grey.shade300),
-                ),
+          placeholder: (context, _) => Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(color: Colors.grey.shade300),
+          ),
+          errorWidget: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined)),
         ),
       );
     }
