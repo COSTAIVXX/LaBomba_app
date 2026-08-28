@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../services/storage_service.dart';
+import '../services/street_mode_service.dart';
 
 class LaBombaExplosionOverlay extends StatefulWidget {
   final String message;
@@ -10,6 +11,7 @@ class LaBombaExplosionOverlay extends StatefulWidget {
   final bool soundEnabled;
   final bool visualEnabled;
   final bool hapticEnabled;
+  final bool reducedMotion;
 
   const LaBombaExplosionOverlay({
     super.key,
@@ -18,6 +20,7 @@ class LaBombaExplosionOverlay extends StatefulWidget {
     this.soundEnabled = true,
     this.visualEnabled = true,
     this.hapticEnabled = true,
+    this.reducedMotion = false,
   });
 
   static Future<void> show(
@@ -31,7 +34,8 @@ class LaBombaExplosionOverlay extends StatefulWidget {
         await storage.read(key: 'settings_alert_visual') != 'false';
     final hapticEnabled =
         await storage.read(key: 'settings_alert_haptic') != 'false';
-    if (!visualEnabled && !soundEnabled && !hapticEnabled) return;
+    final streetMode = await storage.read(key: StreetModeService.key) == 'true';
+    if ((!visualEnabled || streetMode) && !soundEnabled && !hapticEnabled) return;
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
       builder: (_) => LaBombaExplosionOverlay(
@@ -39,6 +43,7 @@ class LaBombaExplosionOverlay extends StatefulWidget {
         soundEnabled: soundEnabled,
         visualEnabled: visualEnabled,
         hapticEnabled: hapticEnabled,
+        reducedMotion: streetMode,
       ),
     );
     overlay.insert(entry);
@@ -60,7 +65,7 @@ class _LaBombaExplosionOverlayState extends State<LaBombaExplosionOverlay>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1100),
+      duration: Duration(milliseconds: widget.reducedMotion ? 550 : 1100),
     )..forward();
     if (widget.soundEnabled) {
       SystemSound.play(SystemSoundType.alert);

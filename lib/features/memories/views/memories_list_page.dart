@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:labomba_app/services/street_mode_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:image_picker/image_picker.dart';
@@ -283,13 +284,15 @@ class _MemoryMediaPreviewState extends State<_MemoryMediaPreview>
     with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool _isVideo = false;
+  bool _streetMode = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _streetMode = context.read<StreetModeService>().enabled;
     _isVideo = _looksLikeVideo(widget.url);
-    if (_isVideo) _initializeVideo();
+    if (_isVideo && !_streetMode) _initializeVideo();
   }
 
   bool _looksLikeVideo(String url) {
@@ -314,7 +317,7 @@ class _MemoryMediaPreviewState extends State<_MemoryMediaPreview>
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) return;
     if (state == AppLifecycleState.resumed) {
-      controller.play();
+      if (!_streetMode) controller.play();
     } else {
       controller.pause();
     }

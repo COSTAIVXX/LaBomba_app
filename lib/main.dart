@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'services/observability_service.dart';
 import 'services/auth_service.dart';
+import 'services/street_mode_service.dart';
 
 import 'theme/app_theme.dart';
 
@@ -42,6 +43,7 @@ import 'views/onboarding_page.dart';
 import 'views/settings_hub_page.dart';
 import 'views/privacy_data_management_page.dart';
 import 'views/sound_alerts_settings_page.dart';
+import 'views/street_mode_settings_page.dart';
 import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/badge_generator_page.dart';
@@ -179,6 +181,9 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => ThemeProvider(storageService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => StreetModeService(storageService),
+        ),
       ],
       child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
         return MaterialApp(
@@ -220,6 +225,8 @@ class LaBombaApp extends StatelessWidget {
                 const PrivacyDataManagementPage(),
             '/settings/sound-alerts': (context) =>
                 const SoundAlertsSettingsPage(),
+            '/settings/street-mode': (context) =>
+                const StreetModeSettingsPage(),
             '/about': (context) => const AboutAndTermsPage(),
             '/profile': (context) => const MemberAccessGate(
                   child: UserProfilePage(),

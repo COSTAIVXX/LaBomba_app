@@ -36,6 +36,12 @@ class SettingsHubPage extends StatelessWidget {
         route: '/settings/sound-alerts',
       ),
       _SettingsSection(
+        icon: Icons.battery_saver_outlined,
+        title: 'Modo Rua',
+        subtitle: 'Economize bateria e dados durante o bloco',
+        route: '/settings/street-mode',
+      ),
+      _SettingsSection(
         icon: Icons.privacy_tip_outlined,
         title: 'Privacidade',
         subtitle: 'Termos, aceite e preferências de dados',
