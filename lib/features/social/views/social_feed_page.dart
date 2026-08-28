@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../services/auth_service.dart';
+import '../../../services/storage_platform.dart';
+import '../../../services/storage_service.dart';
 import '../../social/models/post_interaction_model.dart';
 
 /// Social feed page. Shows posts from 'posts' collection and allows simple
@@ -16,9 +20,87 @@ class SocialFeedPage extends StatefulWidget {
 
 class _SocialFeedPageState extends State<SocialFeedPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final StorageService _storage = PlatformStorageService();
   bool _onlyCloseFriends = false;
 
   String? get _currentUid => context.read<AuthService>().currentUser?.uid;
+
+  // Keys for cached posts
+  String _postsCacheKey() => 'social:posts_cache_v1';
+
+  Future<void> _persistPostsCache(List<QueryDocumentSnapshot> docs) async {
+    try {
+      final list = docs.map((d) {
+        final data = Map<String, dynamic>.from(d.data() as Map<String, dynamic>);
+        // Normalize nested timestamps inside comments/reactions to ISO strings
+        if (data['comments'] is List) {
+          data['comments'] = (data['comments'] as List).map((c) {
+            final m = Map<String, dynamic>.from(c as Map);
+            final created = m['createdAt'];
+            if (created is Timestamp) m['createdAt'] = created.toDate().toIso8601String();
+            return m;
+          }).toList();
+        }
+        if (data['reactions'] is List) {
+          data['reactions'] = (data['reactions'] as List).map((r) {
+            final m = Map<String, dynamic>.from(r as Map);
+            final created = m['createdAt'];
+            if (created is Timestamp) m['createdAt'] = created.toDate().toIso8601String();
+            return m;
+          }).toList();
+        }
+        return {'id': d.id, 'data': data};
+      }).toList(growable: false);
+      await _storage.write(key: _postsCacheKey(), value: jsonEncode(list));
+    } catch (_) {}
+  }
+
+  Future<List<Map<String, dynamic>>> _readCachedPosts() async {
+    try {
+      final raw = await _storage.read(key: _postsCacheKey());
+      if (raw == null || raw.isEmpty) return <Map<String, dynamic>>[];
+      final decoded = (jsonDecode(raw) as List<dynamic>).cast<Map<String, dynamic>>();
+      return decoded.map((e) => Map<String, dynamic>.from(e)).toList(growable: false);
+    } catch (_) {
+      return <Map<String, dynamic>>[];
+    }
+  }
+
+  PostInteraction _mapToInteractionFromCache(Map<String, dynamic> entry) {
+    final id = entry['id'] as String? ?? '';
+    final data = Map<String, dynamic>.from(entry['data'] as Map<String, dynamic>? ?? {});
+
+    final commentsRaw = data['comments'] as List<dynamic>? ?? [];
+    final reactionsRaw = data['reactions'] as List<dynamic>? ?? [];
+
+    final comments = commentsRaw.map((c) {
+      final map = Map<String, dynamic>.from(c as Map);
+      final createdStr = map['createdAt'] as String?;
+      final createdAt = createdStr != null ? DateTime.tryParse(createdStr) ?? DateTime.now() : DateTime.now();
+      return Comment(
+        id: map['id'] as String,
+        authorId: map['authorId'] as String,
+        text: map['text'] as String,
+        createdAt: createdAt,
+        deleted: map['deleted'] as bool? ?? false,
+      );
+    }).toList();
+
+    final reactions = reactionsRaw.map((r) {
+      final map = Map<String, dynamic>.from(r as Map);
+      final createdStr = map['createdAt'] as String?;
+      final createdAt = createdStr != null ? DateTime.tryParse(createdStr) ?? DateTime.now() : DateTime.now();
+      return Reaction(
+        id: map['id'] as String,
+        userId: map['userId'] as String,
+        type: map['type'] as String,
+        createdAt: createdAt,
+      );
+    }).toList();
+
+    return PostInteraction(postId: id, comments: comments, reactions: reactions);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +120,62 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('posts').orderBy('createdAt', descending: true).snapshots(),
+        stream: _firestore.collection('posts').orderBy('createdAt', descending: true).snapshots().map((snap) {
+          // persist fresh snapshot into local cache for fast fallback
+          _persistPostsCache(snap.docs);
+          return snap;
+        }),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Erro ao carregar feed: ${snapshot.error}'));
+          // If remote stream has error or no data, fall back to cached posts
+          if (snapshot.hasError || snapshot.data == null) {
+            return FutureBuilder<List<Map<String, dynamic>>>(
+              future: _readCachedPosts(),
+              builder: (context, cacheSnap) {
+                if (cacheSnap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final cached = cacheSnap.data ?? <Map<String, dynamic>>[];
+                if (cached.isEmpty) {
+                  if (snapshot.hasError) return Center(child: Text('Erro ao carregar feed: ${snapshot.error}'));
+                  return const Center(child: Text('Nenhuma postagem encontrada'));
+                }
+
+                return FutureBuilder<List<String>>(
+                  future: _fetchCloseFriends(),
+                  builder: (context, cfSnap) {
+                    final closeFriends = cfSnap.data ?? <String>[];
+                    final entries = cached
+                        .map<MapEntry<Map<String, dynamic>, PostInteraction>>(
+                            (e) => MapEntry<Map<String, dynamic>, PostInteraction>(
+                                Map<String, dynamic>.from(e), _mapToInteractionFromCache(e)))
+                        .toList();
+                    final filtered = entries.where((entry) {
+                      if (!_onlyCloseFriends) return true;
+                      final data = entry.key['data'] as Map<String, dynamic>?;
+                      final author = data != null ? data['authorId'] as String? : null;
+                      return author != null && closeFriends.contains(author);
+                    }).toList();
+
+                    if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
+
+                    return ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final entry = filtered[index].key;
+                        final post = filtered[index].value;
+                        final docId = entry['id'] as String;
+                        return _buildPostCard(post, docId);
+                      },
+                    );
+                  },
+                );
+              },
+            );
           }
+
           final docs = snapshot.data?.docs ?? [];
 
           return FutureBuilder<List<String>>(
