@@ -26,18 +26,33 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _iconScaleAnimation;
+  late Animation<double> _contentFade;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     );
+
+    // Root fade for the whole card
     _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+
+    // Slide from slightly below
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
+
+    // Staggered icon scale for a lively entrance
+    _iconScaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: const Interval(0.0, 0.4, curve: Curves.elasticOut)),
+    );
+
+    // Delayed content fade (title, subtitle and form elements)
+    _contentFade = CurvedAnimation(parent: _animationController, curve: const Interval(0.35, 1.0, curve: Curves.easeInOut));
+
     _animationController.forward();
   }
 
@@ -181,28 +196,38 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            size: 72,
+                          ScaleTransition(
+                            scale: _iconScaleAnimation,
+                            child: const Icon(
+                              Icons.admin_panel_settings_rounded,
+                              size: 72,
                               color: Colors.white,
+                            ),
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Painel Administrativo',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  letterSpacing: -0.5,
+                          const SizedBox(height: 18),
+                          FadeTransition(
+                            opacity: _contentFade,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Painel Administrativo',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: -0.5,
+                                      ),
                                 ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Acesso exclusivo para a equipe LaBomba',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white54),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Acesso exclusivo para a equipe LaBomba',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 28),
                           if (_errorMessage != null) ...[
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
