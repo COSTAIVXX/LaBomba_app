@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../models/admin_profile.dart';
 import '../../services/admin_profile_service.dart';
 import '../../services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -149,6 +150,51 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
     }
   }
 
+  Future<void> _handleForgotPassword() async {
+    final prefilled = _usernameController.text.trim();
+    final emailController = TextEditingController(text: prefilled);
+
+    final shouldSend = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Recuperar senha'),
+        content: TextField(
+          controller: emailController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(labelText: 'E-mail', hintText: 'seu@email.com'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Enviar')),
+        ],
+      ),
+    );
+
+    if (shouldSend != true) return;
+
+    final email = emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe um e-mail válido para recuperação.')));
+      return;
+    }
+
+    try {
+      if (mounted) setState(() => _isLoading = true);
+      await fb_auth.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('E-mail de recuperação enviado para $email')));
+    } on fb_auth.FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'Erro ao enviar e-mail de recuperação.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao processar recuperação.')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,7 +273,15 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               ],
                             ),
                           ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _isLoading ? null : _handleForgotPassword,
+                              child: const Text('Esqueci minha senha', style: TextStyle(color: Colors.white70)),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                           if (_errorMessage != null) ...[
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
