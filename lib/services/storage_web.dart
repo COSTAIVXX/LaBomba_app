@@ -20,4 +20,14 @@ class WebStorageService implements StorageService {
   Future<void> delete({required String key}) async {
     html.window.localStorage.remove(key);
   }
+
+  @override
+  Future<void> deleteAll() async {
+    html.window.localStorage.clear();
+  }
+}
+
+// Platform-aliased class used by conditional imports
+class PlatformStorageService extends WebStorageService {
+  PlatformStorageService();
 }

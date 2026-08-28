@@ -47,6 +47,26 @@ class GoogleAuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Refresh the current Firebase user information and notify listeners so UI updates immediately
+  Future<void> refresh() async {
+    _setLoading(true);
+    try {
+      await _authService.reloadCurrentUser();
+    } catch (e) {
+      debugPrint('GoogleAuthProvider.refresh error: $e');
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
+
+  /// A convenience getter that maps current Firebase user to GoogleAuthData (or null)
+  GoogleAuthData? get currentUserData {
+    final u = _authService.currentUser;
+    if (u == null) return null;
+    return GoogleAuthData(uid: u.uid, displayName: u.displayName, email: u.email, photoUrl: u.photoURL);
+  }
+
   Future<void> signOut() async {
     _setLoading(true);
     try {
