@@ -10,7 +10,6 @@ import 'sections/gallery_section.dart';
 import 'sections/rules_section.dart';
 import 'sections/footer_section.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
-import 'package:labomba_app/widgets/main_navigation_drawer.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -37,7 +36,6 @@ class _LandingPageState extends State<LandingPage> {
         final contentMaxWidth = isCompact ? 560.0 : 850.0;
 
         return Scaffold(
-          drawer: const MainNavigationDrawer(),
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             leading: Builder(

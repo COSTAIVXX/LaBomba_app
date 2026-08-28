@@ -205,16 +205,13 @@ class LaBombaApp extends StatelessWidget {
             '/foliaos': (context) => const MemberAccessGate(
                   child: FoliaoDirectoryPage(),
                 ),
-            '/settings': (context) => const SettingsHubPage(),
-            '/settings/profile': (context) => const SettingsPage(),
-            '/settings/theme': (context) => const SettingsThemePage(),
-            '/settings/privacy': (context) => const SettingsPrivacyPage(),
-            '/settings/privacy/data': (context) =>
-                const PrivacyDataManagementPage(),
-            '/settings/sound-alerts': (context) =>
-                const SoundAlertsSettingsPage(),
-            '/settings/street-mode': (context) =>
-                const StreetModeSettingsPage(),
+            '/settings': (context) => const MemberAccessGate(child: SettingsHubPage()),
+            '/settings/profile': (context) => const MemberAccessGate(child: SettingsPage()),
+            '/settings/theme': (context) => const MemberAccessGate(child: SettingsThemePage()),
+            '/settings/privacy': (context) => const MemberAccessGate(child: SettingsPrivacyPage()),
+            '/settings/privacy/data': (context) => const MemberAccessGate(child: PrivacyDataManagementPage()),
+            '/settings/sound-alerts': (context) => const MemberAccessGate(child: SoundAlertsSettingsPage()),
+            '/settings/street-mode': (context) => const MemberAccessGate(child: StreetModeSettingsPage()),
             '/about': (context) => const AboutAndTermsPage(),
             '/profile': (context) => const MemberAccessGate(
                   child: UserProfilePage(),
