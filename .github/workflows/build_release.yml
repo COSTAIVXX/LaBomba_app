@@ -2,7 +2,9 @@ name: Build Release
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - 'release/*'
     tags:
       - 'v*'
       - 'release/*'
@@ -50,4 +52,4 @@ jobs:
 
       - name: Verify no secrets in workflow
         run: |
-          echo "This workflow injects ADMIN_WHITELIST via repository secrets; it contains no hardcoded secrets." 
+          echo "This workflow injects ADMIN_WHITELIST via repository secrets; it contains no hardcoded secrets."
