@@ -1,11 +1,9 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../../models/ticket.dart';
-import '../../../../providers/admin_auth_provider.dart';
-import '../../../../providers/shop_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
+import 'package:labomba_app/models/ticket.dart';
+import 'package:labomba_app/providers/admin_auth_provider.dart';
+import 'package:labomba_app/providers/shop_provider.dart';
 import 'admin_login_page.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
@@ -339,10 +337,6 @@ class _DashboardGrid extends StatelessWidget {
               .map((card) =>
                   SizedBox(width: compact ? double.infinity : 250, child: card))
               .toList()),
-      const SizedBox(height: 16),
-      const _PanelTitle(title: 'Vendas recentes', icon: Icons.show_chart),
-      const SizedBox(height: 10),
-      _SalesChart(values: shop.salesHistory),
     ]);
   }
 }
@@ -402,79 +396,6 @@ class _StatCard extends StatelessWidget {
                       ])
                 ]))
           ])));
-}
-
-class _SalesChart extends StatelessWidget {
-  const _SalesChart({required this.values});
-  final List<int> values;
-
-  @override
-  Widget build(BuildContext context) => Card(
-      color: Colors.white.withValues(alpha: 0.045),
-      child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 20, 12),
-          child: SizedBox(
-              height: 180,
-              width: double.infinity,
-              child: CustomPaint(painter: _SalesChartPainter(values)))));
-}
-
-class _SalesChartPainter extends CustomPainter {
-  const _SalesChartPainter(this.values);
-  final List<int> values;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) return;
-    const chartTop = 8.0;
-    const chartBottom = 150.0;
-    final maxValue = math.max(1, values.reduce(math.max));
-    final xStep = values.length == 1 ? 0.0 : size.width / (values.length - 1);
-    final points = values
-        .asMap()
-        .entries
-        .map((entry) => Offset(entry.key * xStep,
-            chartBottom - (entry.value / maxValue) * (chartBottom - chartTop)))
-        .toList();
-    final gridPaint = Paint()
-      ..color = Colors.white12
-      ..strokeWidth = 1;
-    for (var i = 0; i < 4; i++) {
-      final y = chartTop + i * ((chartBottom - chartTop) / 3);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-    final line = Path()..moveTo(points.first.dx, points.first.dy);
-    for (final point in points.skip(1)) {
-      line.lineTo(point.dx, point.dy);
-    }
-    final fill = Path.from(line)
-      ..lineTo(points.last.dx, chartBottom)
-      ..lineTo(points.first.dx, chartBottom)
-      ..close();
-    canvas.drawPath(
-        fill,
-        Paint()
-          ..shader = const LinearGradient(
-                  colors: [Color(0x557C3AED), Color(0x007C3AED)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter)
-              .createShader(
-                  Rect.fromLTWH(0, chartTop, size.width, chartBottom)));
-    canvas.drawPath(
-        line,
-        Paint()
-          ..color = AppTheme.primaryLight
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke);
-    final dotPaint = Paint()..color = AppTheme.accent;
-    for (final point in points) {
-      canvas.drawCircle(point, 4, dotPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SalesChartPainter oldDelegate) =>
-      oldDelegate.values != values;
 }
 
 class _QuickSalePanel extends StatefulWidget {

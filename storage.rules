@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() { return request.auth != null; }
+
+    function isAdmin() {
+      // Firestore lookup to admin_profiles to check flag
+      return isAuth() &&
+        exists(/databases/$(default)/documents/admin_profiles/$(request.auth.uid)) &&
+        get(/databases/$(default)/documents/admin_profiles/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // User media: users may upload to their own folder; admins may delete/overwrite
+    match /users/{userId}/memories/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.auth.uid == userId;
+      allow delete: if isAuth() && isAdmin();
+    }
+
+    // General: authenticated reads, deny public writes
+    match /{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+  }
+}

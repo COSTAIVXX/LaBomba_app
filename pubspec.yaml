@@ -38,8 +38,16 @@ dependencies:
   uuid: ^4.6.0
   cpf_cnpj_validator: ^2.0.0
   cached_network_image: ^3.2.3
+  video_player: ^2.9.2
+  image_picker: ^1.1.2
   firebase_analytics: ^12.5.0
   firebase_crashlytics: ^5.3.0
+  flutter_image_compress: ^2.5.1
+  shimmer: ^2.0.0
+  firebase_messaging: ^16.6.0
+  firebase_remote_config: ^6.6.0
+  share_plus: ^13.3.0
+  path_provider: ^2.0.14
 
 
 # For information on the generic Dart part of this file, see the

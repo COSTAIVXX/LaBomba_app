@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/admin_auth_provider.dart';
 import '../../providers/google_auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../models/admin_profile.dart';
+import '../../services/admin_profile_service.dart';
+import '../../services/auth_service.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -47,7 +50,14 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
   }
 
   Future<void> _handleLogin() async {
+    // Ensure any open keyboard commits text fields
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
+
+    // Capture values immediately to avoid them being affected by rebuilds
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
 
     setState(() {
       _isLoading = true;
@@ -56,10 +66,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
 
     try {
       final authProvider = context.read<AdminAuthProvider>();
-      final success = await authProvider.login(
-        _usernameController.text.trim(),
-        _passwordController.text.trim(),
-      );
+      final success = await authProvider.login(username, password);
 
       if (!mounted) return;
 
@@ -95,6 +102,26 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
         setState(() => _isLoading = false);
         return;
       }
+
+      // Ensure admin profile is created/flagged immediately so permissions are available
+      try {
+        final adminSvc = AdminProfileService();
+        final profile = AdminProfile(
+          uid: googleData.uid,
+          email: googleData.email,
+          displayName: googleData.displayName,
+          isAdmin: true,
+        );
+        await adminSvc.setAdminProfile(profile);
+      } catch (e) {
+        // best-effort: do not block sign-in on profile write failures
+        debugPrint('Failed to ensure admin profile: $e');
+      }
+
+      // Persist admin session locally for quick restores
+      try {
+        await context.read<AuthService>().setAdminSession(true);
+      } catch (_) {}
 
       Navigator.pushReplacementNamed(context, '/admin/dashboard');
     } catch (e) {
