@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../providers/google_auth_provider.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import '../models/admin_profile.dart';
+import '../widgets/app_feedback.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -191,7 +192,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           } catch (_) {}
                         } catch (_) {}
 
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas e perfil atualizado')));
+                        AppFeedback.showSuccess(context, 'Preferências salvas e perfil atualizado');
                         return;
                       }
 
@@ -199,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       // fall through to local save notification
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferências salvas')));
+                    AppFeedback.showSuccess(context, 'Preferências salvas');
                   },
                   child: const Text('Salvar alterações'),
                 ),

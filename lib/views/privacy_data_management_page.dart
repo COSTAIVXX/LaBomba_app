@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/storage_service.dart';
+import '../widgets/app_feedback.dart';
 
 class PrivacyDataManagementPage extends StatefulWidget {
   const PrivacyDataManagementPage({super.key});
@@ -79,9 +80,7 @@ class _PrivacyDataManagementPageState
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache de imagens limpo.')),
-    );
+    AppFeedback.showSuccess(context, 'Cache de imagens limpo.');
   }
 
   Future<void> _deleteLocalData() async {
@@ -98,9 +97,7 @@ class _PrivacyDataManagementPageState
       _storedBytes = 0;
       _offlineMemories = 0;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Dados locais excluídos.')),
-    );
+    AppFeedback.showSuccess(context, 'Dados locais excluídos.');
   }
 
   @override

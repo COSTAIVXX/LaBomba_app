@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../widgets/app_feedback.dart';
+
 class AboutAndTermsPage extends StatelessWidget {
   const AboutAndTermsPage({super.key});
 
@@ -21,9 +23,7 @@ Este é um texto de exemplo — substitua pelo texto oficial.''';
   Future<void> _openLink(BuildContext context, Uri uri) async {
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir este link.')),
-      );
+      AppFeedback.showError(context, 'Não foi possível abrir este link.');
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:labomba_app/features/memories/models/memory.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
 import 'package:labomba_app/providers/google_auth_provider.dart';
+import 'package:labomba_app/widgets/app_feedback.dart';
 
 class MemoryEditorPage extends StatefulWidget {
   const MemoryEditorPage({super.key});
@@ -158,7 +159,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
     final desc = _descController.text.trim();
     if (title.isEmpty && desc.isEmpty && _attachments.isEmpty) {
       // nothing to save
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adicione conteúdo antes de salvar.')));
+      AppFeedback.showWarning(context, 'Adicione conteúdo antes de salvar.');
       return;
     }
 

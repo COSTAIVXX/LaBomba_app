@@ -28,6 +28,17 @@ class AppTheme {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Color(0xFF211A31),
+        contentTextStyle: TextStyle(color: Colors.white),
+        actionTextColor: primaryLight,
+        insetPadding: EdgeInsets.fromLTRB(16, 0, 16, 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          side: BorderSide(color: Color(0x665EA5FA)),
+        ),
+      ),
     );
   }
 
@@ -51,6 +62,17 @@ class AppTheme {
         elevation: 0,
         foregroundColor: Colors.black,
         centerTitle: true,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Color(0xFFF1F5FF),
+        contentTextStyle: TextStyle(color: Color(0xFF172554)),
+        actionTextColor: primary,
+        insetPadding: EdgeInsets.fromLTRB(16, 0, 16, 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          side: BorderSide(color: Color(0x662563EB)),
+        ),
       ),
     );
   }
