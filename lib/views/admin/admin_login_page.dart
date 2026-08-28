@@ -142,7 +142,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppTheme.background, Color(0xFF130A2A)],
+            colors: [AppTheme.primary, AppTheme.primaryLight],
           ),
         ),
         child: Center(
