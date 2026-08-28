@@ -54,6 +54,9 @@ dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
 flutter:
   uses-material-design: true
   assets:
@@ -90,3 +93,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon_master.png"
+  adaptive_icon_background: "#0D1117"
+  adaptive_icon_foreground: "assets/images/icon_master.png"
+
