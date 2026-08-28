@@ -1,8 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../../services/media_compressor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -120,24 +123,69 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
       final ref = FirebaseStorage.instance.ref(
         'users/${user.uid}/memories/${const Uuid().v4()}.$extension',
       );
-      await ref.putData(await widget.media.readAsBytes());
-      final url = await ref.getDownloadURL();
-      final caption = _captionController.text.trim();
-      final mediaUrls = [url, if (_selectedGif != null) _selectedGif!];
-      await context.read<MemoryProvider>().addOrUpdate(
-            Memory(
-              id: const Uuid().v4(),
-              title: caption.isEmpty ? 'Memória da folia' : caption,
-              description: caption.isEmpty ? null : caption,
-              imageUrls: mediaUrls,
-              ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
-            ),
+
+        try {
+          if (widget.isVideo) {
+            final File original = File(widget.media.path);
+            final File compressed = await MediaCompressor.compressVideoFile(original);
+            await ref.putFile(compressed);
+          } else {
+            final File original = File(widget.media.path);
+            final Uint8List compressed = await MediaCompressor.compressImageFile(original);
+            await ref.putData(
+              compressed,
+              SettableMetadata(contentType: 'image/jpeg'),
           );
-      if (mounted) Navigator.popUntil(context, ModalRoute.withName('/memories'));
-    } finally {
-      if (mounted) setState(() => _publishing = false);
+          }
+        } catch (e) {
+          // Wrap upload/compression errors to be handled below
+          throw Exception('Erro durante compressão/upload: $e');
+        }
+
+        final url = await ref.getDownloadURL();
+        final caption = _captionController.text.trim();
+        final mediaUrls = [url, if (_selectedGif != null) _selectedGif!];
+        await context.read<MemoryProvider>().addOrUpdate(
+              Memory(
+                id: const Uuid().v4(),
+                title: caption.isEmpty ? 'Memória da folia' : caption,
+                description: caption.isEmpty ? null : caption,
+                imageUrls: mediaUrls,
+                ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
+              ),
+            );
+        if (mounted) Navigator.popUntil(context, ModalRoute.withName('/memories'));
+      } catch (e) {
+        if (mounted) await _showErrorRetry('Falha ao publicar mídia: ${e.toString()}', _publish);
+      } finally {
+        if (mounted) setState(() => _publishing = false);
+      }
     }
-  }
+
+    Future<void> _showErrorRetry(String message, Future<void> Function() retry) async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Erro ao enviar mídia'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // allow retry after brief delay so UI can update
+                Future.delayed(const Duration(milliseconds: 100), () => retry());
+              },
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    }
 
   Widget _preview() {
     if (widget.isVideo) {
