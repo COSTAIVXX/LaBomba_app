@@ -154,8 +154,13 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
       ),
     );
     if (confirm != true) return;
-    await _firestore.collection('users').doc(userId).update({'banned': true});
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário banido')));
+    try {
+      await _firestore.collection('users').doc(userId).update({'banned': true});
+      await _logAdminAction(action: 'ban_user', targetId: userId, details: {'collection': 'users'});
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário banido')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao banir usuário')));
+    }
   }
 
   Future<void> _deleteUser(String userId) async {
@@ -171,15 +176,36 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
       ),
     );
     if (confirm != true) return;
-    await _firestore.collection('users').doc(userId).delete();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário excluído')));
+    try {
+      await _firestore.collection('users').doc(userId).delete();
+      await _logAdminAction(action: 'delete_user', targetId: userId, details: {'collection': 'users'});
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário excluído')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao excluir usuário')));
+    }
   }
 
   Future<void> _exportDeadLetter() async {
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/outbox_deadletter.json';
     await OutboxService.instance.exportDeadLetterToFile(path);
+    await _logAdminAction(action: 'export_deadletter', targetId: path, details: {'exportPath': path});
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Dead-letter exportado: $path')));
+  }
+
+  Future<void> _logAdminAction({required String action, required String targetId, Map<String, dynamic>? details}) async {
+    try {
+      final admin = AuthService().currentUser;
+      final entry = <String, dynamic>{
+        'action': action,
+        'targetId': targetId,
+        'details': details ?? {},
+        'adminUid': admin?.uid,
+        'adminEmail': admin?.email,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+      await _firestore.collection('admin_audit').add(entry);
+    } catch (_) {}
   }
 
   @override
