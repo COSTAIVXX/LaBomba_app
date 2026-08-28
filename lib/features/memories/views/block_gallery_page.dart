@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../theme/app_theme.dart';
 import '../../../widgets/app_feedback.dart';
+import '../../../views/memory_viewer_page.dart';
 import '../models/memory.dart';
 import '../providers/memory_provider.dart';
 
@@ -107,7 +109,8 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
                           memory: filtered[index],
                           onShare: _share,
                           onDownload: _download,
-                        ),
+                                                  onView: (url) => Navigator.push(context, MaterialPageRoute(builder: (_) => MemoryViewerPage(url: url))),
+                                                ),
                       );
                     },
                   ),
@@ -141,11 +144,13 @@ class _GalleryTile extends StatelessWidget {
   final Memory memory;
   final ValueChanged<String> onShare;
   final ValueChanged<String> onDownload;
+  final ValueChanged<String>? onView;
 
   const _GalleryTile({
     required this.memory,
     required this.onShare,
     required this.onDownload,
+    this.onView,
   });
 
   @override
@@ -158,7 +163,7 @@ class _GalleryTile extends StatelessWidget {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => onDownload(url),
+          onTap: onView != null ? () => onView!(url) : () => onDownload(url),
               child: _GalleryMedia(url: url),
             ),
           ),
@@ -231,24 +236,39 @@ class _GalleryTile extends StatelessWidget {
       final controller = _controller;
       if (controller != null) {
         if (!controller.value.isInitialized) {
-          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+          // Shimmer skeleton for video placeholder
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(color: Colors.grey.shade300),
+          );
         }
-        return FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: controller.value.size.width,
-            height: controller.value.size.height,
-            child: VideoPlayer(controller),
+        return Hero(
+          tag: widget.url,
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: controller.value.size.width,
+              height: controller.value.size.height,
+              child: VideoPlayer(controller),
+            ),
           ),
         );
       }
-      return Image.network(
-        widget.url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            const Center(child: Icon(Icons.broken_image_outlined)),
-        loadingBuilder: (context, child, progress) =>
-            progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      return Hero(
+        tag: widget.url,
+        child: Image.network(
+          widget.url,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined)),
+          loadingBuilder: (context, child, progress) => progress == null
+              ? child
+              : Shimmer.fromColors(
+                  baseColor: Colors.grey.shade300,
+                  highlightColor: Colors.grey.shade100,
+                  child: Container(color: Colors.grey.shade300),
+                ),
+        ),
       );
     }
   }
