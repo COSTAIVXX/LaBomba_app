@@ -41,6 +41,7 @@ import 'views/terms_page.dart';
 import 'views/privacy_page.dart';
 import 'views/settings_page.dart';
 import 'services/push_notification_service.dart';
+import 'services/remote_config_service.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
@@ -110,6 +111,17 @@ void main() async {
       await ObservabilityService.reportError(e, s, reason: 'Main.pushInit');
     }
 
+    // Initialize Remote Config for dynamic feature flags and parameters
+    try {
+      await ObservabilityService.logEvent('remote_config_start');
+      await RemoteConfigService.init();
+      await ObservabilityService.logEvent('remote_config_success');
+    } catch (e, s) {
+      try {
+        await ObservabilityService.reportError(e, s, reason: 'Main.remoteConfigInit');
+      } catch (_) {}
+    }
+ 
     await ObservabilityService.logEvent('observability_init_success');
   } catch (e, s) {
     debugPrint('Observability init failed: $e');
