@@ -163,22 +163,37 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
             itemBuilder: (context, index) {
               final comment = comments[index];
               final depth = comment.parentId == null ? 0 : 1;
-              return Padding(
-                padding: EdgeInsets.only(left: 12.0 + depth * 24, right: 12),
-                child: ListTile(
-                  dense: true,
-                  title: Text(comment.authorName),
-                  subtitle: Text(comment.text),
-                  trailing: TextButton(
-                    onPressed: () => setState(() => _replyTo = comment.id),
-                    child: const Text('Responder'),
-                  ),
-                ),
+              return _CommentTile(
+                 key: ValueKey(comment.id),
+                 comment: comment,
+                 leftPadding: 12.0 + depth * 24,
+                 onReply: () => setState(() => _replyTo = comment.id),
               );
             },
           ),
         );
       },
+    );
+  }
+}
+
+class _CommentTile extends StatelessWidget {
+  final MemoryComment comment;
+  final double leftPadding;
+  final VoidCallback onReply;
+
+  const _CommentTile({super.key, required this.comment, required this.leftPadding, required this.onReply});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: leftPadding, right: 12),
+      child: ListTile(
+        dense: true,
+        title: Text(comment.authorName),
+        subtitle: Text(comment.text),
+        trailing: TextButton(onPressed: onReply, child: const Text('Responder')),
+      ),
     );
   }
 }
