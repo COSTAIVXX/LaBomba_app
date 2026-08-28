@@ -4,51 +4,67 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 
-// Storage service (platform implementations)
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'services/storage_mobile.dart';
-import 'services/storage_web.dart';
+import 'services/storage_service.dart';
+import 'services/storage_platform.dart';
+
+import 'features/memories/services/storage_memory_service.dart';
 
 import 'dart:async';
+import 'dart:ui';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'services/observability_service.dart';
 import 'services/auth_service.dart';
+import 'services/street_mode_service.dart';
 
-// Configurações e Temas
 import 'theme/app_theme.dart';
 
-// NOVO: Adicione o import de onde você salvou a interface e a classe do repositório
-// import 'repositories/client_repository.dart'; // <-- Descomente e ajuste o caminho da pasta!
-
-// Providers com apelido (prefixo) para evitar conflitos de nome
 import 'providers/admin_auth_provider.dart' as admin_provider;
 import 'providers/client_provider.dart';
 import 'providers/shop_provider.dart';
 import 'providers/google_auth_provider.dart';
 import 'providers/event_config_provider.dart';
 
-// Views e Páginas do Aplicativo
+import 'features/memories/memories_module.dart';
+import 'features/memories/views/block_gallery_page.dart';
+
+import 'features/chat/providers/chat_provider.dart';
+import 'features/chat/views/chat_page.dart';
+
 import 'views/landing_page.dart';
 import 'views/client_registration_page.dart';
 import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
+import 'views/terms_page.dart';
+import 'views/privacy_page.dart';
+import 'views/settings_page.dart';
+import 'providers/theme_provider.dart';
+import 'views/user_profile_page.dart';
+import 'views/notifications_page.dart';
+import 'views/onboarding_page.dart';
+import 'views/settings_hub_page.dart';
+import 'views/privacy_data_management_page.dart';
+import 'views/sound_alerts_settings_page.dart';
+import 'views/street_mode_settings_page.dart';
+import 'views/about_and_terms_page.dart';
+import 'views/admin/admin_moderation_page.dart';
+import 'views/badge_generator_page.dart';
+import 'views/foliao_directory_page.dart';
+import 'views/splash_page.dart';
+import 'widgets/member_access_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  debugPrint('main: after WidgetsFlutterBinding.ensureInitialized');
   await ObservabilityService.logEvent('app_starting');
 
   try {
-    debugPrint('main: initializing Firebase...');
     await ObservabilityService.logEvent('firebase_initialization_start');
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    debugPrint('main: firebase initialized');
     await ObservabilityService.logEvent('firebase_initialization_success');
   } catch (e, s) {
     debugPrint('Erro ao inicializar o Firebase: $e');
@@ -61,19 +77,28 @@ void main() async {
 
   // Initialize observability (Analytics, Crashlytics)
   try {
-    debugPrint('main: initializing ObservabilityService');
     await ObservabilityService.logEvent('observability_init_start');
     await ObservabilityService.init();
 
-    // Route Flutter framework errors to Crashlytics
+    // Route Flutter framework errors to ObservabilityService / Crashlytics
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-      // Report to Crashlytics
+      // Report to Crashlytics via central service
       try {
-        FirebaseCrashlytics.instance.recordFlutterError(details);
+        ObservabilityService.recordFlutterError(details);
       } catch (_) {}
     };
-    debugPrint('main: ObservabilityService initialized');
+
+    // Capture uncaught async errors from the engine/platform and report
+    try {
+      // PlatformDispatcher.instance.onError returns a bool that indicates whether the
+      // error was handled. We return true after reporting to avoid default propagation.
+      PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+        ObservabilityService.reportError(error, stack, reason: 'PlatformDispatcher.onError');
+        return true;
+      };
+    } catch (_) {}
+
     await ObservabilityService.logEvent('observability_init_success');
   } catch (e, s) {
     debugPrint('Observability init failed: $e');
@@ -84,10 +109,8 @@ void main() async {
 
   // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
   try {
-    debugPrint('main: initializing GoogleSignIn');
     await ObservabilityService.logEvent('google_signin_init_start');
     await GoogleSignIn.instance.initialize();
-    debugPrint('main: GoogleSignIn initialized');
     await ObservabilityService.logEvent('google_signin_init_success');
   } catch (e, s) {
     debugPrint('GoogleSignIn initialization failed: $e');
@@ -96,22 +119,14 @@ void main() async {
     } catch (_) {}
   }
 
-  // 1. Instancia o armazenamento seguro nativo (O Cofre)
-  debugPrint('main: creating secure storage');
-  final secureStorage = kIsWeb ? WebStorageService() : MobileStorageService();
+  final secureStorage = PlatformStorageService();
   await ObservabilityService.logEvent('secure_storage_created');
 
-  // 2. Injeta o armazenamento dentro do nosso Repositório
-  debugPrint('main: creating client repository');
   final clientRepository = SecureClientRepository(secureStorage);
   await ObservabilityService.logEvent('client_repository_created');
 
-  // 3. Inicia o App injetando o repositório configurado dentro de runZonedGuarded
-  debugPrint('main: entering runZonedGuarded');
   runZonedGuarded(() {
-    debugPrint('main: before runApp');
-    runApp(LaBombaApp(repository: clientRepository));
-    debugPrint('main: runApp completed');
+      runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
@@ -125,9 +140,10 @@ void main() async {
 class LaBombaApp extends StatelessWidget {
   // Recebe o repositório criado lá no main()
   final IClientRepository repository;
+  final StorageService storageService;
 
-  // Exige o repositório no construtor
-  const LaBombaApp({super.key, required this.repository});
+  // Exige o repositório e storage no construtor
+  const LaBombaApp({super.key, required this.repository, required this.storageService});
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +151,8 @@ class LaBombaApp extends StatelessWidget {
       providers: [
         // Central AuthService provided first so other providers can consume it
         Provider<AuthService>(create: (_) => AuthService()),
+        // Expose configured StorageService so pages/services can read/write persistent flags (e.g., terms acceptance)
+        Provider<StorageService>(create: (_) => storageService),
 
         ChangeNotifierProvider(
           create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
@@ -152,20 +170,77 @@ class LaBombaApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => EventConfigProvider(authService: context.read<AuthService>()),
         ),
+        // Memories provider (storage-backed)
+        ChangeNotifierProvider(
+          create: (context) => MemoryProvider(service: StorageMemoryService(storageService)),
+        ),
+        // Chat provider (real-time)
+        ChangeNotifierProvider(
+          create: (_) => ChatProvider(),
+        ),
+        // Theme provider (observes persisted preference)
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(storageService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => StreetModeService(storageService),
+        ),
       ],
-      child: MaterialApp(
-        title: 'La Bomba 2027',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const LandingPage(),
-          '/register': (context) => const ClientRegistrationPage(),
-          '/admin/login': (context) => const AdminLoginPage(),
-          '/admin/dashboard': (context) => const AdminDashboardPage(),
-          '/admin/clients': (context) => const ClientBasePage(),
-        },
-      ),
+      child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
+        return MaterialApp(
+          title: 'La Bomba 2027',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProv.themeMode,
+          initialRoute: '/splash',
+          routes: {
+            '/splash': (context) =>
+                SplashPage(storageService: storageService),
+            '/': (context) => TermsGate(storageService: storageService),
+            '/landing': (context) => const LandingPage(),
+            '/register': (context) => const ClientRegistrationPage(),
+            '/admin/login': (context) => const AdminLoginPage(),
+            '/admin/dashboard': (context) => const AdminDashboardPage(),
+            '/admin/clients': (context) => const ClientBasePage(),
+            '/memories': (context) => const MemberAccessGate(
+                  child: MemoriesListPage(),
+                ),
+            '/gallery': (context) => const MemberAccessGate(
+                  child: BlockGalleryPage(),
+                ),
+            '/chat': (context) => MemberAccessGate(
+                  child: ChatPage(
+                  privateUserId:
+                      ModalRoute.of(context)?.settings.arguments as String?,
+                ),
+            ),
+            '/foliaos': (context) => const MemberAccessGate(
+                  child: FoliaoDirectoryPage(),
+                ),
+            '/settings': (context) => const MemberAccessGate(child: SettingsHubPage()),
+            '/settings/profile': (context) => const MemberAccessGate(child: SettingsPage()),
+            '/settings/theme': (context) => const MemberAccessGate(child: SettingsThemePage()),
+            '/settings/privacy': (context) => const MemberAccessGate(child: SettingsPrivacyPage()),
+            '/settings/privacy/data': (context) => const MemberAccessGate(child: PrivacyDataManagementPage()),
+            '/settings/sound-alerts': (context) => const MemberAccessGate(child: SoundAlertsSettingsPage()),
+            '/settings/street-mode': (context) => const MemberAccessGate(child: StreetModeSettingsPage()),
+            '/about': (context) => const AboutAndTermsPage(),
+            '/profile': (context) => const MemberAccessGate(
+                  child: UserProfilePage(),
+                ),
+            '/notifications': (context) => const MemberAccessGate(
+                  child: NotificationsPage(),
+                ),
+            '/onboarding': (context) =>
+                OnboardingPage(storageService: storageService),
+            '/admin/moderation': (context) => const AdminModerationPage(),
+            '/badge': (context) => const BadgeGeneratorPage(),
+            '/terms': (context) => TermsPage(storageService: storageService),
+            '/privacy': (context) => const PrivacyPage(),
+          },
+        );
+      }),
     );
   }
 }

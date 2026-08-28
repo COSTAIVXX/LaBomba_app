@@ -20,4 +20,14 @@ class MobileStorageService implements StorageService {
   Future<void> delete({required String key}) async {
     await _storage.delete(key: key);
   }
+
+  @override
+  Future<void> deleteAll() async {
+    await _storage.deleteAll();
+  }
+}
+
+// Platform-aliased class used by conditional imports
+class PlatformStorageService extends MobileStorageService {
+  PlatformStorageService({FlutterSecureStorage? storage}) : super(storage: storage);
 }
