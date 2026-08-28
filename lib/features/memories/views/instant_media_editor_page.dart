@@ -28,9 +28,19 @@ class InstantMediaEditorPage extends StatefulWidget {
 
 class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
   final _captionController = TextEditingController();
+  static const _maxCaptionLength = 280;
+  static const _blockedTerms = [
+    'ameaça',
+    'discriminação',
+    'racismo',
+    'violência',
+    'nudez',
+  ];
   VideoPlayerController? _videoController;
   int _filterIndex = 0;
   bool _publishing = false;
+  String? _validationMessage;
+  String? _selectedGif;
 
   static const _filters = [
     ColorFilter.mode(Colors.transparent, BlendMode.dst),
@@ -57,8 +67,51 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
     super.dispose();
   }
 
+  void _validateCaption(String value) {
+    final normalized = value.trim().toLowerCase();
+    final blocked = _blockedTerms.firstWhere(
+      normalized.contains,
+      orElse: () => '',
+    );
+    setState(() {
+      _validationMessage = value.length > _maxCaptionLength
+          ? 'A legenda deve ter no máximo $_maxCaptionLength caracteres.'
+          : blocked.isNotEmpty
+              ? 'Remova termos que violam as regras de convivência do bloco.'
+              : null;
+    });
+  }
+
+  Future<void> _pickGif() async {
+    const gifs = [
+      'https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif',
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+      'https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif',
+    ];
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => GridView.count(
+        crossAxisCount: 3,
+        padding: const EdgeInsets.all(12),
+        children: gifs
+            .map(
+              (gif) => InkWell(
+                onTap: () => Navigator.pop(context, gif),
+                child: Image.network(gif, fit: BoxFit.cover),
+              ),
+            )
+            .toList(),
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() => _selectedGif = selected);
+    }
+  }
+
   Future<void> _publish() async {
     if (_publishing) return;
+    _validateCaption(_captionController.text);
+    if (_validationMessage != null) return;
     setState(() => _publishing = true);
     try {
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
@@ -70,12 +123,13 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
       await ref.putData(await widget.media.readAsBytes());
       final url = await ref.getDownloadURL();
       final caption = _captionController.text.trim();
+      final mediaUrls = [url, if (_selectedGif != null) _selectedGif!];
       await context.read<MemoryProvider>().addOrUpdate(
             Memory(
               id: const Uuid().v4(),
               title: caption.isEmpty ? 'Memória da folia' : caption,
               description: caption.isEmpty ? null : caption,
-              imageUrls: [url],
+              imageUrls: mediaUrls,
               ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
             ),
           );
@@ -150,11 +204,28 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
           TextField(
             controller: _captionController,
             maxLines: 3,
+            maxLength: _maxCaptionLength,
+            onChanged: _validateCaption,
+            textInputAction: TextInputAction.newline,
             decoration: const InputDecoration(
               labelText: 'Legenda rápida',
               hintText: 'Conte como foi esse momento...',
               border: OutlineInputBorder(),
             ),
+          ),
+          if (_validationMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                _validationMessage!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _pickGif,
+            icon: const Icon(Icons.gif_box_outlined),
+            label: Text(_selectedGif == null ? 'Inserir GIF' : 'GIF selecionado'),
           ),
           const SizedBox(height: 18),
           FilledButton.icon(
