@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -68,6 +69,30 @@ class OutboxService {
       list.add(entry);
       await _storage.write(key: _deadLetterKey, value: jsonEncode(list));
     } catch (_) {}
+  }
+
+  /// Read dead-letter items for audit/debug
+  Future<List<Map<String, dynamic>>> readDeadLetter() async {
+    try {
+      final raw = await _storage.read(key: _deadLetterKey);
+      if (raw == null || raw.isEmpty) return <Map<String, dynamic>>[];
+      final decoded = (jsonDecode(raw) as List<dynamic>);
+      return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList(growable: false);
+    } catch (_) {
+      return <Map<String, dynamic>>[];
+    }
+  }
+
+  /// Export dead-letter items to an absolute file path (overwrites if exists)
+  Future<void> exportDeadLetterToFile(String filePath) async {
+    try {
+      final items = await readDeadLetter();
+      final file = File(filePath);
+      final encoder = const JsonEncoder.withIndent('  ');
+      await file.writeAsString(encoder.convert(items));
+    } catch (_) {
+      // ignore file write errors in this helper
+    }
   }
 
   Future<void> enqueue(Map<String, dynamic> action) async {
