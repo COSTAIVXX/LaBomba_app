@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_icons.dart';
 
 class MainNavigationDrawer extends StatelessWidget {
   const MainNavigationDrawer({super.key});
@@ -20,7 +21,7 @@ class MainNavigationDrawer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: const [
-                  Icon(Icons.celebration, color: Colors.white, size: 38),
+                  Icon(AppIcons.celebration, color: Colors.white, size: 38),
                   SizedBox(height: 8),
                   Text(
                     'Navegação La Bomba',
@@ -34,22 +35,22 @@ class MainNavigationDrawer extends StatelessWidget {
               ),
             ),
             _NavigationItem(
-              icon: Icons.photo_library_outlined,
+              icon: AppIcons.memories,
               label: 'Memórias',
               route: '/memories',
             ),
             _NavigationItem(
-              icon: Icons.chat_bubble_outline,
+              icon: AppIcons.chat,
               label: 'Chat híbrido',
               route: '/chat',
             ),
             _NavigationItem(
-              icon: Icons.groups_outlined,
+              icon: AppIcons.foliaos,
               label: 'Diretório de foliões',
               route: '/foliaos',
             ),
             _NavigationItem(
-              icon: Icons.settings_outlined,
+              icon: AppIcons.settings,
               label: 'Configurações',
               route: '/settings',
             ),

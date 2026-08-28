@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/google_auth_provider.dart';
 import '../services/auth_service.dart';
+import '../theme/app_icons.dart';
 
 class UserAppBarActions extends StatelessWidget {
   const UserAppBarActions({super.key});
@@ -18,7 +19,7 @@ class UserAppBarActions extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
+            icon: AppIcons.themed(AppIcons.profile),
             tooltip: 'Entrar / Perfil',
             onPressed: () {
               // open settings or login
@@ -41,17 +42,17 @@ class UserAppBarActions extends StatelessWidget {
       children: [
         _QuickNavButton(
           tooltip: 'Memórias',
-          icon: Icons.photo_library_outlined,
+          icon: AppIcons.memories,
           onPressed: () => Navigator.pushNamed(context, '/memories'),
         ),
         _QuickNavButton(
           tooltip: 'Chat',
-          icon: Icons.chat_bubble_outline,
+          icon: AppIcons.chat,
           onPressed: () => Navigator.pushNamed(context, '/chat'),
         ),
         _QuickNavButton(
           tooltip: 'Foliões',
-          icon: Icons.groups_outlined,
+          icon: AppIcons.foliaos,
           onPressed: () => Navigator.pushNamed(context, '/foliaos'),
         ),
         Padding(

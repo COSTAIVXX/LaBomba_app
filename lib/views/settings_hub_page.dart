@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/theme_provider.dart';
+import '../theme/app_icons.dart';
 import '../widgets/user_appbar_actions.dart';
 
 class SettingsHubPage extends StatelessWidget {
@@ -11,7 +12,7 @@ class SettingsHubPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final sections = [
       _SettingsSection(
-        icon: Icons.person_outline,
+        icon: AppIcons.profile,
         title: 'Perfil',
         subtitle: 'Nome, foto e crachá Folião Raiz',
         route: '/settings/profile',
@@ -23,7 +24,7 @@ class SettingsHubPage extends StatelessWidget {
         route: '/settings/theme',
       ),
       _SettingsSection(
-        icon: Icons.notifications_outlined,
+        icon: AppIcons.notifications,
         title: 'Notificações',
         subtitle: 'Veja avisos e interações recentes',
         route: '/notifications',
