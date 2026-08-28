@@ -2,7 +2,7 @@
     <application
         android:label="labomba_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher_1">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -51,3 +51,4 @@
         </intent>
     </queries>
 </manifest>
+
