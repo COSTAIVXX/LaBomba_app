@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../providers/google_auth_provider.dart';
 import '../services/memory_social_service.dart';
@@ -53,11 +52,11 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _service.likesStream(widget.memoryId),
+    return StreamBuilder<List<String>>(
+      stream: _service.likesListStream(widget.memoryId),
       builder: (context, likesSnapshot) {
-        final likes = likesSnapshot.data?.docs ?? const [];
-        final liked = likes.any((like) => like.id == _userId);
+        final likes = likesSnapshot.data ?? const <String>[];
+        final liked = likes.contains(_userId);
         final content = Row(
           children: [
             _SocialActionButton(
