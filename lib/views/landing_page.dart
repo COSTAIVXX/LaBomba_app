@@ -71,7 +71,7 @@ class LandingPage extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/settings/privacy'),
+                      onPressed: () => Navigator.pushNamed(context, '/privacy'),
                       child: const Text('Política de Privacidade', style: TextStyle(color: Colors.white70)),
                     ),
                   ],

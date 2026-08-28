@@ -35,6 +35,7 @@ import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
 import 'views/terms_page.dart';
+import 'views/privacy_page.dart';
 import 'views/settings_page.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
@@ -224,6 +225,7 @@ class LaBombaApp extends StatelessWidget {
             '/admin/moderation': (context) => const AdminModerationPage(),
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
+            '/privacy': (context) => const PrivacyPage(),
           },
         );
       }),
