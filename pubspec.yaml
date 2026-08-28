@@ -45,7 +45,7 @@ dependencies:
   flutter_image_compress: ^2.5.1
   shimmer: ^2.0.0
   firebase_messaging: ^16.6.0
-  firebase_remote_config: ^4.0.0
+  firebase_remote_config: ^6.6.0
 
 
 # For information on the generic Dart part of this file, see the
