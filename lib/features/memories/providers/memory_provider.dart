@@ -29,6 +29,7 @@ class MemoryProvider with ChangeNotifier {
       try {
         await ObservabilityService.reportError(e, s, reason: 'MemoryProvider.load');
       } catch (_) {}
+      // Keep the last valid snapshot available while storage/network recovers.
     } finally {
       _isLoading = false;
       notifyListeners();
