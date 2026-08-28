@@ -72,8 +72,11 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Galeria do bloco')),
-      body: Column(
-        children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(
@@ -87,24 +90,32 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
           Expanded(
             child: filtered.isEmpty
                 ? const Center(child: Text('Nenhuma mídia encontrada para estes filtros.'))
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.82,
-                    ),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) => _GalleryTile(
-                      memory: filtered[index],
-                      onShare: _share,
-                      onDownload: _download,
-                    ),
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final crossAxisCount = width > 1000 ? 4 : (width > 700 ? 3 : 2);
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.9,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) => _GalleryTile(
+                          memory: filtered[index],
+                          onShare: _share,
+                          onDownload: _download,
+                        ),
+                      );
+                    },
                   ),
           ),
         ],
       ),
+      ),
+    ),
     );
   }
 

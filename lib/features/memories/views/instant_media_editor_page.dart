@@ -224,9 +224,12 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: ColorFiltered(
@@ -282,6 +285,8 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
             label: const Text('Publicar memória'),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

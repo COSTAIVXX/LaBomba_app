@@ -101,9 +101,12 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(title: const Text('Configurações'), actions: [UserAppBarActions()]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
                 const Text('Perfil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextField(
@@ -209,7 +212,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 8),
                 const Text('Gerencie suas preferências de privacidade e notificações aqui.'),
               ],
-            ),
+            ), // ListView
+          ), // ConstrainedBox
+        ), // Center
     );
   }
 }
