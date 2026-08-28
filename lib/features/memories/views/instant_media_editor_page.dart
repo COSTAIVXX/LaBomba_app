@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
+import '../../../services/storage_platform.dart';
 
 import '../../../providers/google_auth_provider.dart';
 import '../models/memory.dart';
@@ -42,6 +43,8 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
   VideoPlayerController? _videoController;
   int _filterIndex = 0;
   bool _publishing = false;
+  static const _uploadCooldown = Duration(seconds: 30);
+  final _storageService = PlatformStorageService();
   String? _validationMessage;
   String? _selectedGif;
 
@@ -115,10 +118,27 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
     if (_publishing) return;
     _validateCaption(_captionController.text);
     if (_validationMessage != null) return;
+
     setState(() => _publishing = true);
     try {
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
       if (user == null) throw StateError('É necessário entrar para publicar.');
+
+      // Client-side rate limiting: prevent frequent uploads by same user
+      final lastKey = 'last_upload_${user.uid}';
+      final lastRaw = await _storageService.read(key: lastKey);
+      if (lastRaw != null && lastRaw.isNotEmpty) {
+        final last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastRaw));
+        final diff = DateTime.now().difference(last);
+        if (diff < _uploadCooldown) {
+          final remain = _uploadCooldown - diff;
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aguarde ${remain.inSeconds}s antes de enviar outra mídia.')));
+          }
+          return;
+        }
+      }
+
       final extension = widget.isVideo ? 'mp4' : 'jpg';
       final ref = FirebaseStorage.instance.ref(
         'users/${user.uid}/memories/${const Uuid().v4()}.$extension',
@@ -154,6 +174,10 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
                 ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
               ),
             );
+
+        // Persist last upload time for rate limiting
+        await _storageService.write(key: lastKey, value: DateTime.now().millisecondsSinceEpoch.toString());
+
         if (mounted) Navigator.popUntil(context, ModalRoute.withName('/memories'));
       } catch (e) {
         if (mounted) await _showErrorRetry('Falha ao publicar mídia: ${e.toString()}', _publish);

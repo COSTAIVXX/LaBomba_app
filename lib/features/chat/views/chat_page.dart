@@ -51,8 +51,13 @@ class _ChatPageState extends State<ChatPage> {
     if (text.isEmpty) return;
     final auth = context.read<AuthService>();
     final user = auth.currentUser;
-    await _provider.sendMessage(senderId: user?.uid ?? 'anon', senderName: user?.displayName ?? 'Anon', text: text);
-    _controller.clear();
+    try {
+      await _provider.sendMessage(senderId: user?.uid ?? 'anon', senderName: user?.displayName ?? 'Anon', text: text);
+      _controller.clear();
+    } catch (e) {
+      final msg = e is StateError ? e.message : 'Erro ao enviar mensagem: ${e.toString()}';
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    }
   }
 
   void _openEmojiPicker() async {
