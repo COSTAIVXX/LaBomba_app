@@ -38,6 +38,7 @@ import 'views/admin/client_base_page.dart';
 import 'views/terms_page.dart';
 import 'views/privacy_page.dart';
 import 'views/settings_page.dart';
+import 'services/push_notification_service.dart';
 import 'providers/theme_provider.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
@@ -98,6 +99,14 @@ void main() async {
         return true;
       };
     } catch (_) {}
+
+    // Initialize Push Notifications (non-blocking)
+    try {
+      await PushNotificationService.init();
+    } catch (e, s) {
+      // If push initialization fails, log but do not prevent app startup
+      await ObservabilityService.reportError(e, s, reason: 'Main.pushInit');
+    }
 
     await ObservabilityService.logEvent('observability_init_success');
   } catch (e, s) {
