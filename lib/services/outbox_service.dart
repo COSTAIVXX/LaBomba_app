@@ -63,6 +63,11 @@ class OutboxService {
     await _writeQueue(list);
   }
 
+  // Retry/backoff configuration
+  static const int _maxRetries = 5;
+  static const int _baseBackoffMs = 500; // 500ms
+  static const int _maxBackoffMs = 30000; // 30s
+
   Future<void> _processQueue() async {
     if (_processing) return;
     _processing = true;
@@ -71,10 +76,28 @@ class OutboxService {
       if (queue.isEmpty) return;
 
       final remaining = <Map<String, dynamic>>[];
+      final now = DateTime.now();
 
       for (final item in queue) {
+        // Ensure metadata fields
+        final attempts = (item['attempts'] as int?) ?? 0;
+        final nextAttemptStr = item['nextAttemptAt'] as String?;
+        final nextAttempt = nextAttemptStr != null ? DateTime.tryParse(nextAttemptStr) : null;
+
+        // If item is scheduled for future attempt, keep it
+        if (nextAttempt != null && nextAttempt.isAfter(now)) {
+          remaining.add(item);
+          continue;
+        }
+
+        if (attempts >= _maxRetries) {
+          // drop item (exhausted)
+          continue;
+        }
+
         final type = item['type'] as String? ?? '';
         final payload = item['payload'] as Map<String, dynamic>? ?? {};
+
         try {
           if (type == 'mem_like') {
             final memoryId = payload['memoryId'] as String;
@@ -120,12 +143,25 @@ class OutboxService {
               });
             }
           } else {
-            // unknown type: skip
-            remaining.add(item);
+            // Unknown or corrupt item - treat as corrupted and drop
+            continue;
           }
         } catch (e) {
-          // keep item for retry later
-          remaining.add(item);
+          // Transient failure: increment attempts and schedule next attempt with backoff
+          final newAttempts = attempts + 1;
+          final backoffMs = (_baseBackoffMs * (1 << (attempts)))
+              .clamp(_baseBackoffMs, _maxBackoffMs)
+              .toInt();
+          final next = DateTime.now().add(Duration(milliseconds: backoffMs));
+          final updated = Map<String, dynamic>.from(item)
+            ..['attempts'] = newAttempts
+            ..['nextAttemptAt'] = next.toIso8601String();
+
+          if (newAttempts < _maxRetries) {
+            remaining.add(updated);
+          } else {
+            // exhausted - drop item (could write to dead-letter log in future)
+          }
         }
       }
 
