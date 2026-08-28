@@ -257,12 +257,18 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Usuário',
-                              prefixIcon: const Icon(Icons.person_outline),
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              prefixIcon: const Icon(Icons.person_outline, color: Colors.white54),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.05),
-                              border: OutlineInputBorder(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(color: Colors.white10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.white24, width: 1.5),
                               ),
                             ),
                             validator: (value) {
@@ -279,17 +285,23 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Senha',
-                              prefixIcon: const Icon(Icons.lock_outline),
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              prefixIcon: const Icon(Icons.lock_outline, color: Colors.white54),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.05),
-                              border: OutlineInputBorder(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                              enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(color: Colors.white10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.white24, width: 1.5),
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                  color: Colors.white54,
+                                  color: Colors.white70,
                                 ),
                                 onPressed: () {
                                   setState(() => _obscurePassword = !_obscurePassword);
