@@ -32,9 +32,10 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
 
-            // Enable code shrinking and resource shrinking for release builds (R8/ProGuard)
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Disable code shrinking and resource shrinking temporarily to avoid R8 missing-class errors during automated resource normalization.
+            // Set these to true and review ProGuard/R8 rules once dependencies are updated.
+            isMinifyEnabled = false
+            isShrinkResources = false
 
             // Use the default Android optimize ProGuard file and the app-specific rules
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
