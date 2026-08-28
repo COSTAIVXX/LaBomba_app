@@ -54,18 +54,15 @@ import 'widgets/member_access_gate.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  debugPrint('main: after WidgetsFlutterBinding.ensureInitialized');
   await ObservabilityService.logEvent('app_starting');
 
   try {
-    debugPrint('main: initializing Firebase...');
     await ObservabilityService.logEvent('firebase_initialization_start');
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-    debugPrint('main: firebase initialized');
     await ObservabilityService.logEvent('firebase_initialization_success');
   } catch (e, s) {
     debugPrint('Erro ao inicializar o Firebase: $e');
@@ -78,7 +75,6 @@ void main() async {
 
   // Initialize observability (Analytics, Crashlytics)
   try {
-    debugPrint('main: initializing ObservabilityService');
     await ObservabilityService.logEvent('observability_init_start');
     await ObservabilityService.init();
 
@@ -90,7 +86,6 @@ void main() async {
         FirebaseCrashlytics.instance.recordFlutterError(details);
       } catch (_) {}
     };
-    debugPrint('main: ObservabilityService initialized');
     await ObservabilityService.logEvent('observability_init_success');
   } catch (e, s) {
     debugPrint('Observability init failed: $e');
@@ -101,10 +96,8 @@ void main() async {
 
   // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
   try {
-    debugPrint('main: initializing GoogleSignIn');
     await ObservabilityService.logEvent('google_signin_init_start');
     await GoogleSignIn.instance.initialize();
-    debugPrint('main: GoogleSignIn initialized');
     await ObservabilityService.logEvent('google_signin_init_success');
   } catch (e, s) {
     debugPrint('GoogleSignIn initialization failed: $e');
@@ -113,19 +106,14 @@ void main() async {
     } catch (_) {}
   }
 
-  debugPrint('main: creating secure storage');
   final secureStorage = PlatformStorageService();
   await ObservabilityService.logEvent('secure_storage_created');
 
-  debugPrint('main: creating client repository');
   final clientRepository = SecureClientRepository(secureStorage);
   await ObservabilityService.logEvent('client_repository_created');
 
-  debugPrint('main: entering runZonedGuarded');
   runZonedGuarded(() {
-    debugPrint('main: before runApp');
       runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
-    debugPrint('main: runApp completed');
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {

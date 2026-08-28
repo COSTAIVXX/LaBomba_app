@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
@@ -14,8 +15,7 @@ class ObservabilityService {
     try {
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     } catch (_) {
-      // ignore: avoid_print
-      print('Crashlytics collection could not be enabled at init.');
+      if (kDebugMode) debugPrint('Crashlytics collection could not be enabled at init.');
     }
   }
 

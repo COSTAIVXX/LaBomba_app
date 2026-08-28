@@ -17,7 +17,7 @@ class MediaCompressor {
       if (result != null && result.isNotEmpty) return Uint8List.fromList(result);
     } catch (e) {
       // ignore and fallback to original
-      if (kDebugMode) print('Image compression failed: $e');
+      if (kDebugMode) debugPrint('Image compression failed: $e');
     }
     return await inputFile.readAsBytes();
   }
@@ -29,7 +29,7 @@ class MediaCompressor {
   /// (e.g., flutter_video_compress) later.
   static Future<File> compressVideoFile(File inputFile) async {
     if (kDebugMode) {
-      print('Video compression not available in this build — returning original file.');
+      debugPrint('Video compression not available in this build — returning original file.');
     }
     return inputFile;
   }
