@@ -28,18 +28,18 @@ class PrivacyPage extends StatelessWidget {
                   const Text('Dados que coletamos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   const Text(
-                    '- Informações fornecidas pelo usuário: nome, e-mail e conteúdo enviado (memórias, fotos e vídeos).
+                                      '''- Informações fornecidas pelo usuário: nome, e-mail e conteúdo enviado (memórias, fotos e vídeos).
 - Dados de uso: eventos agregados de uso para melhorar a experiência.
-- Dados técnicos: identificadores de dispositivo e logs para diagnóstico.',
+                  - Dados técnicos: identificadores de dispositivo e logs para diagnóstico.''',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 14),
                   const Text('Como usamos os dados', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   const Text(
-                    '- Armazenar memórias e mídia quando o usuário autoriza.
+                                      '''- Armazenar memórias e mídia quando o usuário autoriza.
 - Melhorar o serviço, enviar notificações relevantes e prevenir abusos.
-- Não vendemos dados de usuários a terceiros.',
+                  - Não vendemos dados de usuários a terceiros.''',
                     style: TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 14),
