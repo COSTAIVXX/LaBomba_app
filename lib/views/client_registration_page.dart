@@ -197,17 +197,22 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Cadastro do Comprador',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
         backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF0F172A),
         elevation: 0,
-      actions: [UserAppBarActions()],
+        actions: [UserAppBarActions()],
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppTheme.background, Color(0xFF130A2A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFEAF3FF),
+              Color(0xFFF8FAFF),
+              Color(0xFFFFFFFF),
+            ],
           ),
         ),
         child: Center(
@@ -223,15 +228,15 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                   child: Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.03),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.05)),
+                          color: AppTheme.primary.withValues(alpha: 0.18)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 40,
-                          offset: const Offset(0, 10),
+                          color: AppTheme.primary.withValues(alpha: 0.15),
+                          blurRadius: 34,
+                          offset: const Offset(0, 16),
                         ),
                       ],
                     ),
@@ -240,8 +245,24 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(Icons.person_add_alt_1,
-                              color: AppTheme.primaryLight, size: 54),
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [AppTheme.primary, AppTheme.primaryLight],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primary.withValues(alpha: 0.22),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 36),
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'Antes de comprar',
@@ -251,7 +272,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                 .headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.white,
+                                  color: const Color(0xFF102A43),
                                   letterSpacing: -0.5,
                                 ),
                           ),
@@ -259,17 +280,17 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                           const Text(
                             'Preencha seus dados. O evento é exclusivo para maiores de 18 anos.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white60),
+                            style: TextStyle(color: Color(0xFF475569)),
                           ),
                           const SizedBox(height: 32),
                           OutlinedButton.icon(
                             onPressed: _saving ? null : _handleGoogleSignIn,
-                            icon: const Icon(Icons.g_mobiledata, size: 28),
-                            label: const Text('Continuar com o Google'),
+                            icon: const Icon(Icons.g_mobiledata, size: 28, color: AppTheme.primary),
+                            label: const Text('Continuar com o Google', style: TextStyle(color: Color(0xFF0F172A))),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white24),
+                              side: const BorderSide(color: AppTheme.primary, width: 1.4),
+                              backgroundColor: const Color(0xFFF8FBFF),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
@@ -277,16 +298,16 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                           const SizedBox(height: 24),
                           const Row(
                             children: [
-                              Expanded(child: Divider(color: Colors.white10)),
+                              Expanded(child: Divider(color: Color(0xFFBFDBFE))),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: Text('OU PREENCHA',
                                     style: TextStyle(
-                                        color: Colors.white38,
+                                        color: Color(0xFF1D4ED8),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12)),
                               ),
-                              Expanded(child: Divider(color: Colors.white10)),
+                              Expanded(child: Divider(color: Color(0xFFBFDBFE))),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -340,13 +361,13 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: _acceptedTerms
-                                  ? AppTheme.primary.withValues(alpha: 0.1)
-                                  : Colors.white.withValues(alpha: 0.05),
+                                  ? AppTheme.primary.withValues(alpha: 0.08)
+                                  : const Color(0xFFF8FAFF),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _acceptedTerms
-                                    ? AppTheme.primary.withValues(alpha: 0.5)
-                                    : Colors.transparent,
+                                    ? AppTheme.primary.withValues(alpha: 0.45)
+                                    : const Color(0xFFE2E8F0),
                               ),
                             ),
                             child: Row(
@@ -368,13 +389,13 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                     children: [
                                       const Text('Li e aceito os ',
                                           style:
-                                              TextStyle(color: Colors.white70)),
+                                              TextStyle(color: Color(0xFF475569))),
                                       GestureDetector(
                                         onTap: _showTermsDialog,
                                         child: const Text(
                                           'Termos de Responsabilidade',
                                           style: TextStyle(
-                                            color: AppTheme.primaryLight,
+                                            color: AppTheme.primary,
                                             fontWeight: FontWeight.w700,
                                             decoration:
                                                 TextDecoration.underline,
@@ -393,7 +414,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                               child: Text(
                                 'Por favor, leia os termos antes de aceitar.',
                                 style: TextStyle(
-                                    color: Colors.amber,
+                                    color: Color(0xFFB45309),
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold),
                               ),
@@ -405,6 +426,7 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               backgroundColor: AppTheme.primary,
+                              foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
@@ -453,14 +475,23 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+        prefixIcon: Icon(icon, color: AppTheme.primary),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: const Color(0xFFF8FBFF),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+        ),
+        labelStyle: const TextStyle(color: Color(0xFF1E3A8A)),
       ),
       validator: validator,
     );
@@ -560,15 +591,15 @@ class _TermsDialogState extends State<_TermsDialog> {
           constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: const Color(0xFF130A2A).withValues(alpha: 0.95),
+            color: Colors.white.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: AppTheme.primaryLight.withValues(alpha: 0.5),
+                color: AppTheme.primary.withValues(alpha: 0.25),
                 width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 40,
+                color: AppTheme.primary.withValues(alpha: 0.18),
+                blurRadius: 32,
                 offset: const Offset(0, 20),
               )
             ],
@@ -582,12 +613,12 @@ class _TermsDialogState extends State<_TermsDialog> {
                   const Row(
                     children: [
                       Icon(Icons.description_outlined,
-                          color: AppTheme.primaryLight, size: 28),
+                          color: AppTheme.primary, size: 28),
                       SizedBox(width: 12),
                       Text(
                         'TERMOS DE USO',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF102A43),
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.5,
@@ -597,13 +628,13 @@ class _TermsDialogState extends State<_TermsDialog> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon: const Icon(Icons.close, color: Color(0xFF475569)),
                   ),
                 ],
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: Divider(color: Colors.white24),
+                child: Divider(color: Color(0xFFE2E8F0)),
               ),
               Expanded(
                 child: SingleChildScrollView(
