@@ -23,22 +23,24 @@ class LandingPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 const CountdownSection(),
                 const SizedBox(height: 24),
-                SizedBox(
-                  height: 56,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/memories'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryLight,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(context, '/register'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryLight,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Entrar / Cadastrar usuário',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Acessar Memórias',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Align(
@@ -46,12 +48,20 @@ class LandingPage extends StatelessWidget {
                   child: TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/admin/login'),
                     child: const Text(
-                      'Acesso Admin',
+                      'Administrador',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/onboarding'),
+                  child: const Text(
+                    'Revisar guia da festa',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
