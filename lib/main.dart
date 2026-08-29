@@ -60,99 +60,101 @@ import 'views/splash_page.dart';
 import 'widgets/member_access_gate.dart';
 import 'features/admin/views/master_developer_dashboard_page.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  // Run the whole bootstrap inside the same zone to avoid the "Zone mismatch" error
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await ObservabilityService.logEvent('app_starting');
+    await ObservabilityService.logEvent('app_starting');
 
-  try {
-    await ObservabilityService.logEvent('firebase_initialization_start');
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
-    await ObservabilityService.logEvent('firebase_initialization_success');
-  } catch (e, s) {
-    debugPrint('Erro ao inicializar o Firebase: $e');
-    // Report initialization error to Crashlytics/Observability if available
     try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
-      await ObservabilityService.logEvent('firebase_initialization_failure', parameters: {'error': e.toString()});
-    } catch (_) {}
-  }
-
-  // Initialize observability (Analytics, Crashlytics)
-  try {
-    await ObservabilityService.logEvent('observability_init_start');
-    await ObservabilityService.init();
-
-    // Route Flutter framework errors to ObservabilityService / Crashlytics
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      // Report to Crashlytics via central service
+      await ObservabilityService.logEvent('firebase_initialization_start');
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+      await ObservabilityService.logEvent('firebase_initialization_success');
+    } catch (e, s) {
+      debugPrint('Erro ao inicializar o Firebase: $e');
+      // Report initialization error to Crashlytics/Observability if available
       try {
-        ObservabilityService.recordFlutterError(details);
+        await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
+        await ObservabilityService.logEvent('firebase_initialization_failure', parameters: {'error': e.toString()});
       } catch (_) {}
-    };
+    }
 
-    // Capture uncaught async errors from the engine/platform and report
+    // Initialize observability (Analytics, Crashlytics)
     try {
-      // PlatformDispatcher.instance.onError returns a bool that indicates whether the
-      // error was handled. We return true after reporting to avoid default propagation.
-      PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-        ObservabilityService.reportError(error, stack, reason: 'PlatformDispatcher.onError');
-        return true;
+      await ObservabilityService.logEvent('observability_init_start');
+      await ObservabilityService.init();
+
+      // Route Flutter framework errors to ObservabilityService / Crashlytics
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        // Report to Crashlytics via central service
+        try {
+          ObservabilityService.recordFlutterError(details);
+        } catch (_) {}
       };
-    } catch (_) {}
 
-    // Initialize Push Notifications (non-blocking)
-    try {
-      await PushNotificationService.init();
-    } catch (e, s) {
-      // If push initialization fails, log but do not prevent app startup
-      await ObservabilityService.reportError(e, s, reason: 'Main.pushInit');
-    }
-
-    // Initialize Remote Config for dynamic feature flags and parameters
-    try {
-      await ObservabilityService.logEvent('remote_config_start');
-      await RemoteConfigService.init();
-      await ObservabilityService.logEvent('remote_config_success');
-    } catch (e, s) {
+      // Capture uncaught async errors from the engine/platform and report
       try {
-        await ObservabilityService.reportError(e, s, reason: 'Main.remoteConfigInit');
+        // PlatformDispatcher.instance.onError returns a bool that indicates whether the
+        // error was handled. We return true after reporting to avoid default propagation.
+        PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+          ObservabilityService.reportError(error, stack, reason: 'PlatformDispatcher.onError');
+          return true;
+        };
+      } catch (_) {}
+
+      // Initialize Push Notifications (non-blocking)
+      try {
+        await PushNotificationService.init();
+      } catch (e, s) {
+        // If push initialization fails, log but do not prevent app startup
+        await ObservabilityService.reportError(e, s, reason: 'Main.pushInit');
+      }
+
+      // Initialize Remote Config for dynamic feature flags and parameters
+      try {
+        await ObservabilityService.logEvent('remote_config_start');
+        await RemoteConfigService.init();
+        await ObservabilityService.logEvent('remote_config_success');
+      } catch (e, s) {
+        try {
+          await ObservabilityService.reportError(e, s, reason: 'Main.remoteConfigInit');
+        } catch (_) {}
+      }
+   
+      await ObservabilityService.logEvent('observability_init_success');
+    } catch (e, s) {
+      debugPrint('Observability init failed: $e');
+      try {
+        await ObservabilityService.reportError(e, s, reason: 'Main.observabilityInit');
       } catch (_) {}
     }
- 
-    await ObservabilityService.logEvent('observability_init_success');
-  } catch (e, s) {
-    debugPrint('Observability init failed: $e');
+
+    // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
     try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.observabilityInit');
-    } catch (_) {}
-  }
+      await ObservabilityService.logEvent('google_signin_init_start');
+      await GoogleSignIn.instance.initialize();
+      await ObservabilityService.logEvent('google_signin_init_success');
+    } catch (e, s) {
+      debugPrint('GoogleSignIn initialization failed: $e');
+      try {
+        await ObservabilityService.reportError(e, s, reason: 'Main.googleSignInInit');
+      } catch (_) {}
+    }
 
-  // Initialize Google Sign-In singleton once at app bootstrap to avoid double initialization
-  try {
-    await ObservabilityService.logEvent('google_signin_init_start');
-    await GoogleSignIn.instance.initialize();
-    await ObservabilityService.logEvent('google_signin_init_success');
-  } catch (e, s) {
-    debugPrint('GoogleSignIn initialization failed: $e');
-    try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.googleSignInInit');
-    } catch (_) {}
-  }
+    final secureStorage = PlatformStorageService();
+    await ObservabilityService.logEvent('secure_storage_created');
 
-  final secureStorage = PlatformStorageService();
-  await ObservabilityService.logEvent('secure_storage_created');
+    final clientRepository = SecureClientRepository(secureStorage);
+    await ObservabilityService.logEvent('client_repository_created');
 
-  final clientRepository = SecureClientRepository(secureStorage);
-  await ObservabilityService.logEvent('client_repository_created');
+    runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
 
-  runZonedGuarded(() {
-      runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
