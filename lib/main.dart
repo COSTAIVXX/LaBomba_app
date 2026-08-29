@@ -45,6 +45,7 @@ import 'services/remote_config_service.dart';
 import 'providers/theme_provider.dart';
 import 'features/social/providers/social_provider.dart';
 import 'features/social/views/social_feed_page.dart';
+import 'features/social/views/community_page.dart';
 import 'views/user_profile_page.dart';
 import 'views/notifications_page.dart';
 import 'views/onboarding_page.dart';
@@ -54,6 +55,7 @@ import 'views/sound_alerts_settings_page.dart';
 import 'views/street_mode_settings_page.dart';
 import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
+import 'views/admin/god_mode_dashboard.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
 import 'views/splash_page.dart';
@@ -178,43 +180,14 @@ class LaBombaApp extends StatefulWidget {
 }
 
 class _LaBombaAppState extends State<LaBombaApp> {
+  bool _autoSignAttempted = false;
+
   @override
   void initState() {
     super.initState();
-    // In debug/dev only: if MASTER_EMAIL is available, attempt a non-invasive sign-in
-    // to validate the login→currentUser→authStatus→MemberAccess flow. This will not
-    // print passwords and runs only in non-release builds.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (kReleaseMode) return;
-      if (AuthService.masterEmail.isEmpty || AuthService.masterPassword.isEmpty) return;
-
-      try {
-        final authService = context.read<AuthService>();
-        // Attempt master sign-in using secure dart-define values (do not log the password)
-        final result = await authService.signInWithEmailAndPassword(
-          email: AuthService.masterEmail,
-          password: AuthService.masterPassword,
-        );
-
-        debugPrint('AUTOTEST: master sign-in result: ${result != null}');
-
-        // Read current user presence, id token and auth status
-        final currentUser = authService.currentUser;
-        debugPrint('AUTOTEST: currentUser present: ${currentUser != null}');
-
-        final token = await authService.getIdToken(forceRefresh: true);
-        debugPrint('AUTOTEST: idToken present: ${token != null}');
-
-        debugPrint('AUTOTEST: authStatus: ${authService.authStatus.value}');
-
-        // Check admin/authenticated via isAdminAuthenticated
-        final isAdmin = await authService.isAdminAuthenticated();
-        debugPrint('AUTOTEST: isAdminAuthenticated: $isAdmin');
-
-      } catch (e) {
-        debugPrint('AUTOTEST: unexpected error during auto sign-in: $e');
-      }
-    });
+    // Intentionally do NOT run auto sign-in here because Providers are created
+    // inside build(). The debug auto sign-in will be triggered once from the
+    // build-time Consumer context (after MultiProvider has established AuthService).
   }
 
   @override
@@ -264,6 +237,29 @@ class _LaBombaAppState extends State<LaBombaApp> {
         ),
       ],
       child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
+        // Trigger debug auto sign-in once after providers are ready (only non-release)
+        if (!_autoSignAttempted && !kReleaseMode && AuthService.masterEmail.isNotEmpty && AuthService.masterPassword.isNotEmpty) {
+          _autoSignAttempted = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            try {
+              final authService = context.read<AuthService>();
+              final result = await authService.signInWithEmailAndPassword(
+                email: AuthService.masterEmail,
+                password: AuthService.masterPassword,
+              );
+              debugPrint('AUTOTEST: master sign-in result: ${result != null}');
+              final currentUser = authService.currentUser;
+              debugPrint('AUTOTEST: currentUser present: ${currentUser != null}');
+              final token = await authService.getIdToken(forceRefresh: true);
+              debugPrint('AUTOTEST: idToken present: ${token != null}');
+              debugPrint('AUTOTEST: authStatus: ${authService.authStatus.value}');
+              final isAdmin = await authService.isAdminAuthenticated();
+              debugPrint('AUTOTEST: isAdminAuthenticated: $isAdmin');
+            } catch (e) {
+              debugPrint('AUTOTEST: unexpected error during auto sign-in: $e');
+            }
+          });
+        }
         return MaterialApp(
           title: 'La Bomba 2027',
           debugShowCheckedModeBanner: false,
@@ -314,12 +310,22 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/social/feed': (context) => const MemberAccessGate(
                   child: SocialFeedPage(),
                 ),
+            '/community': (context) => const MemberAccessGate(child: CommunityPage()),
             '/notifications': (context) => const MemberAccessGate(
                   child: NotificationsPage(),
                 ),
             '/onboarding': (context) =>
                 OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
+            '/admin/god-mode': (context) {
+              if (!context.watch<admin_provider.AdminAuthProvider>().isAuthenticated) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+                });
+                return const Scaffold(body: SizedBox.shrink());
+              }
+              return const GodModeDashboard();
+            },
             '/admin/master-developer': (context) => const MasterDeveloperDashboardPage(),
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
