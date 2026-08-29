@@ -46,7 +46,8 @@ import 'providers/theme_provider.dart';
 import 'features/social/providers/social_provider.dart';
 import 'features/social/views/social_feed_page.dart';
 import 'features/social/views/community_page.dart';
-import 'views/user_profile_page.dart';
+// legacy view import kept for backward compatibility; prefer feature-level profile page
+import 'features/profile/user_profile_page.dart' as profile_feature;
 import 'views/notifications_page.dart';
 import 'views/onboarding_page.dart';
 import 'views/settings_hub_page.dart';
@@ -304,8 +305,8 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/settings/sound-alerts': (context) => const MemberAccessGate(child: SoundAlertsSettingsPage()),
             '/settings/street-mode': (context) => const MemberAccessGate(child: StreetModeSettingsPage()),
             '/about': (context) => const AboutAndTermsPage(),
-            '/profile': (context) => const MemberAccessGate(
-                  child: UserProfilePage(),
+            '/profile': (context) => MemberAccessGate(
+                  child: profile_feature.UserProfilePage(),
                 ),
             '/social/feed': (context) => const MemberAccessGate(
                   child: SocialFeedPage(),
@@ -330,6 +331,23 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
             '/privacy': (context) => const PrivacyPage(),
+          },
+          onGenerateRoute: (settings) {
+            final name = settings.name ?? '';
+            // Support /profile and /profile/{userId}
+            try {
+              final uri = Uri.parse(name);
+              if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'profile') {
+                if (uri.pathSegments.length == 1) {
+                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage()));
+                }
+                if (uri.pathSegments.length >= 2) {
+                  final userId = uri.pathSegments[1];
+                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage(userId: userId)));
+                }
+              }
+            } catch (_) {}
+            return null;
           },
         );
       }),

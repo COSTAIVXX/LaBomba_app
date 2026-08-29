@@ -43,36 +43,48 @@ class AppTheme {
   }
 
   static ThemeData get lightTheme {
+    const bg = Color(0xFFF8F9FA); // soft off-white
+    const textPrimary = Color(0xFF1A1A1A);
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryLight,
+        seedColor: primary,
         brightness: Brightness.light,
       ).copyWith(secondary: accent),
-      scaffoldBackgroundColor: Colors.white,
-      textTheme: ThemeData.light().textTheme,
+      scaffoldBackgroundColor: bg,
+      textTheme: ThemeData.light().textTheme.apply(
+            bodyColor: textPrimary,
+            displayColor: textPrimary,
+          ),
       cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 4,
+        shadowColor: Colors.black12,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: primary.withValues(alpha: 0.2)),
+          borderRadius: BorderRadius.circular(12),
         ),
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
+        elevation: 1,
+        foregroundColor: textPrimary,
         centerTitle: true,
+        surfaceTintColor: Colors.white,
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Color(0xFFF1F5FF),
-        contentTextStyle: TextStyle(color: Color(0xFF172554)),
+        backgroundColor: Colors.white,
+        contentTextStyle: const TextStyle(color: textPrimary),
         actionTextColor: primary,
-        insetPadding: EdgeInsets.fromLTRB(16, 0, 16, 20),
-        shape: RoundedRectangleBorder(
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
-          side: BorderSide(color: Color(0x662563EB)),
         ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
       ),
     );
   }

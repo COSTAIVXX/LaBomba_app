@@ -11,6 +11,7 @@ import '../../../services/outbox_service.dart';
 import '../../social/models/post_interaction_model.dart';
 import '../services/reaction_service.dart';
 import '../../../widgets/reaction_bar.dart';
+import 'stories_carousel.dart';
 
 /// Social feed page. Shows posts from 'posts' collection and allows simple
 /// interactions (add reaction, add comment, delete by author).
@@ -164,14 +165,25 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
 
                     if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
 
-                    return ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final entry = filtered[index].key;
-                        final post = filtered[index].value;
-                        final docId = entry['id'] as String;
-                        return _buildPostCard(post, docId);
-                      },
+                    // Include Stories carousel above the posts list
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          StoriesCarousel(),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: filtered.length,
+                            itemBuilder: (context, index) {
+                              final entry = filtered[index].key;
+                              final post = filtered[index].value;
+                              final docId = entry['id'] as String;
+                              return _buildPostCard(post, docId);
+                            },
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
@@ -197,13 +209,24 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
 
               if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
 
-              return ListView.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final doc = filtered[index].key;
-                  final post = filtered[index].value;
-                  return _buildPostCard(post, doc.id);
-                },
+              // Include Stories carousel above the posts list
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    StoriesCarousel(),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final doc = filtered[index].key;
+                        final post = filtered[index].value;
+                        return _buildPostCard(post, doc.id);
+                      },
+                    ),
+                  ],
+                ),
               );
             },
           );
