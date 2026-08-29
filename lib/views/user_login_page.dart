@@ -39,6 +39,15 @@ class _UserLoginPageState extends State<UserLoginPage> {
 
       if (!mounted) return;
       if (result == null) {
+        // If AuthService captured a specific Firebase auth error, show tailored UX
+        final code = authService.lastAuthErrorCode;
+        if (code == 'operation-not-allowed') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Método de login desabilitado no servidor. Contate o administrador.')),
+          );
+          return;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Credenciais inválidas ou serviço indisponível.')),
         );
