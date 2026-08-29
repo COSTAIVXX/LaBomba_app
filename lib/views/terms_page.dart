@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../providers/google_auth_provider.dart';
 import '../services/storage_service.dart';
 
 // Legal text versioning: bump this when the Terms/Privacy text changes so users are
@@ -57,30 +55,6 @@ class _TermsPageState extends State<TermsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar aceite: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _saving = true);
-    try {
-      final googleProvider = context.read<GoogleAuthProvider>();
-      final data = await googleProvider.signInWithGoogle();
-      if (!mounted) return;
-      if (data == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login do Google cancelado.')),
-        );
-        return;
-      }
-      await widget.storageService.write(key: _storageKey, value: '1');
-      Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google Sign-In indisponível no momento. Tente novamente.')),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -176,19 +150,6 @@ class _TermsPageState extends State<TermsPage> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _saving ? null : _handleGoogleSignIn,
-              icon: const Icon(Icons.g_mobiledata_rounded),
-              label: const Text('Continuar com Google'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF0F172A),
-                minimumSize: const Size.fromHeight(48),
-                side: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
-              ),
-            ),
-          ),
         ],
       ),
     );

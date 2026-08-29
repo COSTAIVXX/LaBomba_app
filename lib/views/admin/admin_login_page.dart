@@ -1,13 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
+
 import '../../providers/admin_auth_provider.dart';
-import '../../providers/google_auth_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../models/admin_profile.dart';
-import '../../services/admin_profile_service.dart';
-import '../../services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -99,84 +95,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
       setState(() {
         _errorMessage = 'Erro interno ao autenticar. Tente novamente.';
       });
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final googleProvider = context.read<GoogleAuthProvider>();
-      final googleData = await googleProvider.signInWithGoogle();
-      if (!mounted) return;
-
-      if (googleData == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Ensure admin profile is created/flagged immediately so permissions are available
-      try {
-        final adminSvc = AdminProfileService();
-        final profile = AdminProfile(
-          uid: googleData.uid,
-          email: googleData.email,
-          displayName: googleData.displayName,
-          isAdmin: true,
-        );
-        await adminSvc.setAdminProfile(profile);
-      } catch (e) {
-        // best-effort: do not block sign-in on profile write failures
-        debugPrint('Failed to ensure admin profile: $e');
-      }
-
-      // Persist admin session locally for quick restores
-      try {
-        await context.read<AuthService>().setAdminSession(true);
-      } catch (_) {}
-
-      Navigator.pushReplacementNamed(context, '/admin/dashboard');
-    } on fb_auth.FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      String friendly;
-      switch (e.code) {
-        case 'user-not-found':
-          friendly = 'Conta Google não encontrada. Verifique o e-mail.';
-          break;
-        case 'invalid-credential':
-          friendly = 'Credenciais inválidas fornecidas. Tente novamente.';
-          break;
-        case 'user-disabled':
-          friendly = 'Esta conta foi desativada. Contate o suporte.';
-          break;
-        case 'too-many-requests':
-          friendly = 'Muitas tentativas. Tente novamente mais tarde.';
-          break;
-        default:
-          friendly = 'Erro de autenticação: ${e.message ?? e.code}';
-      }
-      setState(() {
-        _errorMessage = friendly;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendly)));
-    } on PlatformException catch (e) {
-      if (!mounted) return;
-      final msg = e.message ?? 'Erro na plataforma durante o login com Google.';
-      setState(() {
-        _errorMessage = msg;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Erro ao acessar o Google. Tente novamente.';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao acessar o Google. Tente novamente.')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -417,29 +335,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                             child: TextButton(
                               onPressed: _isLoading ? null : _handleForgotPassword,
                               child: const Text('Esqueci minha senha', style: TextStyle(color: Colors.white70)),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Row(
-                            children: [
-                              Expanded(child: Divider(color: Colors.white10)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text('OU', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 12)),
-                              ),
-                              Expanded(child: Divider(color: Colors.white10)),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          OutlinedButton.icon(
-                            onPressed: _isLoading ? null : _handleGoogleSignIn,
-                            icon: const Icon(Icons.g_mobiledata, size: 28),
-                            label: const Text('Continuar com o Google'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],
