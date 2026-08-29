@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
 import 'sections/animated_banner.dart';
 import 'sections/countdown_section.dart';
 
@@ -14,72 +13,50 @@ class LandingPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
               child: Column(
                 children: [
                   const AnimatedBanner(),
-                  const SizedBox(height: 18),
-                  const CountdownSection(),
+                  const SizedBox(height: 20),
                   const Spacer(),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pushNamed(context, '/login'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(54),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Text(
-                            'Entrar',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                  const CountdownSection(),
+                  const SizedBox(height: 18),
                   SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/register'),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppTheme.primary,
-                        minimumSize: const Size.fromHeight(52),
-                        side: const BorderSide(color: AppTheme.primary, width: 1.4),
+                    width: 260,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(56),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(18),
                         ),
                       ),
                       child: const Text(
-                        'Criar conta',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                        'Entrar',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.center,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/admin/login'),
-                      child: const Text(
-                        'Administrador',
-                        style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/admin/login'),
+                    child: const Text(
+                      'Administrador',
+                      style: TextStyle(
+                        color: Color(0xFF2563EB),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    padding: const EdgeInsets.only(top: 2, bottom: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -87,7 +64,10 @@ class LandingPage extends StatelessWidget {
                           onPressed: () => Navigator.pushNamed(context, '/terms'),
                           child: const Text(
                             'Termos de Uso',
-                            style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -95,7 +75,10 @@ class LandingPage extends StatelessWidget {
                           onPressed: () => Navigator.pushNamed(context, '/privacy'),
                           child: const Text(
                             'Política de Privacidade',
-                            style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
