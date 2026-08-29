@@ -84,8 +84,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
       if (!mounted) return;
 
       if (success) {
-        Navigator.pushReplacementNamed(context, '/admin/dashboard');
-      } else {
+              debugPrint('NAV: admin login success, navigating to /admin/dashboard');
+              Navigator.pushReplacementNamed(context, '/admin/dashboard');
+            } else {
         setState(() {
           _errorMessage = 'Credenciais inválidas. Verifique usuário e senha.';
         });
