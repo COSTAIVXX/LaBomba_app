@@ -26,7 +26,6 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         title: const Text('La Bomba - Dashboard'),
         centerTitle: true,
         actions: [
-          // Dynamic admin shortcut in the app bar for regular admins (not the master)
           ValueListenableBuilder<AuthStatus>(
             valueListenable: authService.authStatus,
             builder: (context, status, _) {
@@ -43,137 +42,20 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         ],
       ),
       body: SafeArea(
-        child: Column(
+        child: IndexedStack(
+          index: _currentIndex,
           children: [
-            // Hero banner / title
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1B4B), Color(0xFF3B2C8A)],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Bem-vindo ao Hub',
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                  SizedBox(height: 6),
-                  Text('Aqui você encontra avisos, feed e atalhos rápidos',
-                      style: TextStyle(color: Colors.white70, fontSize: 14)),
-                ],
-              ),
-            ),
+            // Feed Tab
+            _FeedTab(),
 
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    // Left column: mural de avisos
-                    Flexible(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 8),
-                          const Text('Mural de Avisos', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: Card(
-                              color: const Color(0xFF111827),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: ListView.separated(
-                                  itemCount: 6,
-                                  separatorBuilder: (_, __) => const Divider(color: Colors.white10),
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text('Aviso ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                                      subtitle: Text('Detalhes do aviso número ${index + 1}', style: const TextStyle(color: Colors.white70)),
-                                      leading: CircleAvatar(backgroundColor: AppTheme.primary, child: const Icon(Icons.campaign, color: Colors.white)),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            // Passaportes (VIP) Tab
+            _VipTab(),
 
-                    const SizedBox(width: 12),
+            // Comunidade Tab
+            _CommunityTab(),
 
-                    // Right column: feed de interações
-                    Flexible(
-                      flex: 5,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 8),
-                          const Text('Feed', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: Card(
-                              color: const Color(0xFF0B1220),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: ListView.builder(
-                                  itemCount: 12,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      margin: const EdgeInsets.symmetric(vertical: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF081018),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          CircleAvatar(radius: 22, backgroundColor: Colors.indigoAccent, child: Text('${index + 1}')),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text('Usuário ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                                                const SizedBox(height: 6),
-                                                Text('Comentário de exemplo no feed número ${index + 1}.', style: const TextStyle(color: Colors.white70)),
-                                                const SizedBox(height: 8),
-                                                Row(
-                                                  children: const [
-                                                    Icon(Icons.favorite_border, color: Colors.white54, size: 18),
-                                                    SizedBox(width: 8),
-                                                    Icon(Icons.chat_bubble_outline, color: Colors.white54, size: 18),
-                                                    SizedBox(width: 8),
-                                                    Icon(Icons.share, color: Colors.white54, size: 18),
-                                                  ],
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Perfil Tab
+            _ProfileTab(),
           ],
         ),
       ),
@@ -184,15 +66,15 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         selectedItemColor: AppTheme.primary,
         unselectedItemColor: Colors.white54,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
-          BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Avisos'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
+          BottomNavigationBarItem(icon: Icon(Icons.card_membership), label: 'Passaportes'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Comunidade'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
       floatingActionButton: ValueListenableBuilder<AuthStatus>(
         valueListenable: authService.authStatus,
         builder: (context, status, _) {
-          // Only the explicit master user gets the God Mode FAB (dev-safe and requires MASTER_EMAIL match)
           final isMaster = authService.isMasterUser;
           if (!isMaster) return const SizedBox.shrink();
           return FloatingActionButton.extended(
@@ -204,5 +86,232 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         },
       ),
     );
+
+
+// ----------------------- Tab Widgets -----------------------
+  }
+
+}
+
+class _FeedTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        children: [
+          Flexible(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Mural de Avisos', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Card(
+                    color: const Color(0xFF111827),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: ListView.separated(
+                        itemCount: 6,
+                        separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('Aviso ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            subtitle: Text('Detalhes do aviso número ${index + 1}', style: const TextStyle(color: Colors.white70)),
+                            leading: CircleAvatar(backgroundColor: AppTheme.primary, child: const Icon(Icons.campaign, color: Colors.white)),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Feed', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Card(
+                    color: const Color(0xFF0B1220),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: ListView.builder(
+                        itemCount: 12,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF081018),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(radius: 22, backgroundColor: Colors.indigoAccent, child: Text('${index + 1}')),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Usuário ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                                      const SizedBox(height: 6),
+                                      Text('Comentário de exemplo no feed número ${index + 1}.', style: const TextStyle(color: Colors.white70)),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VipTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Card(
+            color: const Color(0xFF1E1B4B),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('Passaportes VIP', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                  SizedBox(height: 8),
+                  Text('Garanta seu lugar no Bloco La Bomba 2027. Lotes limitados.', style: TextStyle(color: Colors.white70)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, crossAxisSpacing: 12, mainAxisSpacing: 12),
+            itemCount: 4,
+            itemBuilder: (context, index) {
+              return Card(
+                color: const Color(0xFF0B1220),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Lote ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 6),
+                      Text('Ingressos restantes: ${100 - index * 12}', style: const TextStyle(color: Colors.white70)),
+                      const Spacer(),
+                      ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary), child: const Text('Reservar'))
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommunityTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Comunidade', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Card(
+              color: const Color(0xFF0B1220),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: 20,
+                separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                itemBuilder: (context, index) => ListTile(
+                  leading: CircleAvatar(backgroundColor: Colors.deepPurpleAccent, child: Text('${index + 1}')),
+                  title: Text('Foliao ${index + 1}', style: const TextStyle(color: Colors.white)),
+                  subtitle: Text('Status: online', style: const TextStyle(color: Colors.white70)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthService>(context);
+    final user = auth.currentUser;
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            color: const Color(0xFF111827),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(radius: 36, backgroundColor: Colors.indigoAccent, child: Text(user?.displayName != null ? user!.displayName![0] : '?')),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user?.displayName ?? 'Usuário', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 6),
+                      Text(user?.email ?? '', style: const TextStyle(color: Colors.white70)),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(onPressed: () => Navigator.pushNamed(context, '/settings'), icon: const Icon(Icons.settings), label: const Text('Configurações')),
+        ],
+      ),
+    );
+  }
+}
+
   }
 }
