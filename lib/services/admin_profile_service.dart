@@ -91,16 +91,37 @@ class AdminProfileService {
   /// specific email in source control.
   bool _isEmailWhitelisted(String? email) {
     if (email == null || email.isEmpty) return false;
-    // Compile-time / build-time override via --dart-define
+
+    // 1) Explicit master email provided at build/run time via --dart-define=MASTER_EMAIL
+    const masterEmail = String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
+    if (masterEmail.isNotEmpty) {
+      if (email.toLowerCase() == masterEmail.toLowerCase()) {
+        debugPrint('AdminProfileService: matched MASTER_EMAIL dart-define for superadmin');
+        return true;
+      }
+    }
+
+    // 2) Compile-time / build-time whitelist via ADMIN_WHITELIST (comma-separated)
     const envList = String.fromEnvironment('ADMIN_WHITELIST', defaultValue: '');
     if (envList.isNotEmpty) {
       final entries = envList.split(',').map((e) => e.trim().toLowerCase()).toSet();
-      return entries.contains(email.toLowerCase());
+      if (entries.contains(email.toLowerCase())) {
+        debugPrint('AdminProfileService: matched ADMIN_WHITELIST entry for $email');
+        return true;
+      }
     }
 
-    // No whitelist provided via dart-define; fallback to storage key (secure, local dev use)
-    // Read synchronously is not possible, so attempt asynchronously via StorageService if caller prefers.
-    // For safety we return false here — callers can separately call ensureAdminByStorage if desired.
+    // 3) Development-only literal superadmin shortcut
+    // WARNING: This branch is only active in debug builds to avoid creating a production bypass.
+    if (kDebugMode) {
+      const devSuperAdmin = 'gustavodionisio15x@gmail.com';
+      if (email.toLowerCase() == devSuperAdmin.toLowerCase()) {
+        debugPrint('AdminProfileService: granting dev-only superadmin for $email (kDebugMode)');
+        return true;
+      }
+    }
+
+    // No matches found; no whitelist present
     return false;
   }
 
