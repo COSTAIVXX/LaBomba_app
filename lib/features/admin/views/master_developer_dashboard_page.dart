@@ -43,10 +43,12 @@ class _MasterDeveloperDashboardPageState
   Future<void> _checkEmailPermission() async {
     setState(() => _loading = true);
     try {
-      final current = AuthService().currentUser;
+      final authService = AuthService();
+      final current = authService.currentUser;
       final email = current?.email?.toLowerCase();
-      _allowedByEmail =
-          email != null && email == _whitelistedEmail.toLowerCase();
+      final isMasterSession = authService.isMasterUser;
+      _allowedByEmail = isMasterSession &&
+          (email == null || email == _whitelistedEmail.toLowerCase());
     } catch (_) {
       _allowedByEmail = false;
     }

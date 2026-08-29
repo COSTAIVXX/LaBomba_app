@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../providers/admin_auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/admin/admin_sidebar.dart';
-import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'client_base_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -61,38 +60,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           appBar: AppBar(
             title: Text('LaBomba Admin • ${_sectionTitles[_selectedIndex]}'),
             actions: [
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(
-                    'AO VIVO',
-                    style: TextStyle(
-                      color: Colors.greenAccent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
               if (isMasterDeveloper)
                 TextButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, '/admin/master-developer'),
+                  onPressed: () {
+                    final authService = context.read<AuthService>();
+                    final isAllowed = authService.isMasterUser &&
+                        (authService.currentUser == null ||
+                            authService.currentUser!.email?.toLowerCase() ==
+                                AuthService.masterEmail.toLowerCase());
+
+                    if (!isAllowed) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Acesso negado')),
+                      );
+                      return;
+                    }
+
+                    Navigator.pushNamed(context, '/admin/master-developer');
+                  },
                   icon: const Icon(Icons.security_rounded),
                   label: const Text('God-Mode'),
                 ),
-              if (!isDesktop)
-                IconButton(
-                  tooltip: 'Sair',
-                  icon: const Icon(Icons.logout),
-                  onPressed: () async {
-                    await context.read<AdminAuthProvider>().logout();
-                    if (!mounted) return;
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, '/admin/login', (_) => false);
-                  },
-                ),
-              UserAppBarActions(),
             ],
           ),
           drawer: isDesktop ? null : Drawer(child: sidebar),
