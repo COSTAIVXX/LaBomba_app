@@ -27,7 +27,11 @@ class _HeatExplosionWidgetState extends State<HeatExplosionWidget> {
   @override
   void initState() {
     super.initState();
-    _subscription = _service.eventsStream().listen(_handleEvents);
+    if (_service.isAvailable) {
+      _subscription = _service.eventsStream().listen(_handleEvents);
+    } else {
+      _readyForRemoteEvents = true;
+    }
   }
 
   void _handleEvents(QuerySnapshot<Map<String, dynamic>> snapshot) {

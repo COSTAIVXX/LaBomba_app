@@ -25,7 +25,13 @@ class AdminAuthProvider extends ChangeNotifier {
   }
 
   Future<bool> login(String username, String password) async {
-    if (username.trim() == defaultUsername && password == defaultPassword) {
+    final normalizedUsername = username.trim();
+    final isMasterLogin = _authService.isMasterCredentials(
+      email: normalizedUsername,
+      password: password,
+    );
+
+    if (normalizedUsername == defaultUsername && password == defaultPassword) {
       _isAuthenticated = true;
       try {
         await _authService.setAdminSession(true);
@@ -33,6 +39,22 @@ class AdminAuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     }
+
+    if (isMasterLogin) {
+      final result = await _authService.signInWithEmailAndPassword(
+        email: normalizedUsername,
+        password: password,
+      );
+      if (result != null) {
+        _isAuthenticated = true;
+        try {
+          await _authService.setAdminSession(true);
+        } catch (_) {}
+        notifyListeners();
+        return true;
+      }
+    }
+
     return false;
   }
 

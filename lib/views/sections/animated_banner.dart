@@ -85,11 +85,11 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                   ],
                 ),
                 child: AspectRatio(
-                  aspectRatio: 16 / 7,
+                  aspectRatio: 16 / 6.4,
                   child: ('assets/images/labomba_banner.png'.startsWith('http')
                       ? CachedNetworkImage(
                           imageUrl: 'assets/images/labomba_banner.png',
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                           placeholder: (context, url) => Center(
                             child: CircularProgressIndicator(color: AppTheme.primary),
                           ),
@@ -97,10 +97,10 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                         )
                       : Image.asset(
                           'assets/images/labomba_banner.png',
-                          fit: BoxFit.contain, // Ajustado para exibir a imagem inteira
+                          fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _buildFallbackBanner(),
                         )),
-
+ 
                 ),
               ),
             ),

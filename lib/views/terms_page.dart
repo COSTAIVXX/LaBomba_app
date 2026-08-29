@@ -96,7 +96,16 @@ class _TermsPageState extends State<TermsPage> {
                   ),
           const SizedBox(height: 24),
           Row(children: [
-            Checkbox(value: _accepted, onChanged: (v) => setState(() => _accepted = v ?? false)),
+            Checkbox(
+              value: _accepted,
+              onChanged: _accepted
+                  ? null
+                  : (v) {
+                      if (v == true) {
+                        setState(() => _accepted = true);
+                      }
+                    },
+            ),
             const Expanded(child: Text('Eu li e concordo com os Termos de Uso e a Política de Privacidade.')),
           ]),
           const SizedBox(height: 12),

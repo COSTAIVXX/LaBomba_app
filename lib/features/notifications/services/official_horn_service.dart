@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class OfficialAnnouncement {
   final String id;
@@ -28,25 +29,44 @@ class OfficialAnnouncement {
 }
 
 class OfficialHornService {
-  final FirebaseFirestore _firestore;
+  static FirebaseFirestore? _safeFirestore() {
+    try {
+      return Firebase.apps.isNotEmpty ? FirebaseFirestore.instance : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  final FirebaseFirestore? _firestore;
 
   OfficialHornService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? _safeFirestore();
 
-  CollectionReference<Map<String, dynamic>> get _announcements =>
-      _firestore.collection('official_announcements');
+  bool get isAvailable => _firestore != null;
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> announcementsStream() =>
-      _announcements
-          .orderBy('createdAt', descending: true)
-          .limit(20)
-          .snapshots();
+  CollectionReference<Map<String, dynamic>>? get _announcements =>
+      _firestore?.collection('official_announcements');
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> announcementsStream() {
+    final announcements = _announcements;
+    if (announcements == null) {
+      return const Stream.empty();
+    }
+
+    return announcements
+        .orderBy('createdAt', descending: true)
+        .limit(20)
+        .snapshots();
+  }
 
   Future<void> publish({
     required String title,
     required String message,
-  }) {
-    return _announcements.add({
+  }) async {
+    final announcements = _announcements;
+    if (announcements == null) return;
+
+    await announcements.add({
       'title': title.trim(),
       'message': message.trim(),
       'createdAt': FieldValue.serverTimestamp(),

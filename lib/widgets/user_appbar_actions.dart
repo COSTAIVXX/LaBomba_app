@@ -22,11 +22,10 @@ class UserAppBarActions extends StatelessWidget {
             icon: AppIcons.themed(AppIcons.profile),
             tooltip: 'Entrar / Perfil',
             onPressed: () {
-              // open settings or login
               if (auth?.currentUser != null) {
                 Navigator.pushNamed(context, '/settings');
               } else {
-                Navigator.pushNamed(context, '/admin/login');
+                Navigator.pushNamed(context, '/login');
               }
             },
           ),

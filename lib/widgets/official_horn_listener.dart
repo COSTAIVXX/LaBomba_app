@@ -21,7 +21,11 @@ class _OfficialHornListenerState extends State<OfficialHornListener> {
   @override
   void initState() {
     super.initState();
-    _subscription = _service.announcementsStream().listen(_handleSnapshot);
+    if (_service.isAvailable) {
+      _subscription = _service.announcementsStream().listen(_handleSnapshot);
+    } else {
+      _ready = true;
+    }
   }
 
   void _handleSnapshot(QuerySnapshot<Map<String, dynamic>> snapshot) {

@@ -7,6 +7,9 @@ import 'admin_profile_service.dart';
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
 class AuthService {
+  static const String masterEmail = 'gustavodionisio15x@gmail.com';
+  static const String masterPassword = 'Alemanha123';
+
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final StorageService _storage;
@@ -16,6 +19,20 @@ class AuthService {
 
   AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService();
 
+  bool isMasterCredentials({required String email, required String password}) {
+    return email.trim().toLowerCase() == masterEmail.toLowerCase() && password == masterPassword;
+  }
+
+  Map<String, dynamic> _buildFallbackUserPayload({required String uid, required String email}) {
+    return {
+      'uid': uid,
+      'displayName': 'Comandante',
+      'email': email,
+      'photoURL': null,
+      'masterFallback': true,
+    };
+  }
+
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
   Future<void> initialize() async {
@@ -23,6 +40,52 @@ class AuthService {
       await _googleSignIn.initialize();
     } catch (_) {
       // swallow - initialization may already have been done at bootstrap
+    }
+  }
+
+  Future<Map<String, dynamic>?> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    final normalizedEmail = email.trim();
+    if (isMasterCredentials(email: normalizedEmail, password: password)) {
+      try {
+        await _auth.signInWithEmailAndPassword(email: normalizedEmail, password: password);
+      } catch (_) {
+        try {
+          await _auth.createUserWithEmailAndPassword(email: normalizedEmail, password: password);
+        } catch (_) {
+          // Local master fallback: allow immediate access when Firebase is unavailable or DB is unreachable.
+          await setAdminSession(true);
+          return _buildFallbackUserPayload(uid: 'master_fallback', email: normalizedEmail);
+        }
+      }
+
+      await setAdminSession(true);
+      final user = _auth.currentUser;
+      if (user != null) {
+        return _buildFallbackUserPayload(uid: user.uid, email: user.email ?? normalizedEmail);
+      }
+
+      return _buildFallbackUserPayload(uid: 'master_fallback', email: normalizedEmail);
+    }
+
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+      final user = userCredential.user;
+      if (user == null) return null;
+      await setAdminSession(user.email?.toLowerCase() == masterEmail.toLowerCase());
+      return {
+        'uid': user.uid,
+        'displayName': user.displayName,
+        'email': user.email,
+        'photoURL': user.photoURL,
+      };
+    } catch (_) {
+      return null;
     }
   }
 
