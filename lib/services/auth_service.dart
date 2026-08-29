@@ -91,61 +91,32 @@ class AuthService {
     required String password,
   }) async {
     final normalizedEmail = email.trim();
-    final isMasterLogin = isMasterCredentials(
-      email: normalizedEmail,
-      password: password,
-    );
-
-    if (isMasterLogin) {
-      // Master login must authenticate against Firebase as a real user (Email/Password).
-      // Do not create anonymous sessions or rely solely on local flags.
-      try {
-        try {
-          final userCredential = await _auth.signInWithEmailAndPassword(
-            email: normalizedEmail,
-            password: password,
-          );
-          final user = userCredential.user;
-          if (user == null) return null;
-          // Clear last error on success
-          lastAuthErrorCode = null;
-          await setAdminSession(true);
-          _masterSessionActive = true;
-          return {
-            'uid': user.uid,
-            'displayName': user.displayName ?? 'Comandante',
-            'email': user.email,
-            'photoURL': user.photoURL,
-          };
-        } on firebase_auth.FirebaseAuthException catch (e) {
-          print('Master signIn failed: ${e.code} ${e.message}');
-          lastAuthErrorCode = e.code;
-          return null;
-        } catch (e) {
-          print('Unexpected error during master signIn: $e');
-          lastAuthErrorCode = 'unknown';
-          return null;
-        }
-      }
 
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: normalizedEmail,
         password: password,
       );
+
       final user = userCredential.user;
       if (user == null) return null;
+
       // Clear last error on success
       lastAuthErrorCode = null;
-      await setAdminSession(user.email?.toLowerCase() == masterEmail.toLowerCase());
+
+      // Determine admin status by matching masterEmail or via AdminProfileService later
+      final isAdmin = masterEmail.isNotEmpty && (user.email?.toLowerCase() == masterEmail.toLowerCase());
+      await setAdminSession(isAdmin);
+      if (isAdmin) _masterSessionActive = true;
+
       return {
         'uid': user.uid,
-        'displayName': user.displayName,
+        'displayName': user.displayName ?? 'Usuário',
         'email': user.email,
         'photoURL': user.photoURL,
       };
     } on firebase_auth.FirebaseAuthException catch (e) {
-      // Provide diagnostics for common auth failures
+      // Provide diagnostics for common auth failures and expose last error code to UI
       print('FirebaseAuth signIn failed: ${e.code} ${e.message}');
       lastAuthErrorCode = e.code;
       return null;
