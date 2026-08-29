@@ -35,7 +35,6 @@ import 'views/landing_page.dart';
 import 'views/client_registration_page.dart';
 import 'views/user_login_page.dart';
 import 'views/user_dashboard_page.dart';
-import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
 import 'views/terms_page.dart';
@@ -284,7 +283,6 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/dashboard': (context) => const UserDashboardPage(),
             '/login': (context) => const UserLoginPage(),
             '/register': (context) => const ClientRegistrationPage(),
-            '/admin/login': (context) => const AdminLoginPage(),
             '/admin/dashboard': (context) => const AdminDashboardPage(),
             '/admin/clients': (context) => const ClientBasePage(),
             '/memories': (context) => const MemberAccessGate(

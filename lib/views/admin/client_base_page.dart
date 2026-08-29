@@ -5,7 +5,7 @@ import '../../models/client.dart';
 import '../../providers/admin_auth_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../theme/app_theme.dart';
-import 'admin_login_page.dart';
+import '../user_login_page.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
@@ -16,7 +16,7 @@ class ClientBasePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
-      return const AdminLoginPage();
+          return const UserLoginPage();
     }
     return _ClientBaseContent(embedded: embedded);
   }

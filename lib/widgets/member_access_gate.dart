@@ -65,7 +65,7 @@ class _MemberAccessGateState extends State<MemberAccessGate> {
                   FilledButton.icon(
                     onPressed: status.authenticated
                         ? _retry
-                        : () => Navigator.pushNamed(context, '/admin/login'),
+                        : () => Navigator.pushNamed(context, '/login'),
                     icon: Icon(
                       status.authenticated
                           ? Icons.refresh

@@ -5,7 +5,7 @@ import 'package:labomba_app/core/theme/app_theme.dart';
 import 'package:labomba_app/models/client.dart';
 import 'package:labomba_app/providers/admin_auth_provider.dart';
 import 'package:labomba_app/providers/client_provider.dart';
-import 'admin_login_page.dart';
+import 'package:labomba_app/views/user_login_page.dart';
 
 class ClientBasePage extends StatelessWidget {
   final bool embedded;
@@ -14,7 +14,7 @@ class ClientBasePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
-      return const AdminLoginPage();
+          return const UserLoginPage();
     }
     return _ClientBaseContent(embedded: embedded);
   }

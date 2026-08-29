@@ -4,9 +4,9 @@ import 'package:labomba_app/core/theme/app_theme.dart';
 import 'package:labomba_app/models/ticket.dart';
 import 'package:labomba_app/providers/admin_auth_provider.dart';
 import 'package:labomba_app/providers/shop_provider.dart';
-import 'admin_login_page.dart';
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
+import 'package:labomba_app/views/user_login_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -27,7 +27,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
-      return const AdminLoginPage();
+          return const UserLoginPage();
     }
 
     return LayoutBuilder(

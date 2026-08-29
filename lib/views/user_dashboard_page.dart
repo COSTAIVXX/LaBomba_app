@@ -25,6 +25,22 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         elevation: 0,
         title: const Text('La Bomba - Dashboard'),
         centerTitle: true,
+        actions: [
+          // Dynamic admin shortcut in the app bar for regular admins (not the master)
+          ValueListenableBuilder<AuthStatus>(
+            valueListenable: authService.authStatus,
+            builder: (context, status, _) {
+              final isMaster = authService.isMasterUser;
+              final isAdminCommon = status == AuthStatus.admin && !isMaster;
+              if (!isAdminCommon) return const SizedBox.shrink();
+              return TextButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/admin/clients'),
+                icon: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white),
+                label: const Text('Admin', style: TextStyle(color: Colors.white)),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -176,8 +192,9 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
       floatingActionButton: ValueListenableBuilder<AuthStatus>(
         valueListenable: authService.authStatus,
         builder: (context, status, _) {
-          final showAdmin = status == AuthStatus.admin;
-          if (!showAdmin) return const SizedBox.shrink();
+          // Only the explicit master user gets the God Mode FAB (dev-safe and requires MASTER_EMAIL match)
+          final isMaster = authService.isMasterUser;
+          if (!isMaster) return const SizedBox.shrink();
           return FloatingActionButton.extended(
             backgroundColor: AppTheme.primary,
             icon: const Icon(Icons.admin_panel_settings_rounded),

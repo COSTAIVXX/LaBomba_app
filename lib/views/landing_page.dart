@@ -44,7 +44,7 @@ class LandingPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/admin/login'),
+                                      onPressed: () => Navigator.pushNamed(context, '/login'),
                     child: const Text(
                       'Administrador',
                       style: TextStyle(
