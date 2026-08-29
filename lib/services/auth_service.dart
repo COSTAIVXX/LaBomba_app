@@ -60,11 +60,30 @@ class AuthService {
     );
 
     if (isMasterLogin) {
+      // Activate in-memory master session flag and persist admin session so other components
+      // can restore admin privileges across launches.
       _masterSessionActive = true;
       try {
         await _storage.write(key: _masterIdentityKey, value: normalizedEmail.toLowerCase());
         await setAdminSession(true);
-      } catch (_) {}
+
+        // Ensure FirebaseAuth.currentUser is not null so parts of the app that rely on
+        // FirebaseAuth (MemberAccessService, providers, etc.) will see a user present
+        // and not immediately treat the session as unauthenticated. Use anonymous
+        // sign-in as a minimal, non-blocking fallback.
+        try {
+          if (_auth.currentUser == null) {
+            await _auth.signInAnonymously();
+          }
+        } catch (e) {
+          // Non-fatal: log for diagnostics but do not break the master flow
+          // Prefer debugPrint in UI contexts, but print here to avoid extra imports.
+          print('Master fallback: anonymous Firebase sign-in failed: $e');
+        }
+      } catch (e) {
+        // Log storage errors but continue — master session should still be active in-memory
+        print('Master fallback: failed to persist admin session: $e');
+      }
 
       return _buildFallbackUserPayload(
         uid: 'master_fallback_${normalizedEmail.hashCode}',
@@ -86,7 +105,12 @@ class AuthService {
         'email': user.email,
         'photoURL': user.photoURL,
       };
-    } catch (_) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      // Provide diagnostics for common auth failures
+      print('FirebaseAuth signIn failed: ${e.code} ${e.message}');
+      return null;
+    } catch (e) {
+      print('Unexpected error during signInWithEmailAndPassword: $e');
       return null;
     }
   }
