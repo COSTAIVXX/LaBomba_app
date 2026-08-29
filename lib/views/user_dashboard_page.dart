@@ -312,6 +312,3 @@ class _ProfileTab extends StatelessWidget {
     );
   }
 }
-
-  }
-}
