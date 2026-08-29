@@ -34,6 +34,7 @@ import 'features/chat/views/chat_page.dart';
 import 'views/landing_page.dart';
 import 'views/client_registration_page.dart';
 import 'views/user_login_page.dart';
+import 'views/user_dashboard_page.dart';
 import 'views/admin/admin_login_page.dart';
 import 'views/admin/admin_dashboard_page.dart';
 import 'views/admin/client_base_page.dart';
@@ -280,6 +281,7 @@ class _LaBombaAppState extends State<LaBombaApp> {
                 SplashPage(storageService: storageService),
             '/': (context) => TermsGate(storageService: storageService),
             '/landing': (context) => const LandingPage(),
+            '/dashboard': (context) => const UserDashboardPage(),
             '/login': (context) => const UserLoginPage(),
             '/register': (context) => const ClientRegistrationPage(),
             '/admin/login': (context) => const AdminLoginPage(),
