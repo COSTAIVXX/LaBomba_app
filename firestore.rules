@@ -1,67 +1,109 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper to check authentication
     function isAuth() { return request.auth != null; }
-
-    // Helper to check admin flag stored in admin_profiles/{uid}
     function isAdmin() {
       return isAuth() &&
         exists(/databases/$(database)/documents/admin_profiles/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/admin_profiles/$(request.auth.uid)).data.isAdmin == true;
     }
-
-    // God Mode supremo check
     function isMaster() {
       return isAuth() && request.auth.token.email == 'gustavodionisio15x@gmail.com';
     }
+    function isSuperAdmin() { return isAdmin() || isMaster(); }
 
-    function isSuperAdmin() {
-      return isAdmin() || isMaster();
-    }
-
-    // Admin profiles: owner can read/update, admins can manage
-    match /admin_profiles/{uid} {
-      allow read: if isAuth() && (request.auth.uid == uid || isSuperAdmin());
-      allow create, update: if isAuth() && (request.auth.uid == uid || isSuperAdmin());
-      allow delete: if isAuth() && isSuperAdmin();
-    }
-
-    // Posts do Feed
-    match /posts/{postId} {
-      allow read: if isAuth(); // Todos logados podem ver os posts
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid; // Só o autor pode criar no seu nome
-      allow update: if isSuperAdmin() || (isAuth() && request.resource.data.userId == request.auth.uid); // Autor ou admin pode editar
-      allow delete: if isSuperAdmin(); // APENAS master/admin pode deletar (Moderação God Mode)
-    }
-
-    // Gestão de clientes (God Mode)
-    match /clients/{clientId} {
-      allow read: if isSuperAdmin() || (isAuth() && request.auth.uid == clientId);
-      allow create, update: if isSuperAdmin() || (isAuth() && request.auth.uid == clientId);
-      allow delete: if isSuperAdmin();
-    }
-
-    // Chats: authenticated users can read and post; only admins can delete or moderate
-    match /chats/{chatId}/messages/{messageId} {
-      allow read: if isAuth();
-      allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
-      allow update, delete: if isAuth() && isSuperAdmin();
-    }
-
-    // User memories (metadata): users may create/update their own memory documents. Deletion reserved to admins.
-    match /users/{userId}/memories/{memoryId} {
+    // Users
+    match /users/{userId} {
       allow read: if isAuth();
       allow create: if isAuth() && request.auth.uid == userId;
-      allow update: if isAuth() && request.auth.uid == userId;
-      allow delete: if isAuth() && isSuperAdmin();
+      allow update: if isAuth() && request.auth.uid == userId
+        && ( !("vip" in request.resource.data) || request.resource.data.vip == resource.data.vip )
+        && ( !("stats" in request.resource.data) || request.resource.data.stats == resource.data.stats );
+      allow delete: if isAuth() && request.auth.uid == userId;
+
+      match /notifications/{noteId} {
+        allow read: if isAuth() && request.auth.uid == userId;
+        allow create: if request.auth.token.admin == true;
+        allow update, delete: if request.auth.token.admin == true || (isAuth() && request.auth.uid == userId);
+      }
     }
 
-    // Fallback: allow authenticated reads, deny writes by default
-    match /{document=**} {
+    // Posts
+    match /posts/{postId} {
       allow read: if isAuth();
-      allow write: if isMaster(); // Somente God Mode Supremo pode alterar tudo indiscriminadamente
+      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true)
+        && ( !("vip" in request.resource.data) || request.resource.data.vip == resource.data.vip )
+        && ( !("stats" in request.resource.data) || request.resource.data.stats == resource.data.stats );
+      allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+
+      match /reactions/{reactionId} {
+        allow read: if isAuth();
+        allow create: if isAuth();
+        allow delete: if isAuth() && (request.auth.uid == resource.data.userId || request.auth.token.admin == true);
+      }
+
+      match /comments/{commentId} {
+        allow read: if isAuth();
+        allow create: if isAuth();
+        allow update: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+        allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+
+        match /reactions/{reactionId} {
+          allow read: if isAuth();
+          allow create: if isAuth();
+          allow delete: if isAuth() && (request.auth.uid == resource.data.userId || request.auth.token.admin == true);
+        }
+      }
+    }
+
+    // Chats
+    match /chats/{chatId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow delete: if request.auth.token.admin == true;
+
+      match /messages/{messageId} {
+        allow read: if isAuth();
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
+        allow update: if isAuth() && (
+          request.auth.uid == resource.data.senderId
+          || (
+            (request.resource.data.keys().hasOnly(['isRead','deliveredAt'])
+             && request.auth.uid != resource.data.senderId)
+          )
+        );
+        allow delete: if request.auth.token.admin == true;
+      }
+    }
+
+    // Groups
+    match /groups/{groupId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if request.auth.token.admin == true || request.auth.uid in resource.data.admins;
+      allow delete: if request.auth.token.admin == true || request.auth.uid in resource.data.admins;
+
+      match /messages/{messageId} {
+        allow read: if isAuth();
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
+        allow update: if isAuth() && (
+          request.auth.uid == resource.data.senderId
+          || (request.resource.data.keys().hasOnly(['isRead','deliveredAt']) && request.auth.uid != resource.data.senderId)
+        );
+      }
+    }
+
+    // Broadcasts
+    match /broadcasts/{b} {
+      allow read: if isAuth();
+      allow create: if request.auth.token.admin == true;
+      allow update, delete: if request.auth.token.admin == true;
+    }
+
+    // Default: deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

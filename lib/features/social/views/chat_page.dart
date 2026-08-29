@@ -40,9 +40,14 @@ class _ChatPageState extends State<ChatPage> {
                   itemBuilder: (context, index) {
                     final d = docs[index];
                     final data = d.data();
+                    final isRead = data['isRead'] as bool? ?? false;
+                    final deliveredAt = data['deliveredAt'];
                     return ListTile(
                       title: Text(data['text'] as String? ?? ''),
-                      subtitle: Text(data['senderId'] as String? ?? ''),
+                      subtitle: Text('${data['senderId'] as String? ?? ''}${deliveredAt != null ? ' • entregue' : ''}'),
+                      trailing: isRead
+                          ? const Icon(Icons.done_all, color: Colors.blue)
+                          : (deliveredAt != null ? const Icon(Icons.done, color: Colors.grey) : const SizedBox.shrink()),
                     );
                   },
                 );

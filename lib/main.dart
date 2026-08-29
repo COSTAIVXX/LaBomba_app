@@ -46,6 +46,7 @@ import 'providers/theme_provider.dart';
 import 'features/social/providers/social_provider.dart';
 import 'features/social/views/social_feed_page.dart';
 import 'features/social/views/community_page.dart';
+import 'features/social/views/group_channel_page.dart';
 // legacy view import kept for backward compatibility; prefer feature-level profile page
 import 'features/profile/user_profile_page.dart' as profile_feature;
 import 'views/notifications_page.dart';
@@ -312,6 +313,7 @@ class _LaBombaAppState extends State<LaBombaApp> {
                   child: SocialFeedPage(),
                 ),
             '/community': (context) => const MemberAccessGate(child: CommunityPage()),
+            '/groups': (context) => const MemberAccessGate(child: GroupChannelPage()),
             '/notifications': (context) => const MemberAccessGate(
                   child: NotificationsPage(),
                 ),
@@ -345,6 +347,14 @@ class _LaBombaAppState extends State<LaBombaApp> {
                   final userId = uri.pathSegments[1];
                   return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage(userId: userId)));
                 }
+              }
+              // Support /group/{groupId}
+              if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'group') {
+                if (uri.pathSegments.length >= 2) {
+                  final groupId = uri.pathSegments[1];
+                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: GroupChannelPage(groupId: groupId)));
+                }
+                return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: GroupChannelPage()));
               }
             } catch (_) {}
             return null;
