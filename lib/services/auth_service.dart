@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'storage_service.dart';
 import 'storage_platform.dart';
@@ -7,9 +8,15 @@ import 'admin_profile_service.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
+
+/// Unified auth status enum exposed by AuthService.authStatus
+enum AuthStatus { unknown, unauthenticated, authenticated, admin }
+
 class AuthService {
-  static const String masterEmail = 'gustavodionisio15x@gmail.com';
-  static const String masterPassword = 'Alemanha123';
+  // Load master credentials from environment to avoid hardcoding secrets.
+  // In CI or development you can pass --dart-define=MASTER_EMAIL=... --dart-define=MASTER_PASSWORD=...
+  static const String masterEmail = String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
+  static const String masterPassword = String.fromEnvironment('MASTER_PASSWORD', defaultValue: '');
 
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -20,12 +27,48 @@ class AuthService {
   static const String _idTokenKey = 'labomba_id_token';
 
   bool _masterSessionActive = false;
-  bool get isMasterUser => _masterSessionActive ||
-      _auth.currentUser?.email?.toLowerCase() == masterEmail.toLowerCase();
 
-  AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService();
+  /// Centralized auth status for the app. Consumers should observe this
+  /// ValueNotifier instead of checking FirebaseAuth.instance.currentUser directly.
+  /// Values: unknown -> initial, unauthenticated, authenticated (normal user), admin (master)
+  static const AuthStatus initialAuthStatus = AuthStatus.unknown;
+  final ValueNotifier<AuthStatus> authStatus = ValueNotifier<AuthStatus>(initialAuthStatus);
+
+  bool get isMasterUser => (_masterSessionActive) ||
+      (_auth.currentUser?.email?.toLowerCase() == masterEmail.toLowerCase());
+
+  AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService() {
+    // Listen to Firebase Auth state changes and update centralized auth status.
+    _auth.authStateChanges().listen((firebaseUser) async {
+      try {
+        if (firebaseUser == null) {
+          // If we have an in-memory master session active, prefer ADMIN
+          if (_masterSessionActive) {
+            authStatus.value = AuthStatus.admin;
+          } else {
+            authStatus.value = AuthStatus.unauthenticated;
+          }
+        } else {
+          // If the Firebase user matches master email (env), treat as admin
+          final email = firebaseUser.email?.toLowerCase() ?? '';
+          if (masterEmail.isNotEmpty && email == masterEmail.toLowerCase()) {
+            authStatus.value = AuthStatus.admin;
+            _masterSessionActive = true;
+          } else {
+            authStatus.value = AuthStatus.authenticated;
+            _masterSessionActive = false;
+          }
+        }
+      } catch (_) {
+        // ignore listener errors to avoid crashing app
+      }
+    });
+  }
 
   bool isMasterCredentials({required String email, required String password}) {
+    // Disallow master bypass in release builds for safety.
+    if (kReleaseMode) return false;
+    if (masterEmail.isEmpty || masterPassword.isEmpty) return false;
     return email.trim().toLowerCase() == masterEmail.toLowerCase() && password == masterPassword;
   }
 
