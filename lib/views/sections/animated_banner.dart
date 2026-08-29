@@ -97,10 +97,10 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                         )
                       : Image.asset(
                           'assets/images/labomba_banner.png',
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
                           errorBuilder: (_, __, ___) => _buildFallbackBanner(),
-                        )),
- 
+                        )), 
                 ),
               ),
             ),

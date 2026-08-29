@@ -86,14 +86,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
         child: SafeArea(
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _finish,
-                  child: const Text('Pular',
-                      style: TextStyle(color: Colors.white70)),
-                ),
-              ),
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
@@ -132,11 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: Text(
-                      _saving
-                          ? 'Preparando...'
-                          : _page == _slides.length - 1
-                              ? 'Começar a folia'
-                              : 'Continuar',
+                      _saving ? 'Preparando...' : 'Continuar',
                     ),
                   ),
                 ),
