@@ -72,7 +72,7 @@ class _CountdownSectionState extends State<CountdownSection> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(40),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.02),
             borderRadius: BorderRadius.circular(32),
@@ -93,19 +93,15 @@ class _CountdownSectionState extends State<CountdownSection> {
               ),
               const SizedBox(height: 32),
               Wrap(
-                spacing: 16,
-                runSpacing: 24,
-                alignment: WrapAlignment.center,
-                children: [
-                  _TimeBlock(
-                      value: days.toString().padLeft(2, '0'), label: 'DIAS'),
-                  _TimeBlock(
-                      value: hours.toString().padLeft(2, '0'), label: 'HORAS'),
-                  _TimeBlock(
-                      value: minutes.toString().padLeft(2, '0'), label: 'MIN'),
-                  _TimeBlock(
-                      value: seconds.toString().padLeft(2, '0'), label: 'SEG'),
-                ],
+                spacing: 8,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _TimeBlock(value: days.toString().padLeft(2, '0'), label: 'D'),
+                          _TimeBlock(value: hours.toString().padLeft(2, '0'), label: 'H'),
+                          _TimeBlock(value: minutes.toString().padLeft(2, '0'), label: 'M'),
+                          _TimeBlock(value: seconds.toString().padLeft(2, '0'), label: 'S'),
+                        ],
               ),
             ],
           ),
@@ -126,18 +122,18 @@ class _TimeBlock extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 80,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          width: 56,
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: AppTheme.primary.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
           ),
           child: Center(
             child: Text(
               value,
               style: labombaTextStyle(
-                  fontSize: 28,
+                  fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: Colors.white),
             ),

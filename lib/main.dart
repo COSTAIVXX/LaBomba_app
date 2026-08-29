@@ -57,6 +57,7 @@ import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
 import 'views/splash_page.dart';
 import 'widgets/member_access_gate.dart';
+import 'features/admin/views/master_developer_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -270,6 +271,7 @@ class LaBombaApp extends StatelessWidget {
             '/onboarding': (context) =>
                 OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
+            '/admin/master-developer': (context) => const MasterDeveloperDashboardPage(),
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
             '/privacy': (context) => const PrivacyPage(),

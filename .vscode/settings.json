@@ -8,5 +8,6 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
-    "chat.permissions.default": "autopilot"
+    "chat.permissions.default": "autopilot",
+    "cmake.sourceDirectory": "C:/Users/gusta/OneDrive/Desktop/LaBomba_app-main/LaBomba_app-main.worktrees/pasted-text-processing-c6dbe1b1/linux"
 }

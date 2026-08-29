@@ -306,14 +306,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _isLoading ? null : _handleForgotPassword,
-                              child: const Text('Esqueci minha senha', style: TextStyle(color: Colors.white70)),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
                           if (_errorMessage != null) ...[
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
@@ -418,7 +410,16 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                                     style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
                                   ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
+                          // Moved 'Esqueci minha senha' to below the primary action for a cleaner layout
+                          Align(
+                            alignment: Alignment.center,
+                            child: TextButton(
+                              onPressed: _isLoading ? null : _handleForgotPassword,
+                              child: const Text('Esqueci minha senha', style: TextStyle(color: Colors.white70)),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           const Row(
                             children: [
                               Expanded(child: Divider(color: Colors.white10)),

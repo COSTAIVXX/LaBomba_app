@@ -69,6 +69,11 @@ class MainNavigationDrawer extends StatelessWidget {
               label: 'Configurações',
               route: '/settings',
             ),
+            _NavigationItem(
+              icon: Icons.developer_mode,
+              label: 'Developer (God-Mode)',
+              route: '/admin/master-developer',
+            ),
           ],
         ),
       ),

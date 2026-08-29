@@ -28,7 +28,8 @@ class _SplashPageState extends State<SplashPage>
 
   Future<void> _continue() async {
     await Future<void>.delayed(const Duration(milliseconds: 1500));
-    final accepted = await widget.storageService.read(key: 'terms_accepted');
+    // Read versioned terms key (v1). If you bump terms version update this key.
+    final accepted = await widget.storageService.read(key: 'terms_accepted_v1');
     final onboarding =
         await widget.storageService.read(key: 'onboarding_completed');
     if (!mounted) return;
