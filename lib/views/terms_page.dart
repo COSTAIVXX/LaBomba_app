@@ -94,7 +94,13 @@ class _TermsPageState extends State<TermsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Termos de Uso', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.black87)),
+          Text(
+            'Termos de Uso',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: const Color(0xFF0F172A),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           const Text(
             'ESTE DOCUMENTO CONSTITUI OS TERMOS DE USO DO APLICATIVO LA BOMBA ("Aplicativo").\n\n'
@@ -106,10 +112,20 @@ class _TermsPageState extends State<TermsPage> {
             '6. Alterações: Podemos atualizar estes Termos; se houver mudanças significativas, exigiremos nova aceitação através desta mesma interface.\n\n'
             '7. Lei Aplicável: Estes Termos são regidos pela legislação aplicável no país do operador do serviço, sujeito aos limites do ordenamento jurídico.\n\n'
             'Este é um resumo jurídico detalhado e não substitui aconselhamento jurídico profissional. Para a versão definitiva, consulte o departamento jurídico.',
-            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.55),
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF111827),
+              height: 1.55,
+            ),
           ),
           const SizedBox(height: 18),
-          Text('Política de Privacidade', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.black87)),
+          Text(
+            'Política de Privacidade',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: const Color(0xFF0F172A),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           const Text(
             'POLÍTICA DE PRIVACIDADE: Nós coletamos, processamos e armazenamos informações pessoais estritamente para permitir funcionalidades essenciais do Aplicativo, incluindo criação de conta, publicação de conteúdo, e personalização do serviço.\n\n'
@@ -118,7 +134,11 @@ class _TermsPageState extends State<TermsPage> {
             'Segurança: Implementamos medidas razoáveis para proteger dados, incluindo criptografia em trânsito e armazenamento protegido. Contudo, nenhum sistema é invulnerável.\n\n'
             'Direitos do Usuário: Usuários têm direito de acessar, corrigir e solicitar exclusão de seus dados nos termos da legislação aplicável.\n\n'
             'Contato: Para questões sobre privacidade, contate nosso responsável interno pela proteção de dados.',
-            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.55),
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF111827),
+              height: 1.55,
+            ),
           ),
           const SizedBox(height: 24),
           Row(children: [
@@ -136,7 +156,7 @@ class _TermsPageState extends State<TermsPage> {
             const Expanded(
               child: Text(
                 'Eu li e concordo com os Termos de Uso e a Política de Privacidade.',
-                style: TextStyle(color: Colors.black87),
+                style: TextStyle(color: Color(0xFF111827)),
               ),
             ),
           ]),
@@ -175,7 +195,12 @@ class _TermsPageState extends State<TermsPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Termos e Privacidade'), backgroundColor: Colors.white, foregroundColor: Colors.black87, elevation: 0),
+      appBar: AppBar(
+        title: const Text('Termos e Privacidade'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF111827),
+        elevation: 0,
+      ),
       body: SafeArea(child: content),
     );
   }
