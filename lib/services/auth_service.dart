@@ -16,7 +16,12 @@ class AuthService {
   final StorageService _storage;
 
   static const String _adminSessionKey = 'labomba_admin_session';
+  static const String _masterIdentityKey = 'labomba_master_identity';
   static const String _idTokenKey = 'labomba_id_token';
+
+  bool _masterSessionActive = false;
+  bool get isMasterUser => _masterSessionActive ||
+      _auth.currentUser?.email?.toLowerCase() == masterEmail.toLowerCase();
 
   AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService();
 
@@ -55,7 +60,9 @@ class AuthService {
     );
 
     if (isMasterLogin) {
+      _masterSessionActive = true;
       try {
+        await _storage.write(key: _masterIdentityKey, value: normalizedEmail.toLowerCase());
         await setAdminSession(true);
       } catch (_) {}
 
@@ -154,6 +161,7 @@ class AuthService {
 
   /// Signs out from Firebase and Google and clears stored tokens/sessions.
   Future<void> signOut() async {
+    _masterSessionActive = false;
     try {
       await Future.wait([
         _auth.signOut(),
@@ -166,6 +174,9 @@ class AuthService {
     try {
       await _storage.delete(key: _adminSessionKey);
     } catch (_) {}
+    try {
+      await _storage.delete(key: _masterIdentityKey);
+    } catch (_) {}
   }
 
   /// Admin session persistence (uses secure storage instead of SharedPreferences)
@@ -174,7 +185,9 @@ class AuthService {
       if (value) {
         await _storage.write(key: _adminSessionKey, value: '1');
       } else {
+        _masterSessionActive = false;
         await _storage.delete(key: _adminSessionKey);
+        await _storage.delete(key: _masterIdentityKey);
       }
     } catch (_) {}
   }

@@ -55,8 +55,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         );
 
         final isMasterDeveloper =
-            context.read<AuthService>().currentUser?.email?.toLowerCase() ==
-                AuthService.masterEmail.toLowerCase();
+            context.watch<AuthService>().isMasterUser;
 
         return Scaffold(
           appBar: AppBar(
