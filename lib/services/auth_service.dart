@@ -49,26 +49,20 @@ class AuthService {
     required String password,
   }) async {
     final normalizedEmail = email.trim();
-    if (isMasterCredentials(email: normalizedEmail, password: password)) {
+    final isMasterLogin = isMasterCredentials(
+      email: normalizedEmail,
+      password: password,
+    );
+
+    if (isMasterLogin) {
       try {
-        await _auth.signInWithEmailAndPassword(email: normalizedEmail, password: password);
-      } catch (_) {
-        try {
-          await _auth.createUserWithEmailAndPassword(email: normalizedEmail, password: password);
-        } catch (_) {
-          // Local master fallback: allow immediate access when Firebase is unavailable or DB is unreachable.
-          await setAdminSession(true);
-          return _buildFallbackUserPayload(uid: 'master_fallback', email: normalizedEmail);
-        }
-      }
+        await setAdminSession(true);
+      } catch (_) {}
 
-      await setAdminSession(true);
-      final user = _auth.currentUser;
-      if (user != null) {
-        return _buildFallbackUserPayload(uid: user.uid, email: user.email ?? normalizedEmail);
-      }
-
-      return _buildFallbackUserPayload(uid: 'master_fallback', email: normalizedEmail);
+      return _buildFallbackUserPayload(
+        uid: 'master_fallback_${normalizedEmail.hashCode}',
+        email: normalizedEmail,
+      )..addAll({'isAdmin': true, 'masterFallback': true});
     }
 
     try {
