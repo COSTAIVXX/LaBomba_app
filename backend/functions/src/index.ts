@@ -97,7 +97,8 @@ export const onCommentReactionCreated = functions.firestore
       // send FCM to the target if token available
       try {
         const userDoc = await db.collection('users').doc(targetUid).get();
-        const token = userDoc.data()?.fcmToken as string | undefined;
+        const userData = userDoc.data() || {};
+        const token = (userData.fcmToken || userData.fcm_token || (Array.isArray(userData.fcmTokens) ? userData.fcmTokens[0] : null)) as string | undefined;
         if (token) {
           await admin.messaging().sendToDevice(token, {
             notification: {
@@ -141,7 +142,8 @@ export const onChatMessageCreated = functions.firestore
       for (const uid of recipients) {
         try {
           const userDoc = await db.collection('users').doc(uid).get();
-          const token = userDoc.data()?.fcmToken as string | undefined;
+          const userData = userDoc.data() || {};
+          const token = (userData.fcmToken || userData.fcm_token || (Array.isArray(userData.fcmTokens) ? userData.fcmTokens[0] : null)) as string | undefined;
           if (token) {
             await admin.messaging().sendToDevice(token, {
               notification: { title: 'Nova mensagem', body: text ?? 'Você tem uma nova mensagem' },
@@ -179,7 +181,8 @@ export const onGroupMessageCreated = functions.firestore
         if (uid == msg?.senderId) continue;
         try {
           const userDoc = await db.collection('users').doc(uid).get();
-          const token = userDoc.data()?.fcmToken as string | undefined;
+          const userData = userDoc.data() || {};
+          const token = (userData.fcmToken || userData.fcm_token || (Array.isArray(userData.fcmTokens) ? userData.fcmTokens[0] : null)) as string | undefined;
           if (token) {
             await admin.messaging().sendToDevice(token, {
               notification: { title: `Novo no canal ${groupDoc.data()?.name ?? ''}`, body: text ?? 'Nova mensagem no canal' },
