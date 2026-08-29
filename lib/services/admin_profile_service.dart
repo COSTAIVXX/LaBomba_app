@@ -44,31 +44,53 @@ class AdminProfileService {
   Future<AdminProfile?> getCurrentUserProfile() async {
     final user = _auth.currentUser;
     if (user == null) return null;
+
+    // First consult whitelists / master email so we can return quickly when
+    // the current user is explicitly allowed as admin (avoids Firestore calls
+    // when running offline or during dev shortcuts).
+    final bool whitelistedAdmin = _isEmailWhitelisted(user.email);
+    if (whitelistedAdmin) {
+      final profile = AdminProfile(
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        isAdmin: true,
+      );
+      // Try to persist the admin flag to Firestore if possible, but don't fail
+      // the whole flow if Firestore is unreachable.
+      try {
+        final docRef = _firestore.collection('admin_profiles').doc(user.uid);
+        await docRef.set(profile.toMap(), SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Failed to persist whitelisted admin profile (non-fatal): $e');
+      }
+      try {
+        await _cacheProfile(profile);
+      } catch (e) {
+        debugPrint('Failed to cache whitelisted admin profile: $e');
+      }
+      return profile;
+    }
+
+    // Not whitelisted: read from Firestore (with cache fallback on error)
     try {
       final docRef = _firestore.collection('admin_profiles').doc(user.uid);
       final doc = await docRef.get();
-
-      // If profile does not exist, create a default one. If the user's email
-      // is present in the ADMIN_WHITELIST (set via --dart-define at build time)
-      // we grant admin privileges immediately and persist to Firestore.
-      bool whitelistedAdmin = _isEmailWhitelisted(user.email);
 
       final profile = !doc.exists
           ? AdminProfile(
               uid: user.uid,
               email: user.email,
               displayName: user.displayName,
-              isAdmin: whitelistedAdmin,
+              isAdmin: false,
             )
           : AdminProfile.fromMap(user.uid, doc.data());
 
-      // If doc didn't exist and we detected whitelist, ensure Firestore has the admin flag
-      if (!doc.exists && whitelistedAdmin) {
+      // If doc didn't exist but we have a non-whitelisted default profile, cache it
+      if (!doc.exists) {
         try {
           await docRef.set(profile.toMap(), SetOptions(merge: true));
-        } catch (e) {
-          debugPrint('Failed to persist whitelisted admin profile: $e');
-        }
+        } catch (_) {}
       }
 
       await _cacheProfile(profile);
