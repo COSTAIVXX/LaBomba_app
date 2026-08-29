@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../services/auth_service.dart';
 import '../../../services/outbox_service.dart';
+import '../../../views/admin/content_dashboard_page.dart';
 
 /// Master Developer Dashboard (God-Mode)
 /// - Access restricted to a whitelisted email plus a PIN stored in secure storage.
@@ -14,11 +15,13 @@ class MasterDeveloperDashboardPage extends StatefulWidget {
   const MasterDeveloperDashboardPage({super.key});
 
   @override
-  State<MasterDeveloperDashboardPage> createState() => _MasterDeveloperDashboardPageState();
+  State<MasterDeveloperDashboardPage> createState() =>
+      _MasterDeveloperDashboardPageState();
 }
 
-class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardPage> {
-  static const String _whitelistedEmail = 'costaivxxxxx@gmail.com'; // provided by user
+class _MasterDeveloperDashboardPageState
+    extends State<MasterDeveloperDashboardPage> {
+  static const String _whitelistedEmail = AuthService.masterEmail;
   static const String _pinStorageKey = 'godmode_pin';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
@@ -42,7 +45,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
     try {
       final current = AuthService().currentUser;
       final email = current?.email?.toLowerCase();
-      _allowedByEmail = email != null && email == _whitelistedEmail.toLowerCase();
+      _allowedByEmail =
+          email != null && email == _whitelistedEmail.toLowerCase();
     } catch (_) {
       _allowedByEmail = false;
     }
@@ -50,7 +54,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
 
     if (_allowedByEmail) {
       // prompt for PIN
-      WidgetsBinding.instance.addPostFrameCallback((_) => _showPinDialogIfNeeded());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showPinDialogIfNeeded());
     }
   }
 
@@ -65,10 +70,15 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
         context: context,
         builder: (c) => AlertDialog(
           title: const Text('Configurar PIN God‑Mode'),
-          content: const Text('Nenhum PIN foi configurado. Deseja criar um PIN agora?'),
+          content: const Text(
+              'Nenhum PIN foi configurado. Deseja criar um PIN agora?'),
           actions: [
-            TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Não')),
-            ElevatedButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Sim')),
+            TextButton(
+                onPressed: () => Navigator.of(c).pop(false),
+                child: const Text('Não')),
+            ElevatedButton(
+                onPressed: () => Navigator.of(c).pop(true),
+                child: const Text('Sim')),
           ],
         ),
       );
@@ -94,13 +104,23 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: controller, decoration: const InputDecoration(labelText: 'PIN'), obscureText: true),
-            TextField(controller: confirm, decoration: const InputDecoration(labelText: 'Confirmar PIN'), obscureText: true),
+            TextField(
+                controller: controller,
+                decoration: const InputDecoration(labelText: 'PIN'),
+                obscureText: true),
+            TextField(
+                controller: confirm,
+                decoration: const InputDecoration(labelText: 'Confirmar PIN'),
+                obscureText: true),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Salvar')),
+          TextButton(
+              onPressed: () => Navigator.of(c).pop(false),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Salvar')),
         ],
       ),
     );
@@ -109,11 +129,13 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
       final pin = controller.text.trim();
       final conf = confirm.text.trim();
       if (pin.isEmpty || pin != conf) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN inválido ou não confere')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('PIN inválido ou não confere')));
         return;
       }
       await _secureStorage.write(key: _pinStorageKey, value: pin);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN salvo com sucesso')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('PIN salvo com sucesso')));
       setState(() => _authorized = true);
     }
   }
@@ -125,10 +147,17 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
       barrierDismissible: false,
       builder: (c) => AlertDialog(
         title: const Text('PIN God‑Mode'),
-        content: TextField(controller: controller, decoration: const InputDecoration(labelText: 'PIN'), obscureText: true),
+        content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(labelText: 'PIN'),
+            obscureText: true),
         actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Entrar')),
+          TextButton(
+              onPressed: () => Navigator.of(c).pop(false),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Entrar')),
         ],
       ),
     );
@@ -136,7 +165,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
     if (ok != true) return false;
     final entered = controller.text.trim();
     if (entered == stored) return true;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN incorreto')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('PIN incorreto')));
     return false;
   }
 
@@ -148,18 +178,27 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
         title: const Text('Confirmar banimento'),
         content: const Text('Deseja marcar este usuário como banido?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Não')),
-          ElevatedButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Sim')),
+          TextButton(
+              onPressed: () => Navigator.of(c).pop(false),
+              child: const Text('Não')),
+          ElevatedButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Sim')),
         ],
       ),
     );
     if (confirm != true) return;
     try {
       await _firestore.collection('users').doc(userId).update({'banned': true});
-      await _logAdminAction(action: 'ban_user', targetId: userId, details: {'collection': 'users'});
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário banido')));
+      await _logAdminAction(
+          action: 'ban_user',
+          targetId: userId,
+          details: {'collection': 'users'});
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Usuário banido')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao banir usuário')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Falha ao banir usuário')));
     }
   }
 
@@ -168,20 +207,30 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Confirmar exclusão'),
-        content: const Text('Excluir este usuário removerá seus dados do Firestore. Confirma?'),
+        content: const Text(
+            'Excluir este usuário removerá seus dados do Firestore. Confirma?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Não')),
-          ElevatedButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Sim')),
+          TextButton(
+              onPressed: () => Navigator.of(c).pop(false),
+              child: const Text('Não')),
+          ElevatedButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Sim')),
         ],
       ),
     );
     if (confirm != true) return;
     try {
       await _firestore.collection('users').doc(userId).delete();
-      await _logAdminAction(action: 'delete_user', targetId: userId, details: {'collection': 'users'});
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário excluído')));
+      await _logAdminAction(
+          action: 'delete_user',
+          targetId: userId,
+          details: {'collection': 'users'});
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Usuário excluído')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao excluir usuário')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Falha ao excluir usuário')));
     }
   }
 
@@ -189,11 +238,18 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/outbox_deadletter.json';
     await OutboxService.instance.exportDeadLetterToFile(path);
-    await _logAdminAction(action: 'export_deadletter', targetId: path, details: {'exportPath': path});
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Dead-letter exportado: $path')));
+    await _logAdminAction(
+        action: 'export_deadletter',
+        targetId: path,
+        details: {'exportPath': path});
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Dead-letter exportado: $path')));
   }
 
-  Future<void> _logAdminAction({required String action, required String targetId, Map<String, dynamic>? details}) async {
+  Future<void> _logAdminAction(
+      {required String action,
+      required String targetId,
+      Map<String, dynamic>? details}) async {
     try {
       final admin = AuthService().currentUser;
       final entry = <String, dynamic>{
@@ -210,37 +266,97 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (!_allowedByEmail) return const Scaffold(body: Center(child: Text('Acesso negado')));
+    if (_loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_allowedByEmail)
+      return const Scaffold(body: Center(child: Text('Acesso negado')));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Master Developer Dashboard')),
-      body: _authorized ? _buildDashboard() : Center(child: ElevatedButton(onPressed: _showPinDialogIfNeeded, child: const Text('Autenticar (PIN)'))),
+      body: _authorized
+          ? _buildDashboard()
+          : Center(
+              child: ElevatedButton(
+                  onPressed: _showPinDialogIfNeeded,
+                  child: const Text('Autenticar (PIN)'))),
     );
   }
 
   Widget _buildDashboard() {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(
         children: [
           Material(
             color: Theme.of(context).colorScheme.primary,
             child: TabBar(
-              tabs: const [Tab(text: 'Usuários'), Tab(text: 'Interações'), Tab(text: 'Outbox')],
+              isScrollable: true,
+              tabs: const [
+                Tab(text: 'Clientes'),
+                Tab(text: 'Operações'),
+                Tab(text: 'CMS'),
+                Tab(text: 'Auditoria'),
+              ],
             ),
           ),
           Expanded(
             child: TabBarView(
               children: [
                 _buildUsersTab(),
-                _buildInteractionsTab(),
-                _buildOutboxTab(),
+                _buildOperationsTab(),
+                _buildCmsTab(),
+                _buildAuditTab(),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildOperationsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Operações do Carnaval',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          const Text(
+              'Painel de controle operacional exclusivo para o modo mestre. Aqui ficam as métricas, alertas e gestão de vendas em produção.'),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: const [
+              _MetricTile(
+                  label: 'Ingressos', value: '1.248', color: Colors.blue),
+              _MetricTile(
+                  label: 'Vendas Hoje',
+                  value: 'R\$ 84.5k',
+                  color: Colors.green),
+              _MetricTile(label: 'Alertas', value: '03', color: Colors.orange),
+              _MetricTile(
+                  label: 'Operação', value: 'Online', color: Colors.teal),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCmsTab() {
+    return const ContentDashboardPage(embedded: true);
+  }
+
+  Widget _buildAuditTab() {
+    return Column(
+      children: [
+        Expanded(child: _buildInteractionsTab()),
+        const Divider(),
+        SizedBox(height: 250, child: _buildOutboxTab()),
+      ],
     );
   }
 
@@ -251,7 +367,9 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search), labelText: 'Buscar por nome ou email'),
+            decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                labelText: 'Buscar por nome ou email'),
             onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
           ),
         ),
@@ -259,16 +377,20 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
           child: StreamBuilder<QuerySnapshot>(
             stream: _firestore.collection('users').snapshots(),
             builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+              if (snap.connectionState == ConnectionState.waiting)
+                return const Center(child: CircularProgressIndicator());
               final docs = snap.data?.docs ?? [];
               final filtered = docs.where((d) {
                 final data = d.data() as Map<String, dynamic>;
                 final name = (data['name'] as String?)?.toLowerCase() ?? '';
                 final email = (data['email'] as String?)?.toLowerCase() ?? '';
                 if (_search.isEmpty) return true;
-                return name.contains(_search) || email.contains(_search) || d.id.contains(_search);
+                return name.contains(_search) ||
+                    email.contains(_search) ||
+                    d.id.contains(_search);
               }).toList();
-              if (filtered.isEmpty) return const Center(child: Text('Nenhum usuário encontrado'));
+              if (filtered.isEmpty)
+                return const Center(child: Text('Nenhum usuário encontrado'));
               return ListView.builder(
                 itemCount: filtered.length,
                 itemBuilder: (context, i) {
@@ -280,8 +402,13 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(icon: const Icon(Icons.block, color: Colors.orange), onPressed: () => _banUser(d.id)),
-                        IconButton(icon: const Icon(Icons.delete_forever, color: Colors.red), onPressed: () => _deleteUser(d.id)),
+                        IconButton(
+                            icon: const Icon(Icons.block, color: Colors.orange),
+                            onPressed: () => _banUser(d.id)),
+                        IconButton(
+                            icon: const Icon(Icons.delete_forever,
+                                color: Colors.red),
+                            onPressed: () => _deleteUser(d.id)),
                       ],
                     ),
                   );
@@ -296,9 +423,13 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
 
   Widget _buildInteractionsTab() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('posts').orderBy('createdAt', descending: true).snapshots(),
+      stream: _firestore
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (snap.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
         final docs = snap.data?.docs ?? [];
         if (docs.isEmpty) return const Center(child: Text('Nenhuma postagem'));
         return ListView.builder(
@@ -311,9 +442,15 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
               title: Text('Post ${d.id} — ${data['authorId'] ?? 'unknown'}'),
               subtitle: Text('${data['content'] ?? ''}'),
               children: [
-                ListTile(title: Text('Criado em: ${created is Timestamp ? created.toDate() : created ?? 'n/a'}')),
+                ListTile(
+                    title: Text(
+                        'Criado em: ${created is Timestamp ? created.toDate() : created ?? 'n/a'}')),
                 FutureBuilder<QuerySnapshot>(
-                  future: _firestore.collection('posts').doc(d.id).collection('comments').get(),
+                  future: _firestore
+                      .collection('posts')
+                      .doc(d.id)
+                      .collection('comments')
+                      .get(),
                   builder: (c, cs) {
                     final comments = cs.data?.docs ?? [];
                     return Column(
@@ -322,7 +459,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
                         final cAt = cd['createdAt'];
                         return ListTile(
                           title: Text(cd['text'] as String? ?? ''),
-                          subtitle: Text('por ${cd['authorId'] ?? 'unknown'} — ${cAt is Timestamp ? cAt.toDate() : cAt ?? ''}'),
+                          subtitle: Text(
+                              'por ${cd['authorId'] ?? 'unknown'} — ${cAt is Timestamp ? cAt.toDate() : cAt ?? ''}'),
                         );
                       }).toList(),
                     );
@@ -340,7 +478,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: OutboxService.instance.readDeadLetter(),
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (snap.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
         final items = snap.data ?? [];
         return Column(
           children: [
@@ -348,7 +487,10 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  ElevatedButton.icon(onPressed: _exportDeadLetter, icon: const Icon(Icons.download), label: const Text('Exportar dead-letter')),
+                  ElevatedButton.icon(
+                      onPressed: _exportDeadLetter,
+                      icon: const Icon(Icons.download),
+                      label: const Text('Exportar dead-letter')),
                   const SizedBox(width: 12),
                   Text('Itens: ${items.length}'),
                 ],
@@ -361,7 +503,8 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
                   final it = items[i];
                   return ListTile(
                     title: Text(it['type'] as String? ?? 'unknown'),
-                    subtitle: Text('id: ${it['id'] ?? 'n/a'} — reason: ${it['deadReason'] ?? ''}'),
+                    subtitle: Text(
+                        'id: ${it['id'] ?? 'n/a'} — reason: ${it['deadReason'] ?? ''}'),
                     isThreeLine: true,
                     trailing: Text(it['deadLetterAt'] ?? ''),
                   );
@@ -371,6 +514,39 @@ class _MasterDeveloperDashboardPageState extends State<MasterDeveloperDashboardP
           ],
         );
       },
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile(
+      {required this.label, required this.value, required this.color});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 180,
+      child: Card(
+        color: color.withValues(alpha: 0.12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(fontSize: 12, color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

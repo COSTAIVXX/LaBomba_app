@@ -26,8 +26,12 @@ class _AdminSidebarState extends State<AdminSidebar> {
   Widget build(BuildContext context) {
     final expanded = widget.forceExpanded || _isExpanded;
     return MouseRegion(
-      onEnter: widget.forceExpanded ? null : (_) => setState(() => _isExpanded = true),
-      onExit: widget.forceExpanded ? null : (_) => setState(() => _isExpanded = false),
+      onEnter: widget.forceExpanded
+          ? null
+          : (_) => setState(() => _isExpanded = true),
+      onExit: widget.forceExpanded
+          ? null
+          : (_) => setState(() => _isExpanded = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubic,
@@ -52,9 +56,8 @@ class _AdminSidebarState extends State<AdminSidebar> {
             // Header Logo
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: expanded
-                  ? _buildExpandedHeader()
-                  : _buildCollapsedHeader(),
+              child:
+                  expanded ? _buildExpandedHeader() : _buildCollapsedHeader(),
             ),
             const SizedBox(height: 48),
             // Navigation Items
@@ -63,27 +66,11 @@ class _AdminSidebarState extends State<AdminSidebar> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
                   _SidebarItem(
-                    icon: Icons.dashboard_rounded,
-                    label: 'Operação',
+                    icon: Icons.people_alt_rounded,
+                    label: 'Clientes',
                     isSelected: widget.selectedIndex == 0,
                     isExpanded: expanded,
                     onTap: () => widget.onDestinationSelected(0),
-                  ),
-                  const SizedBox(height: 8),
-                  _SidebarItem(
-                    icon: Icons.people_alt_rounded,
-                    label: 'Clientes',
-                    isSelected: widget.selectedIndex == 1,
-                    isExpanded: expanded,
-                    onTap: () => widget.onDestinationSelected(1),
-                  ),
-                  const SizedBox(height: 8),
-                  _SidebarItem(
-                    icon: Icons.auto_stories_rounded,
-                    label: 'CMS',
-                    isSelected: widget.selectedIndex == 2,
-                    isExpanded: expanded,
-                    onTap: () => widget.onDestinationSelected(2),
                   ),
                 ],
               ),
@@ -113,7 +100,8 @@ class _AdminSidebarState extends State<AdminSidebar> {
       width: 40,
       height: 40,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 36),
+      errorBuilder: (_, __, ___) =>
+          const Icon(Icons.flash_on, color: AppTheme.primary, size: 36),
     );
   }
 
@@ -126,7 +114,8 @@ class _AdminSidebarState extends State<AdminSidebar> {
           width: 32,
           height: 32,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 28),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.flash_on, color: AppTheme.primary, size: 28),
         ),
         const SizedBox(width: 12),
         const Text(
@@ -169,11 +158,16 @@ class _SidebarItemState extends State<_SidebarItem> {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = widget.isDestructive ? Colors.redAccent : AppTheme.primary;
-    final fgColor = widget.isSelected ? activeColor : (_isHovered ? Colors.white : Colors.white60);
-    final bgColor = widget.isSelected 
-        ? activeColor.withValues(alpha: 0.15) 
-        : (_isHovered ? Colors.white.withValues(alpha: 0.05) : Colors.transparent);
+    final activeColor =
+        widget.isDestructive ? Colors.redAccent : AppTheme.primary;
+    final fgColor = widget.isSelected
+        ? activeColor
+        : (_isHovered ? Colors.white : Colors.white60);
+    final bgColor = widget.isSelected
+        ? activeColor.withValues(alpha: 0.15)
+        : (_isHovered
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.transparent);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -183,20 +177,27 @@ class _SidebarItemState extends State<_SidebarItem> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: widget.isExpanded ? 16 : 0),
+          padding: EdgeInsets.symmetric(
+              vertical: 12, horizontal: widget.isExpanded ? 16 : 0),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: widget.isSelected ? activeColor.withValues(alpha: 0.3) : Colors.transparent,
+              color: widget.isSelected
+                  ? activeColor.withValues(alpha: 0.3)
+                  : Colors.transparent,
             ),
           ),
           child: Row(
-            mainAxisAlignment: widget.isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+            mainAxisAlignment: widget.isExpanded
+                ? MainAxisAlignment.start
+                : MainAxisAlignment.center,
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: widget.isExpanded ? EdgeInsets.zero : const EdgeInsets.all(8),
+                padding: widget.isExpanded
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.all(8),
                 child: Icon(
                   widget.icon,
                   color: fgColor,
@@ -211,7 +212,8 @@ class _SidebarItemState extends State<_SidebarItem> {
                     style: TextStyle(
                       color: fgColor,
                       fontSize: 15,
-                      fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight:
+                          widget.isSelected ? FontWeight.bold : FontWeight.w500,
                     ),
                     child: Text(
                       widget.label,
