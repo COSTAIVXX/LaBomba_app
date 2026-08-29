@@ -37,29 +37,21 @@ class AuthService {
     try {
       googleUser = await _googleSignIn.authenticate();
     } catch (_) {
-      // Fallback to lightweight attempt if interactive flow not available
       try {
         final Future<GoogleSignInAccount?>? lightweight =
             _googleSignIn.attemptLightweightAuthentication();
         googleUser = await lightweight;
       } catch (e) {
-        rethrow;
+        // Surface a friendlier message to the UI instead of crashing the app.
+        throw Exception('Google Sign-In indisponível no momento. Tente novamente.');
       }
     }
 
     if (googleUser == null) return null;
 
-    final googleAuth = googleUser.authentication;
+    final googleAuth = await googleUser.authentication;
     final String? idToken = googleAuth.idToken;
-
-    String? accessToken;
-    try {
-      final clientAuth = await googleUser.authorizationClient
-          .authorizationForScopes(['email', 'profile', 'openid']);
-      accessToken = clientAuth?.accessToken;
-    } catch (_) {
-      accessToken = null;
-    }
+    const String? accessToken = null;
 
     final firebase_auth.OAuthCredential credential =
         firebase_auth.GoogleAuthProvider.credential(

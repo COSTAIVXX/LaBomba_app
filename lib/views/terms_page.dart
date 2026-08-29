@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
+// Legal text versioning: bump this when the Terms/Privacy text changes so users are
+// required to re-accept the updated terms.
+const String _kTermsVersion = 'v1';
+const String _kTermsStorageKey = 'terms_accepted_${_kTermsVersion}';
+
 class TermsPage extends StatefulWidget {
   final StorageService storageService;
   const TermsPage({super.key, required this.storageService});
@@ -15,7 +20,9 @@ class _TermsPageState extends State<TermsPage> {
   bool _accepted = false;
   bool _saving = false;
 
-  static const _storageKey = 'terms_accepted';
+  // kept for backward compatibility (migrated to versioned key)
+  static const _legacyStorageKey = 'terms_accepted';
+  static const _storageKey = _kTermsStorageKey;
 
   @override
   void initState() {
@@ -26,7 +33,16 @@ class _TermsPageState extends State<TermsPage> {
   Future<void> _loadAccepted() async {
     try {
       final v = await widget.storageService.read(key: _storageKey);
-      setState(() => _accepted = v == '1');
+      if (v == '1') {
+        setState(() => _accepted = true);
+        return;
+      }
+
+      final legacyValue = await widget.storageService.read(key: _legacyStorageKey);
+      if (legacyValue == '1') {
+        await widget.storageService.write(key: _storageKey, value: '1');
+        setState(() => _accepted = true);
+      }
     } catch (_) {}
   }
 
@@ -35,9 +51,11 @@ class _TermsPageState extends State<TermsPage> {
     try {
       await widget.storageService.write(key: _storageKey, value: '1');
       if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/landing');
+      Navigator.pushReplacementNamed(context, '/landing');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar aceite: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar aceite: $e')),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -53,20 +71,29 @@ class _TermsPageState extends State<TermsPage> {
           Text('Termos de Uso', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
           const Text(
-            'Ao utilizar o aplicativo La Bomba você concorda com os termos e condições.\n\n' 
-            'Este é um texto de exemplo — substitua pelo texto oficial de Termos de Uso e Política de Privacidade do produto.\n\n'
-            'Coleta de dados: armazenamos memórias localmente e, quando autorizado, dados em backend.\n\n'
-            'Privacidade: respeitamos sua privacidade. Consulte a Política de Privacidade completa.',
-            style: TextStyle(fontSize: 14),
-          ),
+                    'ESTE DOCUMENTO CONSTITUI OS TERMOS DE USO DO APLICATIVO LA BOMBA ("Aplicativo").\n\n'
+                    '1. Aceitação dos Termos: Ao utilizar o Aplicativo, você declara que leu, compreendeu e concorda em cumprir estes Termos de Uso e nossa Política de Privacidade.\n\n'
+                    '2. Serviço: O Aplicativo fornece uma plataforma para postagem, compartilhamento e interação com conteúdo gerado por usuários. O serviço pode incluir funcionalidades de feed, mensagens, curtidas, reações e moderação.\n\n'
+                    '3. Conteúdo do Usuário: Você é o único responsável pelo conteúdo que publica. Ao enviar conteúdo, você concede ao Aplicativo uma licença não exclusiva, transferível e sublicenciável para usar, reproduzir e distribuir esse conteúdo conforme necessário para operar o serviço.\n\n'
+                    '4. Conduta e Moderação: Conteúdos que infrinjam direitos autorais, promovam ódio, violência ou desrespeitem a legislação serão removidos. Moderadores e administradores podem banir ou suspender contas que violem estas regras.\n\n'
+                    '5. Limitação de Responsabilidade: O Aplicativo é fornecido “no estado em que se encontra”. Não somos responsáveis por perdas indiretas, lucros cessantes ou danos decorrentes do uso do serviço até o limite legal aplicável.\n\n'
+                    '6. Alterações: Podemos atualizar estes Termos; se houver mudanças significativas, exigiremos nova aceitação através desta mesma interface.\n\n'
+                    '7. Lei Aplicável: Estes Termos são regidos pela legislação aplicável no país do operador do serviço, sujeito aos limites do ordenamento jurídico.\n\n'
+                    'Este é um resumo jurídico detalhado e não substitui aconselhamento jurídico profissional. Para a versão definitiva, consulte o departamento jurídico.',
+                    style: TextStyle(fontSize: 13),
+                  ),
           const SizedBox(height: 18),
           Text('Política de Privacidade', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
           const Text(
-            'A Política de Privacidade descreve como coletamos, usamos e protegemos os dados do usuário.\n\n' 
-            'Este é um texto de exemplo — substitua pelo texto oficial.',
-            style: TextStyle(fontSize: 14),
-          ),
+                    'POLÍTICA DE PRIVACIDADE: Nós coletamos, processamos e armazenamos informações pessoais estritamente para permitir funcionalidades essenciais do Aplicativo, incluindo criação de conta, publicação de conteúdo, e personalização do serviço.\n\n'
+                    'Finalidades: As informações podem ser usadas para autenticação, moderação de conteúdo, entrega de notificações e análises agregadas para melhoria do servico.\n\n'
+                    'Compartilhamento: Não vendemos dados de usuários. Podemos compartilhar informações com provedores de infraestrutura, parceiros de pagamento ou quando exigido por lei.\n\n'
+                    'Segurança: Implementamos medidas razoáveis para proteger dados, incluindo criptografia em trânsito e armazenamento protegido. Contudo, nenhum sistema é invulnerável.\n\n'
+                    'Direitos do Usuário: Usuários têm direito de acessar, corrigir e solicitar exclusão de seus dados nos termos da legislação aplicável.\n\n'
+                    'Contato: Para questões sobre privacidade, contate nosso responsável interno pela proteção de dados.',
+                    style: TextStyle(fontSize: 13),
+                  ),
           const SizedBox(height: 24),
           Row(children: [
             Checkbox(value: _accepted, onChanged: (v) => setState(() => _accepted = v ?? false)),
@@ -104,7 +131,8 @@ class _TermsGateState extends State<TermsGate> {
   bool _checked = false;
   bool _accepted = false;
 
-  static const _storageKey = 'terms_accepted';
+  // Use versioned key for gating
+  static const _storageKey = _kTermsStorageKey;
   static const _onboardingKey = 'onboarding_completed';
 
   @override

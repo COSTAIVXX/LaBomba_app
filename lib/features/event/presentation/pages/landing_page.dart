@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:labomba_app/features/event/presentation/widgets/sections/header_section.dart';
@@ -139,7 +138,7 @@ class _CarnivalBackgroundPainter extends CustomPainter {
       size.width / 2 + (pointerOffset.dx - size.width / 2) * 0.03,
       size.height / 2 + (pointerOffset.dy - size.height / 2) * 0.03,
     );
-    final radius = max(size.width, size.height) * 0.8;
+    final radius = (size.width > size.height ? size.width : size.height) * 0.8;
     final gradient = RadialGradient(
       colors: [Colors.deepPurple.shade900, Colors.black],
     ).createShader(Rect.fromCircle(center: center, radius: radius));
