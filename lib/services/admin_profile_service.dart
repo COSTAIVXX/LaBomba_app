@@ -133,16 +133,6 @@ class AdminProfileService {
       }
     }
 
-    // 3) Development-only literal superadmin shortcut
-    // WARNING: This branch is only active in debug builds to avoid creating a production bypass.
-    if (kDebugMode) {
-      const devSuperAdmin = 'gustavodionisio15x@gmail.com';
-      if (email.toLowerCase() == devSuperAdmin.toLowerCase()) {
-        debugPrint('AdminProfileService: granting dev-only superadmin for $email (kDebugMode)');
-        return true;
-      }
-    }
-
     // No matches found; no whitelist present
     return false;
   }
