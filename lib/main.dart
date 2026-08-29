@@ -165,7 +165,7 @@ void main() {
 }
 
 
-class LaBombaApp extends StatelessWidget {
+class LaBombaApp extends StatefulWidget {
   // Recebe o repositório criado lá no main()
   final IClientRepository repository;
   final StorageService storageService;
@@ -174,20 +174,65 @@ class LaBombaApp extends StatelessWidget {
   const LaBombaApp({super.key, required this.repository, required this.storageService});
 
   @override
+  _LaBombaAppState createState() => _LaBombaAppState();
+}
+
+class _LaBombaAppState extends State<LaBombaApp> {
+  @override
+  void initState() {
+    super.initState();
+    // In debug/dev only: if MASTER_EMAIL is available, attempt a non-invasive sign-in
+    // to validate the login→currentUser→authStatus→MemberAccess flow. This will not
+    // print passwords and runs only in non-release builds.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (kReleaseMode) return;
+      if (AuthService.masterEmail.isEmpty || AuthService.masterPassword.isEmpty) return;
+
+      try {
+        final authService = context.read<AuthService>();
+        // Attempt master sign-in using secure dart-define values (do not log the password)
+        final result = await authService.signInWithEmailAndPassword(
+          email: AuthService.masterEmail,
+          password: AuthService.masterPassword,
+        );
+
+        debugPrint('AUTOTEST: master sign-in result: ${result != null}');
+
+        // Read current user presence, id token and auth status
+        final currentUser = authService.currentUser;
+        debugPrint('AUTOTEST: currentUser present: ${currentUser != null}');
+
+        final token = await authService.getIdToken(forceRefresh: true);
+        debugPrint('AUTOTEST: idToken present: ${token != null}');
+
+        debugPrint('AUTOTEST: authStatus: ${authService.authStatus.value}');
+
+        // Check admin/authenticated via isAdminAuthenticated
+        final isAdmin = await authService.isAdminAuthenticated();
+        debugPrint('AUTOTEST: isAdminAuthenticated: $isAdmin');
+
+      } catch (e) {
+        debugPrint('AUTOTEST: unexpected error during auto sign-in: $e');
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final storageService = widget.storageService;
     return MultiProvider(
       providers: [
         // Central AuthService provided first so other providers can consume it
         Provider<AuthService>(create: (_) => AuthService()),
         // Expose configured StorageService so pages/services can read/write persistent flags (e.g., terms acceptance)
-        Provider<StorageService>(create: (_) => storageService),
+        Provider<StorageService>(create: (_) => widget.storageService),
 
         ChangeNotifierProvider(
           create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
           // 4. Injeta o repositório pronto para o ClientProvider usar!
-          create: (_) => ClientProvider(repository: repository),
+          create: (_) => ClientProvider(repository: widget.repository),
         ),
         ChangeNotifierProvider(
           create: (_) => ShopProvider(),
@@ -200,7 +245,7 @@ class LaBombaApp extends StatelessWidget {
         ),
         // Memories provider (storage-backed)
         ChangeNotifierProvider(
-          create: (context) => MemoryProvider(service: StorageMemoryService(storageService)),
+          create: (context) => MemoryProvider(service: StorageMemoryService(widget.storageService)),
         ),
         // Chat provider (real-time)
         ChangeNotifierProvider(
