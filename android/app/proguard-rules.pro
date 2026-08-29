@@ -1,41 +1,41 @@
 # Basic ProGuard rules for Flutter + Firebase
-# Keep Flutter classes
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.** { *; }
 -keep class io.flutter.embedding.android.** { *; }
 -keep class io.flutter.embedding.engine.** { *; }
+-keep class io.flutter.embedding.** { *; }
 
-# Firebase and Google Play services
+# Firebase / Google Auth / Play services
 -keep class com.google.firebase.** { *; }
 -dontwarn com.google.firebase.**
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
+-keep class com.google.android.play.core.** { *; }
+-keep interface com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.splitcompat.** { *; }
+-dontwarn com.google.android.play.core.splitcompat.**
 
-# Keep JSON-model classes if reflection is used
+# Keep Google Sign-In and Firebase Auth entry points
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+-keep class com.google.firebase.auth.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+-keep class androidx.browser.customtabs.** { *; }
+
+# Preserve generics / reflection-based models commonly used in Firebase
 -keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
-
-# Keep annotation attributes
 -keepattributes *Annotation*
-
-# Keep native method names
 -keepclasseswithmembernames class * {
     native <methods>;
 }
-
-# Keep enums
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
-# Keep Google Play Core classes used by Flutter deferred components / split install
--keep class com.google.android.play.core.** { *; }
--keep interface com.google.android.play.core.** { *; }
--dontwarn com.google.android.play.core.**
-
-# Keep SplitCompat classes
--keep class com.google.android.play.core.splitcompat.** { *; }
--dontwarn com.google.android.play.core.splitcompat.**
+# Keep AndroidX and lifecycle classes used by Firebase/Flutter
+-keep class androidx.** { *; }
+-dontwarn androidx.**
 

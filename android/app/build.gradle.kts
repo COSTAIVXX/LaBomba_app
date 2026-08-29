@@ -33,9 +33,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
 
             // Enable code shrinking and resource shrinking for release builds (R8/ProGuard)
-                        // We added Play Core dependency and proguard rules to keep required classes.
-                        isMinifyEnabled = true
-                        isShrinkResources = true
+            isMinifyEnabled = true
+            isShrinkResources = true
 
             // Use the default Android optimize ProGuard file and the app-specific rules
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
