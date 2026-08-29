@@ -124,7 +124,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: Text(
-                      _saving ? 'Preparando...' : 'Continuar',
+                      _saving ? 'Preparando...' : (_page == _slides.length - 1 ? 'Começar a folia' : 'Continuar'),
                     ),
                   ),
                 ),

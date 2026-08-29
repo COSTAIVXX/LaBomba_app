@@ -9,6 +9,8 @@ import '../../../services/storage_platform.dart';
 import '../../../services/storage_service.dart';
 import '../../../services/outbox_service.dart';
 import '../../social/models/post_interaction_model.dart';
+import '../services/reaction_service.dart';
+import '../../../widgets/reaction_bar.dart';
 
 /// Social feed page. Shows posts from 'posts' collection and allows simple
 /// interactions (add reaction, add comment, delete by author).
@@ -322,17 +324,48 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             ),
             const Divider(),
             // Show a couple of recent comments
-            ...post.comments.where((c) => !c.deleted).take(3).map((c) => ListTile(
-                  dense: true,
-                  title: Text(c.text),
-                  subtitle: Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
-                  trailing: _canDeleteComment(c, post)
-                      ? IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                          onPressed: () => _deleteComment(docId, c),
-                        )
-                      : null,
-                )),
+            ...post.comments.where((c) => !c.deleted).take(3).map((c) {
+                              return Column(
+                                children: [
+                                  ListTile(
+                                    dense: true,
+                                    title: Text(c.text),
+                                    subtitle: Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
+                                    trailing: _canDeleteComment(c, post)
+                                        ? IconButton(
+                                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                            onPressed: () => _deleteComment(docId, c),
+                                          )
+                                        : null,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 72.0, right: 8.0, bottom: 8.0),
+                                    child: StreamBuilder<Map<String, int>>(
+                                      stream: ReactionService().reactionsCountStreamForComment(docId, c.id),
+                                      builder: (context, rsnap) {
+                                        final counts = rsnap.data ?? <String, int>{};
+                                        return ReactionBar(
+                                          initialCounts: counts,
+                                          onChanged: (emoji, added) async {
+                                            final uid = _currentUid;
+                                            if (uid == null) {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
+                                              return;
+                                            }
+                                            try {
+                                              await ReactionService().toggleReactionOnComment(postId: docId, commentId: c.id, userId: uid, emoji: emoji);
+                                            } catch (e) {
+                                              debugPrint('Comment reaction failed: $e');
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao reagir no comentário')));
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
           ],
         ),
       ),
@@ -352,24 +385,16 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
       return;
     }
-    final id = '$uid:${DateTime.now().millisecondsSinceEpoch}';
-    final map = {
-      'id': id,
-      'userId': uid,
-      'type': type,
-      'createdAt': FieldValue.serverTimestamp(),
-    };
     try {
-      await _firestore.collection('posts').doc(postId).update({
-        'reactions': FieldValue.arrayUnion([map])
-      });
+      await ReactionService().toggleReactionOnPost(postId: postId, userId: uid, emoji: type);
     } catch (e) {
-      // enqueue to outbox
+      // enqueue to outbox as fallback for offline
       try {
+        final id = '$uid:${DateTime.now().millisecondsSinceEpoch}';
         await OutboxService.instance.enqueue({
-          'id': 'post_reaction_add:${postId}:${map['id']}',
+          'id': 'post_reaction_add:${postId}:$id',
           'type': 'post_reaction_add',
-          'payload': {'postId': postId, 'reaction': map},
+          'payload': {'postId': postId, 'reaction': {'id': id, 'userId': uid, 'type': type, 'createdAt': DateTime.now().toIso8601String()}},
           'createdAt': DateTime.now().toIso8601String(),
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reação enfileirada e será sincronizada quando online')));
