@@ -25,7 +25,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/admin/login');
+              Navigator.pushReplacementNamed(context, '/login');
         }
       });
       return const Scaffold(body: SizedBox.shrink());
@@ -48,7 +48,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             await context.read<AdminAuthProvider>().logout();
             if (mounted) {
               Navigator.pushNamedAndRemoveUntil(
-                  context, '/admin/login', (_) => false);
+                                context, '/login', (_) => false);
             }
           },
         );
@@ -76,7 +76,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       return;
                     }
 
-                    Navigator.pushNamed(context, '/admin/master-developer');
+                    Navigator.pushNamed(context, '/admin/god-mode');
                   },
                   icon: const Icon(Icons.security_rounded),
                   label: const Text('God-Mode'),
