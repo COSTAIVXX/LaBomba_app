@@ -103,35 +103,30 @@ class AuthService {
     );
 
     if (isMasterLogin) {
-      // Activate in-memory master session flag and persist admin session so other components
-      // can restore admin privileges across launches.
-      _masterSessionActive = true;
+      // Master login must authenticate against Firebase as a real user (Email/Password).
+      // Do not create anonymous sessions or rely solely on local flags.
       try {
-        await _storage.write(key: _masterIdentityKey, value: normalizedEmail.toLowerCase());
+        final userCredential = await _auth.signInWithEmailAndPassword(
+          email: normalizedEmail,
+          password: password,
+        );
+        final user = userCredential.user;
+        if (user == null) return null;
         await setAdminSession(true);
-
-        // Ensure FirebaseAuth.currentUser is not null so parts of the app that rely on
-        // FirebaseAuth (MemberAccessService, providers, etc.) will see a user present
-        // and not immediately treat the session as unauthenticated. Use anonymous
-        // sign-in as a minimal, non-blocking fallback.
-        try {
-          if (_auth.currentUser == null) {
-            await _auth.signInAnonymously();
-          }
-        } catch (e) {
-          // Non-fatal: log for diagnostics but do not break the master flow
-          // Prefer debugPrint in UI contexts, but print here to avoid extra imports.
-          print('Master fallback: anonymous Firebase sign-in failed: $e');
-        }
+        _masterSessionActive = true;
+        return {
+          'uid': user.uid,
+          'displayName': user.displayName ?? 'Comandante',
+          'email': user.email,
+          'photoURL': user.photoURL,
+        };
+      } on firebase_auth.FirebaseAuthException catch (e) {
+        print('Master signIn failed: ${e.code} ${e.message}');
+        return null;
       } catch (e) {
-        // Log storage errors but continue — master session should still be active in-memory
-        print('Master fallback: failed to persist admin session: $e');
+        print('Unexpected error during master signIn: $e');
+        return null;
       }
-
-      return _buildFallbackUserPayload(
-        uid: 'master_fallback_${normalizedEmail.hashCode}',
-        email: normalizedEmail,
-      )..addAll({'isAdmin': true, 'masterFallback': true});
     }
 
     try {

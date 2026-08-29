@@ -45,6 +45,22 @@ class _UserLoginPageState extends State<UserLoginPage> {
         return;
       }
 
+      // Ensure Firebase session is active before navigating: require a valid ID token
+      try {
+        final token = await authService.getIdToken(forceRefresh: true);
+        if (token == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao validar sessão. Tente novamente.')),
+          );
+          return;
+        }
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Falha ao validar sessão. Tente novamente.')),
+        );
+        return;
+      }
+
       Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false);
     } catch (e) {
       if (!mounted) return;
