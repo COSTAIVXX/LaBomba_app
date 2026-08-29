@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/google_auth_provider.dart';
 import '../services/storage_service.dart';
-import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 // Legal text versioning: bump this when the Terms/Privacy text changes so users are
 // required to re-accept the updated terms.
@@ -53,8 +54,33 @@ class _TermsPageState extends State<TermsPage> {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/landing');
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar aceite: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _saving = true);
+    try {
+      final googleProvider = context.read<GoogleAuthProvider>();
+      final data = await googleProvider.signInWithGoogle();
+      if (!mounted) return;
+      if (data == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login do Google cancelado.')),
+        );
+        return;
+      }
+      await widget.storageService.write(key: _storageKey, value: '1');
+      Navigator.pushNamedAndRemoveUntil(context, '/landing', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google Sign-In indisponível no momento. Tente novamente.')),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -68,35 +94,36 @@ class _TermsPageState extends State<TermsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Termos de Uso', style: Theme.of(context).textTheme.headlineSmall),
+          Text('Termos de Uso', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.black87)),
           const SizedBox(height: 12),
           const Text(
-                    'ESTE DOCUMENTO CONSTITUI OS TERMOS DE USO DO APLICATIVO LA BOMBA ("Aplicativo").\n\n'
-                    '1. Aceitação dos Termos: Ao utilizar o Aplicativo, você declara que leu, compreendeu e concorda em cumprir estes Termos de Uso e nossa Política de Privacidade.\n\n'
-                    '2. Serviço: O Aplicativo fornece uma plataforma para postagem, compartilhamento e interação com conteúdo gerado por usuários. O serviço pode incluir funcionalidades de feed, mensagens, curtidas, reações e moderação.\n\n'
-                    '3. Conteúdo do Usuário: Você é o único responsável pelo conteúdo que publica. Ao enviar conteúdo, você concede ao Aplicativo uma licença não exclusiva, transferível e sublicenciável para usar, reproduzir e distribuir esse conteúdo conforme necessário para operar o serviço.\n\n'
-                    '4. Conduta e Moderação: Conteúdos que infrinjam direitos autorais, promovam ódio, violência ou desrespeitem a legislação serão removidos. Moderadores e administradores podem banir ou suspender contas que violem estas regras.\n\n'
-                    '5. Limitação de Responsabilidade: O Aplicativo é fornecido “no estado em que se encontra”. Não somos responsáveis por perdas indiretas, lucros cessantes ou danos decorrentes do uso do serviço até o limite legal aplicável.\n\n'
-                    '6. Alterações: Podemos atualizar estes Termos; se houver mudanças significativas, exigiremos nova aceitação através desta mesma interface.\n\n'
-                    '7. Lei Aplicável: Estes Termos são regidos pela legislação aplicável no país do operador do serviço, sujeito aos limites do ordenamento jurídico.\n\n'
-                    'Este é um resumo jurídico detalhado e não substitui aconselhamento jurídico profissional. Para a versão definitiva, consulte o departamento jurídico.',
-                    style: TextStyle(fontSize: 13),
-                  ),
+            'ESTE DOCUMENTO CONSTITUI OS TERMOS DE USO DO APLICATIVO LA BOMBA ("Aplicativo").\n\n'
+            '1. Aceitação dos Termos: Ao utilizar o Aplicativo, você declara que leu, compreendeu e concorda em cumprir estes Termos de Uso e nossa Política de Privacidade.\n\n'
+            '2. Serviço: O Aplicativo fornece uma plataforma para postagem, compartilhamento e interação com conteúdo gerado por usuários. O serviço pode incluir funcionalidades de feed, mensagens, curtidas, reações e moderação.\n\n'
+            '3. Conteúdo do Usuário: Você é o único responsável pelo conteúdo que publica. Ao enviar conteúdo, você concede ao Aplicativo uma licença não exclusiva, transferível e sublicenciável para usar, reproduzir e distribuir esse conteúdo conforme necessário para operar o serviço.\n\n'
+            '4. Conduta e Moderação: Conteúdos que infrinjam direitos autorais, promovam ódio, violência ou desrespeitem a legislação serão removidos. Moderadores e administradores podem banir ou suspender contas que violem estas regras.\n\n'
+            '5. Limitação de Responsabilidade: O Aplicativo é fornecido “no estado em que se encontra”. Não somos responsáveis por perdas indiretas, lucros cessantes ou danos decorrentes do uso do serviço até o limite legal aplicável.\n\n'
+            '6. Alterações: Podemos atualizar estes Termos; se houver mudanças significativas, exigiremos nova aceitação através desta mesma interface.\n\n'
+            '7. Lei Aplicável: Estes Termos são regidos pela legislação aplicável no país do operador do serviço, sujeito aos limites do ordenamento jurídico.\n\n'
+            'Este é um resumo jurídico detalhado e não substitui aconselhamento jurídico profissional. Para a versão definitiva, consulte o departamento jurídico.',
+            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.55),
+          ),
           const SizedBox(height: 18),
-          Text('Política de Privacidade', style: Theme.of(context).textTheme.headlineSmall),
+          Text('Política de Privacidade', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.black87)),
           const SizedBox(height: 12),
           const Text(
-                    'POLÍTICA DE PRIVACIDADE: Nós coletamos, processamos e armazenamos informações pessoais estritamente para permitir funcionalidades essenciais do Aplicativo, incluindo criação de conta, publicação de conteúdo, e personalização do serviço.\n\n'
-                    'Finalidades: As informações podem ser usadas para autenticação, moderação de conteúdo, entrega de notificações e análises agregadas para melhoria do servico.\n\n'
-                    'Compartilhamento: Não vendemos dados de usuários. Podemos compartilhar informações com provedores de infraestrutura, parceiros de pagamento ou quando exigido por lei.\n\n'
-                    'Segurança: Implementamos medidas razoáveis para proteger dados, incluindo criptografia em trânsito e armazenamento protegido. Contudo, nenhum sistema é invulnerável.\n\n'
-                    'Direitos do Usuário: Usuários têm direito de acessar, corrigir e solicitar exclusão de seus dados nos termos da legislação aplicável.\n\n'
-                    'Contato: Para questões sobre privacidade, contate nosso responsável interno pela proteção de dados.',
-                    style: TextStyle(fontSize: 13),
-                  ),
+            'POLÍTICA DE PRIVACIDADE: Nós coletamos, processamos e armazenamos informações pessoais estritamente para permitir funcionalidades essenciais do Aplicativo, incluindo criação de conta, publicação de conteúdo, e personalização do serviço.\n\n'
+            'Finalidades: As informações podem ser usadas para autenticação, moderação de conteúdo, entrega de notificações e análises agregadas para melhoria do servico.\n\n'
+            'Compartilhamento: Não vendemos dados de usuários. Podemos compartilhar informações com provedores de infraestrutura, parceiros de pagamento ou quando exigido por lei.\n\n'
+            'Segurança: Implementamos medidas razoáveis para proteger dados, incluindo criptografia em trânsito e armazenamento protegido. Contudo, nenhum sistema é invulnerável.\n\n'
+            'Direitos do Usuário: Usuários têm direito de acessar, corrigir e solicitar exclusão de seus dados nos termos da legislação aplicável.\n\n'
+            'Contato: Para questões sobre privacidade, contate nosso responsável interno pela proteção de dados.',
+            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.55),
+          ),
           const SizedBox(height: 24),
           Row(children: [
             Checkbox(
+              activeColor: const Color(0xFF2563EB),
               value: _accepted,
               onChanged: _accepted
                   ? null
@@ -106,22 +133,49 @@ class _TermsPageState extends State<TermsPage> {
                       }
                     },
             ),
-            const Expanded(child: Text('Eu li e concordo com os Termos de Uso e a Política de Privacidade.')),
+            const Expanded(
+              child: Text(
+                'Eu li e concordo com os Termos de Uso e a Política de Privacidade.',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ),
           ]),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+              ),
               onPressed: _accepted && !_saving ? _accept : null,
-              child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator()) : const Text('Aceitar e Continuar'),
+              child: _saving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Aceitar e Continuar'),
             ),
-          )
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _saving ? null : _handleGoogleSignIn,
+              icon: const Icon(Icons.g_mobiledata_rounded),
+              label: const Text('Continuar com Google'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF0F172A),
+                minimumSize: const Size.fromHeight(48),
+                side: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
+              ),
+            ),
+          ),
         ],
       ),
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Termos e Privacidade'), actions: [UserAppBarActions()]),
+      backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text('Termos e Privacidade'), backgroundColor: Colors.white, foregroundColor: Colors.black87, elevation: 0),
       body: SafeArea(child: content),
     );
   }

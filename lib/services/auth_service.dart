@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'storage_service.dart';
 import 'storage_platform.dart';
@@ -93,55 +94,68 @@ class AuthService {
   /// in secure storage when available. Returns a map with user info or null on
   /// cancellation.
   Future<Map<String, dynamic>?> signInWithGoogle() async {
-    // Ensure clean start
-    await _googleSignIn.signOut();
+    try {
+      await _googleSignIn.signOut();
+    } catch (_) {}
 
     GoogleSignInAccount? googleUser;
     try {
       googleUser = await _googleSignIn.authenticate();
+    } on PlatformException catch (_) {
+      googleUser = null;
+    } on Exception catch (_) {
+      googleUser = null;
     } catch (_) {
+      googleUser = null;
+    }
+
+    if (googleUser == null) {
       try {
-        final Future<GoogleSignInAccount?>? lightweight =
-            _googleSignIn.attemptLightweightAuthentication();
-        googleUser = await lightweight;
-      } catch (e) {
-        // Surface a friendlier message to the UI instead of crashing the app.
-        throw Exception('Google Sign-In indisponível no momento. Tente novamente.');
+        googleUser = await _googleSignIn.attemptLightweightAuthentication();
+      } catch (_) {
+        googleUser = null;
       }
     }
 
     if (googleUser == null) return null;
 
-    final googleAuth = await googleUser.authentication;
-    final String? idToken = googleAuth.idToken;
-    const String? accessToken = null;
-
-    final firebase_auth.OAuthCredential credential =
-        firebase_auth.GoogleAuthProvider.credential(
-      accessToken: accessToken,
-      idToken: idToken,
-    );
-
-    final firebase_auth.UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
-    final firebase_auth.User? user = userCredential.user;
-
-    if (user == null) return null;
-
-    // Persist id token for ApiService or other uses
     try {
-      final token = await user.getIdToken();
-      if (token != null) {
-        await _storage.write(key: _idTokenKey, value: token);
-      }
-    } catch (_) {}
+      final googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      const String? accessToken = null;
 
-    return {
-      'uid': user.uid,
-      'displayName': user.displayName,
-      'email': user.email,
-      'photoURL': user.photoURL,
-    };
+      final firebase_auth.OAuthCredential credential =
+          firebase_auth.GoogleAuthProvider.credential(
+        accessToken: accessToken,
+        idToken: idToken,
+      );
+
+      final firebase_auth.UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      final firebase_auth.User? user = userCredential.user;
+
+      if (user == null) return null;
+
+      try {
+        final token = await user.getIdToken();
+        if (token != null) {
+          await _storage.write(key: _idTokenKey, value: token);
+        }
+      } catch (_) {}
+
+      return {
+        'uid': user.uid,
+        'displayName': user.displayName,
+        'email': user.email,
+        'photoURL': user.photoURL,
+      };
+    } on firebase_auth.FirebaseAuthException catch (_) {
+      return null;
+    } on PlatformException catch (_) {
+      return null;
+    } catch (_) {
+      throw Exception('Google Sign-In indisponível no momento. Tente novamente.');
+    }
   }
 
   /// Signs out from Firebase and Google and clears stored tokens/sessions.
