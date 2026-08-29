@@ -109,12 +109,22 @@ class AuthService {
       await setAdminSession(isAdmin);
       if (isAdmin) _masterSessionActive = true;
 
-      return {
+      final resultMap = {
         'uid': user.uid,
         'displayName': user.displayName ?? 'Usuário',
         'email': user.email,
         'photoURL': user.photoURL,
       };
+
+      // Debug-only signal: log minimal auth success info (UID and token presence)
+      // This is safe for debug: it does NOT log any credentials or tokens.
+      try {
+        debugPrint('AUTOTEST: signIn success uid=${user.uid}');
+        final token = await user.getIdToken();
+        debugPrint('AUTOTEST: idToken present=${token != null}');
+      } catch (_) {}
+
+      return resultMap;
     } on firebase_auth.FirebaseAuthException catch (e) {
       // Provide diagnostics for common auth failures and expose last error code to UI
       print('FirebaseAuth signIn failed: ${e.code} ${e.message}');
