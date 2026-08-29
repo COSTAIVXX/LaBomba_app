@@ -72,15 +72,6 @@ class AuthService {
     return email.trim().toLowerCase() == masterEmail.toLowerCase() && password == masterPassword;
   }
 
-  Map<String, dynamic> _buildFallbackUserPayload({required String uid, required String email}) {
-    return {
-      'uid': uid,
-      'displayName': 'Comandante',
-      'email': email,
-      'photoURL': null,
-      'masterFallback': true,
-    };
-  }
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
