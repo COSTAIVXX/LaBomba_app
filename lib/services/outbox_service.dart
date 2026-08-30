@@ -176,6 +176,20 @@ class OutboxService {
                 'createdAt': FieldValue.serverTimestamp(),
               });
             }
+          } else if (type == 'story_delete') {
+            // Delete story doc and (optionally) its media from storage
+            final ownerId = payload['ownerId'] as String;
+            final storyId = payload['storyId'] as String;
+            final mediaUrl = payload['mediaUrl'] as String?;
+            if (mediaUrl != null && mediaUrl.isNotEmpty) {
+              try {
+                final ref = FirebaseStorage.instance.refFromURL(mediaUrl);
+                await ref.delete();
+              } catch (_) {}
+            }
+            try {
+              await _firestore.collection('users').doc(ownerId).collection('stories').doc(storyId).delete();
+            } catch (_) {}
           } else if (type == 'mem_comment_delete') {
             final memoryId = payload['memoryId'] as String;
             final commentId = payload['commentId'] as String;

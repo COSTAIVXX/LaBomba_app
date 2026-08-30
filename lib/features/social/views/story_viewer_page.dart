@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../services/reaction_service.dart';
 
@@ -267,6 +268,85 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     }
   }
 
+  Future<void> _confirmAndDeleteCurrentStory() async {
+    if (_stories.isEmpty) return;
+    final storyId = _stories[_index]['__id'] as String?;
+    if (storyId == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Excluir story'),
+        content: const Text('Tem certeza que deseja excluir este story? Esta ação não pode ser desfeita.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _deleteCurrentStory(storyId);
+    }
+  }
+
+  Future<void> _deleteCurrentStory(String storyId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      if (user.uid != widget.userId) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Você não pode excluir este story')));
+        return;
+      }
+
+      final docRef = _fs.collection('users').doc(widget.userId).collection('stories').doc(storyId);
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) return;
+      final data = docSnap.data() as Map<String, dynamic>? ?? {};
+      final mediaUrl = data['mediaUrl'] as String?;
+
+      // Attempt to delete media from Firebase Storage if present
+      if (mediaUrl != null && mediaUrl.isNotEmpty) {
+        try {
+          final ref = FirebaseStorage.instance.refFromURL(mediaUrl);
+          await ref.delete();
+        } catch (e) {
+          // If storage delete fails, enqueue delete to Outbox and continue with doc deletion
+          try {
+            await OutboxService.instance.enqueue({'type': 'story_delete', 'payload': {'ownerId': widget.userId, 'storyId': storyId, 'mediaUrl': mediaUrl}});
+          } catch (_) {}
+        }
+      }
+
+      // Delete story document
+      await docRef.delete();
+
+      // Update local state immediately: remove story and navigate appropriately
+      if (!mounted) return;
+      setState(() {
+        final removedIndex = _index;
+        _stories.removeWhere((s) => s['__id'] == storyId);
+        if (_stories.isEmpty) {
+          // close viewer
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) Navigator.of(context).pop();
+          });
+          return;
+        } else {
+          final nextIndex = removedIndex < _stories.length ? removedIndex : (_stories.length - 1);
+          // start next story
+          _startForIndex(nextIndex);
+        }
+      });
+    } catch (e) {
+      // Fallback: enqueue delete operation for later
+      try {
+        await OutboxService.instance.enqueue({'type': 'story_delete', 'payload': {'ownerId': widget.userId, 'storyId': storyId}});
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A exclusão foi agendada e será processada quando possível.')));
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao excluir o story.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_stories.isEmpty) {
@@ -376,7 +456,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 ),
               ),
 
-              // Top-right: viewers button (visible to story owner)
+              // Top-right: viewers button (visible to story owner) and delete
               Positioned(
                 top: 8,
                 right: 8,
@@ -389,13 +469,24 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                   builder: (context, snap) {
                     final allowed = snap.data == true;
                     if (!allowed) return const SizedBox.shrink();
-                    return IconButton(
-                      icon: const Icon(Icons.remove_red_eye, color: Colors.white),
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => StoryViewersPage(
-                                ownerId: widget.userId, storyId: _stories[_index]['__id'] as String, firestore: _fs)));
-                      },
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove_red_eye, color: Colors.white),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => StoryViewersPage(
+                                    ownerId: widget.userId, storyId: _stories[_index]['__id'] as String, firestore: _fs)));
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_forever, color: Colors.white),
+                          onPressed: () async {
+                            await _confirmAndDeleteCurrentStory();
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
