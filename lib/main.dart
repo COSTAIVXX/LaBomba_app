@@ -58,6 +58,8 @@ import 'views/street_mode_settings_page.dart';
 import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/admin/god_mode_dashboard.dart';
+import 'features/admin/god_mode_secure_page.dart';
+import 'features/admin/admin_guard.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
 import 'views/splash_page.dart';
