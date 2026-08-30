@@ -1,107 +1,163 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuth() { return request.auth != null; }
+
+    // Basic helpers
+    function isAuth() {
+      return request.auth != null;
+    }
+
     function isAdmin() {
       return isAuth() &&
         exists(/databases/$(database)/documents/admin_profiles/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/admin_profiles/$(request.auth.uid)).data.isAdmin == true;
     }
+
     function isMaster() {
       return isAuth() && request.auth.token.email == 'gustavodionisio15x@gmail.com';
     }
+
     function isSuperAdmin() { return isAdmin() || isMaster(); }
 
-    // Users
-    match /users/{userId} {
-      allow read: if isAuth();
-      allow create: if isAuth() && request.auth.uid == userId;
-      allow update: if isAuth() && request.auth.uid == userId
-        && ( !("vip" in request.resource.data) || request.resource.data.vip == resource.data.vip )
-        && ( !("stats" in request.resource.data) || request.resource.data.stats == resource.data.stats );
-      allow delete: if isAuth() && request.auth.uid == userId;
-
-      match /notifications/{noteId} {
-        allow read: if isAuth() && request.auth.uid == userId;
-        allow create: if request.auth.token.admin == true;
-        allow update, delete: if request.auth.token.admin == true || (isAuth() && request.auth.uid == userId);
-      }
+    // Server/service accounts or functions should set a custom claim 'isServer'
+    function isServer() {
+      return isAuth() && (request.auth.token.isServer == true || isSuperAdmin());
     }
 
-    // Posts
-    match /posts/{postId} {
-      allow read: if isAuth();
-      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true)
-        && ( !("vip" in request.resource.data) || request.resource.data.vip == resource.data.vip )
-        && ( !("stats" in request.resource.data) || request.resource.data.stats == resource.data.stats );
-      allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+    // Chat membership helper
+    function isChatMember(chatId) {
+      return exists(/databases/$(database)/documents/chats/$(chatId))
+        && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+    }
 
-      match /reactions/{reactionId} {
-        allow read: if isAuth();
-        allow create: if isAuth();
-        allow delete: if isAuth() && (request.auth.uid == resource.data.userId || request.auth.token.admin == true);
+    // Restrict which profile fields clients may change
+    function allowedProfileKeys(newData) {
+      // allow only these public/profile fields to be changed by the user
+      return newData.keys().hasOnly([
+        'displayName', 'bio', 'avatarUrl', 'settings', 'updatedAt', 'language'
+      ]);
+    }
+
+    // --- Users ---
+    match /users/{userId} {
+      // read: authenticated can read basic profiles; consider restricting sensitive fields via subfields
+      allow read: if isAuth();
+
+      // create only for the authenticated user during signup flows
+      allow create: if isAuth() && request.auth.uid == userId;
+
+      // update: only the owner and only allowed keys
+      allow update: if isAuth() && request.auth.uid == userId
+                     && allowedProfileKeys(request.resource.data);
+
+      // delete: not allowed from client (require admin/backend)
+      allow delete: if isServer();
+
+      // Notifications: only server/administrator can create notifications for a user.
+      match /notifications/{noteId} {
+        allow read: if isAuth() && request.auth.uid == userId;
+        allow create: if isServer();
+        allow update: if isAuth() && request.auth.uid == userId; // user can mark read/archived
+        allow delete: if isServer() || (isAuth() && request.auth.uid == userId);
       }
 
-      match /comments/{commentId} {
-        allow read: if isAuth();
-        allow create: if isAuth();
-        allow update: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
-        allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+      // Stories: user-owned stories, ephemeral (24h)
+      match /stories/{storyId} {
+        allow create: if isAuth() && request.auth.uid == userId
+                      && request.resource.data.userId == userId
+                      && request.resource.data.createdAt == request.time;
+        allow update, delete: if isAuth() && request.auth.uid == userId;
 
+        // reading: only if not expired and respecting private accounts (owner or follower or public)
+        allow read: if resource.data.createdAt >= request.time - duration.value(24, 'h')
+                    && (
+                      // if private account, only followers or owner can read
+                      (!('private' in get(/databases/$(database)/documents/users/$(userId)).data) || !get(/databases/$(database)/documents/users/$(userId)).data.private)
+                      || request.auth.uid == userId
+                      || (isAuth() && (request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.followers))
+                    );
+
+        // reactions under story: ensure user writes only their own reaction doc
         match /reactions/{reactionId} {
+          allow create: if isAuth() && request.auth.uid == request.resource.data.userId
+                        && reactionId.startsWith(request.auth.uid);
+          allow delete: if isAuth() && request.auth.uid == resource.data.userId;
           allow read: if isAuth();
-          allow create: if isAuth();
-          allow delete: if isAuth() && (request.auth.uid == resource.data.userId || request.auth.token.admin == true);
+        }
+
+        // viewers: records of who viewed — ensure only the viewer can write their own view
+        match /views/{viewerId} {
+          allow create: if isAuth() && request.auth.uid == viewerId && request.resource.data.viewerId == viewerId;
+          allow read: if isAuth() && (request.auth.uid == userId || request.auth.uid == viewerId || (request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.followers));
+          allow delete: if isServer() || (isAuth() && request.auth.uid == userId);
         }
       }
     }
 
-    // Chats
-    match /chats/{chatId} {
+    // --- Posts ---
+    match /posts/{postId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow delete: if request.auth.token.admin == true;
+      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+      allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
 
-      match /messages/{messageId} {
+      // Reactions as subcollection: ensure user only creates reaction docs for themselves
+      match /reactions/{reactionId} {
+        allow create: if isAuth() && request.auth.uid == request.resource.data.userId && reactionId.startsWith(request.auth.uid);
+        allow delete: if isAuth() && request.auth.uid == resource.data.userId;
         allow read: if isAuth();
-        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
-        allow update: if isAuth() && (
-          request.auth.uid == resource.data.senderId
-          || (
-            (request.resource.data.keys().hasOnly(['isRead','deliveredAt'])
-             && request.auth.uid != resource.data.senderId)
-          )
-        );
-        allow delete: if request.auth.token.admin == true;
+      }
+
+      // Comments as subcollection (recommended over arrays)
+      match /comments/{commentId} {
+        allow create: if isAuth() && request.auth.uid == request.resource.data.authorId;
+        allow update: if isAuth() && request.auth.uid == resource.data.authorId;
+        allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || request.auth.token.admin == true);
+
+        match /reactions/{reactionId} {
+          allow create: if isAuth() && request.auth.uid == request.resource.data.userId && reactionId.startsWith(request.auth.uid);
+          allow delete: if isAuth() && request.auth.uid == resource.data.userId;
+          allow read: if isAuth();
+        }
       }
     }
 
-    // Groups
+    // --- Chats ---
+    match /chats/{chatId} {
+      // chat document must contain members array
+      allow read: if isAuth() && (request.auth.uid in resource.data.members);
+      allow create: if isAuth();
+      allow delete: if isServer() || request.auth.token.admin == true;
+
+      match /messages/{messageId} {
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+        allow read: if isAuth() && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+        allow update: if isAuth() && (
+          request.auth.uid == resource.data.senderId
+          || (request.resource.data.keys().hasOnly(['isRead','deliveredAt']) && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members))
+        );
+        allow delete: if isServer() || request.auth.token.admin == true;
+      }
+    }
+
+    // --- Groups / Broadcasts / Admin-only collections ---
     match /groups/{groupId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update: if request.auth.token.admin == true || request.auth.uid in resource.data.admins;
-      allow delete: if request.auth.token.admin == true || request.auth.uid in resource.data.admins;
+      allow update, delete: if request.auth.token.admin == true || (isAuth() && request.auth.uid in resource.data.admins);
 
       match /messages/{messageId} {
-        allow read: if isAuth();
-        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
-        allow update: if isAuth() && (
-          request.auth.uid == resource.data.senderId
-          || (request.resource.data.keys().hasOnly(['isRead','deliveredAt']) && request.auth.uid != resource.data.senderId)
-        );
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members);
+        allow read: if isAuth() && (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members);
       }
     }
 
-    // Broadcasts
     match /broadcasts/{b} {
       allow read: if isAuth();
-      allow create: if request.auth.token.admin == true;
-      allow update, delete: if request.auth.token.admin == true;
+      allow create, update, delete: if request.auth.token.admin == true || isServer();
     }
 
-    // Default: deny
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }
