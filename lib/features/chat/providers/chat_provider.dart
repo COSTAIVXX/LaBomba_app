@@ -42,7 +42,12 @@ class ChatProvider with ChangeNotifier {
     connect();
   }
 
-  Future<void> sendMessage({required String senderId, required String senderName, String? text, String? stickerUrl}) async {
+  Future<void> sendMessage(
+      {required String senderId,
+      required String senderName,
+      String? text,
+      String? stickerUrl,
+      Map<String, dynamic>? meta}) async {
     // Rate limiting per user per room (client-side guard)
     try {
       final key = 'chat_last_sent_${_service.roomId}_$senderId';
@@ -51,7 +56,8 @@ class ChatProvider with ChangeNotifier {
         final last = DateTime.fromMillisecondsSinceEpoch(int.parse(raw));
         final diff = DateTime.now().difference(last);
         if (diff < _chatCooldown) {
-          throw StateError('Você está enviando mensagens muito rapidamente. Aguarde ${_chatCooldown.inSeconds - diff.inSeconds} segundos.');
+          throw StateError(
+              'Você está enviando mensagens muito rapidamente. Aguarde ${_chatCooldown.inSeconds - diff.inSeconds} segundos.');
         }
       }
     } catch (e) {

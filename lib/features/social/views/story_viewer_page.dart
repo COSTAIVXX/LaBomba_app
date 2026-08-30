@@ -399,11 +399,40 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                                       border: InputBorder.none,
                                       hintText: 'Responder',
                                       hintStyle: TextStyle(color: Colors.white54)),
-                                  onSubmitted: (text) {
-                                    // reply integration can be wired to ChatService
+                                  onSubmitted: (text) async {
                                     if (text.trim().isEmpty) return;
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(content: Text('Resposta enviada (placeholder)')));
+                                    final user = FirebaseAuth.instance.currentUser;
+                                    if (user == null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Faça login para enviar resposta')));
+                                      return;
+                                    }
+                                    final ownerId = widget.userId;
+                                    final storyId = _stories[_index]['__id'] as String;
+                                    final mediaUrl = _stories[_index]['mediaUrl'] as String?;
+                                    final displayName = user.displayName ?? 'Você';
+                                    // create or reuse a private chat room between current user and story owner
+                                    final roomId = ChatService.privateRoomId(user.uid, ownerId);
+                                    final chat = ChatService(roomId: roomId);
+                                    try {
+                                      await chat.sendMessage(
+                                        senderId: user.uid,
+                                        senderName: displayName,
+                                        text: text.trim(),
+                                        meta: {
+                                          'type': 'story_reply',
+                                          'recipientId': ownerId,
+                                          'storyOwnerId': ownerId,
+                                          'storyId': storyId,
+                                          if (mediaUrl != null) 'storyMediaUrl': mediaUrl,
+                                        },
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(content: Text('Resposta enviada')));
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(content: Text('Erro ao enviar resposta')));
+                                    }
                                   },
                                 ),
                               ),

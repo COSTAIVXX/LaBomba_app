@@ -7,6 +7,7 @@ class ChatMessage {
   final String? text;
   final String? stickerUrl;
   final DateTime createdAt;
+  final Map<String, dynamic>? meta;
 
   ChatMessage({
     required this.id,
@@ -14,6 +15,7 @@ class ChatMessage {
     required this.senderName,
     this.text,
     this.stickerUrl,
+    this.meta,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -23,6 +25,7 @@ class ChatMessage {
         'text': text,
         'stickerUrl': stickerUrl,
         'createdAt': createdAt.toUtc().toIso8601String(),
+        if (meta != null) 'meta': meta,
       };
 
   factory ChatMessage.fromDoc(DocumentSnapshot doc) {
@@ -39,6 +42,7 @@ class ChatMessage {
       senderName: data['senderName'] as String? ?? 'Anon',
       text: data['text'] as String?,
       stickerUrl: data['stickerUrl'] as String?,
+      meta: (data['meta'] as Map<String, dynamic>?) ?? (data['context'] as Map<String, dynamic>?),
       createdAt: created,
     );
   }
