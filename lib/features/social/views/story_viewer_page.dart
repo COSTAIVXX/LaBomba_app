@@ -18,7 +18,7 @@ class StoryViewerPage extends StatefulWidget {
   State<StoryViewerPage> createState() => _StoryViewerPageState();
 }
 
-class _StoryViewerPageState extends State<StoryViewerPage> {
+class _StoryViewerPageState extends State<StoryViewerPage> with WidgetsBindingObserver {
   FirebaseFirestore get _fs => widget.firestore ?? FirebaseFirestore.instance;
   int _index = 0;
   List<Map<String, dynamic>> _stories = []; // each story will include '__id' key for doc id
@@ -28,6 +28,10 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   double _progress = 0.0;
   Duration _currentDuration = const Duration(seconds: 5);
   DateTime? _startedAt;
+  // focus node for reply TextField — pausing while typing
+  final FocusNode _replyFocusNode = FocusNode();
+  // track whether pause was initiated by user (long-press)
+  bool _userPaused = false;
 
   final PageController _pageController = PageController();
 
@@ -42,11 +46,23 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _replyFocusNode.addListener(() {
+      if (_replyFocusNode.hasFocus) {
+        // pause when user focuses reply input
+        _pause();
+      } else {
+        if (!_userPaused) _resume();
+      }
+    });
     _loadStories();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _replyFocusNode.removeListener(() {});
+    _replyFocusNode.dispose();
     _reactionsSub?.cancel();
     _disposeVideo();
     _progressTimer?.cancel();
@@ -97,10 +113,14 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     final dur = ctrl.value.duration;
     final pos = ctrl.value.position;
     if (dur.inMilliseconds > 0) {
-      setState(() {
-        _currentDuration = dur;
-        _progress = pos.inMilliseconds / dur.inMilliseconds;
-      });
+      // avoid setState storms by only updating when significant progress changed (e.g., > 50ms)
+      final newProgress = pos.inMilliseconds / dur.inMilliseconds;
+      if ((newProgress - _progress).abs() > 0.001) {
+        setState(() {
+          _currentDuration = dur;
+          _progress = newProgress;
+        });
+      }
       if (pos >= dur) {
         _next();
       }
@@ -122,11 +142,12 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
     // start listening to reactions (like counts)
     _reactionsSub?.cancel();
-    _reactionsSub = _reactionService
-        .reactionsCountStreamForStory(widget.userId, story['__id'] as String)
-        .listen((counts) => setState(() {
-              _likeCount = counts[_likeEmoji] ?? 0;
-            }));
+    _reactionsSub =
+        _reactionService.reactionsCountStreamForStory(widget.userId, story['__id'] as String).listen((counts) => mounted
+            ? setState(() {
+                _likeCount = counts[_likeEmoji] ?? 0;
+              })
+            : null);
 
     // check if current user already liked this story
     try {
@@ -196,14 +217,16 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     }
   }
 
-  void _pause() {
+  void _pause({bool userInitiated = false}) {
+    if (userInitiated) _userPaused = true;
     _progressTimer?.cancel();
     try {
       _videoController?.pause();
     } catch (_) {}
   }
 
-  void _resume() {
+  void _resume({bool userInitiated = false}) {
+    if (userInitiated) _userPaused = false;
     // resume image timer continuing from current progress
     try {
       if (_videoController != null && _videoController!.value.isInitialized) {
@@ -279,7 +302,9 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
         content: const Text('Tem certeza que deseja excluir este story? Esta ação não pode ser desfeita.'),
         actions: [
           TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.of(c).pop(true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
+          TextButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Excluir', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -311,7 +336,10 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
         } catch (e) {
           // If storage delete fails, enqueue delete to Outbox and continue with doc deletion
           try {
-            await OutboxService.instance.enqueue({'type': 'story_delete', 'payload': {'ownerId': widget.userId, 'storyId': storyId, 'mediaUrl': mediaUrl}});
+            await OutboxService.instance.enqueue({
+              'type': 'story_delete',
+              'payload': {'ownerId': widget.userId, 'storyId': storyId, 'mediaUrl': mediaUrl}
+            });
           } catch (_) {}
         }
       }
@@ -339,8 +367,12 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     } catch (e) {
       // Fallback: enqueue delete operation for later
       try {
-        await OutboxService.instance.enqueue({'type': 'story_delete', 'payload': {'ownerId': widget.userId, 'storyId': storyId}});
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A exclusão foi agendada e será processada quando possível.')));
+        await OutboxService.instance.enqueue({
+          'type': 'story_delete',
+          'payload': {'ownerId': widget.userId, 'storyId': storyId}
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('A exclusão foi agendada e será processada quando possível.')));
       } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao excluir o story.')));
       }
@@ -359,7 +391,10 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
       body: SafeArea(
         child: GestureDetector(
           onVerticalDragUpdate: (d) {
-            if (d.delta.dy > 12) Navigator.of(context).pop();
+            if (d.delta.dy > 12) {
+              _pause();
+              Navigator.of(context).pop();
+            }
           },
           child: Stack(
             children: [
@@ -477,7 +512,9 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (_) => StoryViewersPage(
-                                    ownerId: widget.userId, storyId: _stories[_index]['__id'] as String, firestore: _fs)));
+                                    ownerId: widget.userId,
+                                    storyId: _stories[_index]['__id'] as String,
+                                    firestore: _fs)));
                           },
                         ),
                         IconButton(
@@ -500,16 +537,16 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: _prev,
-                        onLongPressStart: (_) => _pause(),
-                        onLongPressEnd: (_) => _resume(),
+                        onLongPressStart: (_) => _pause(userInitiated: true),
+                        onLongPressEnd: (_) => _resume(userInitiated: true),
                       ),
                     ),
                     Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: _next,
-                        onLongPressStart: (_) => _pause(),
-                        onLongPressEnd: (_) => _resume(),
+                        onLongPressStart: (_) => _pause(userInitiated: true),
+                        onLongPressEnd: (_) => _resume(userInitiated: true),
                       ),
                     ),
                   ],
