@@ -205,6 +205,58 @@ class _CommunityPageState extends State<CommunityPage> {
               ),
             ),
 
+            // Members grid (kept for backward compatibility and tests)
+            Flexible(
+              flex: 2,
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _firestore.collection('users').orderBy('displayName').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) return const Center(child: Text('Erro ao carregar comunidade'));
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  final docs = snapshot.data!.docs;
+                  final filtered = docs.where((d) {
+                    final data = d.data();
+                    final name = (data['displayName'] as String?) ?? '';
+                    final tags = (data['tags'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+                    if (_query.isNotEmpty && !name.toLowerCase().contains(_query.toLowerCase())) return false;
+                    if (_selectedTag != null && _selectedTag!.isNotEmpty && !tags.contains(_selectedTag)) return false;
+                    return true;
+                  }).toList();
+
+                  if (filtered.isEmpty) return const Center(child: Text('Nenhum membro encontrado.'));
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 3 / 4,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final doc = filtered[index];
+                      final d = doc.data();
+                      final displayName = (d['displayName'] as String?) ?? 'Usuário';
+                      final avatar = d['photoURL'] as String?;
+                      final presence = (d['presence'] as String?) ?? 'offline';
+                      final vip = (d['vip'] as bool?) ?? false;
+                      final userId = doc.id;
+                      final bio = (d['bio'] as String?) ?? '';
+                      return MemberCard(
+                        userId: userId,
+                        name: displayName,
+                        avatarUrl: avatar,
+                        presence: presence,
+                        vip: vip,
+                        bio: bio,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
             // Feed
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(

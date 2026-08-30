@@ -22,12 +22,10 @@ void main() {
         'presence': 'away',
         'tags': ['samba', 'dance']
       });
-      await fake.collection('users').doc('u3').set({
-        'displayName': 'Carla',
-        'photoURL': null,
-        'presence': 'offline',
-        'tags': []
-      });
+      await fake
+          .collection('users')
+          .doc('u3')
+          .set({'displayName': 'Carla', 'photoURL': null, 'presence': 'offline', 'tags': []});
     });
 
     testWidgets('shows users and filters by search and tag', (tester) async {
@@ -43,19 +41,19 @@ void main() {
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
-      // initial: at least Alice and Bruno should be present
-      expect(find.text('Alice'), findsOneWidget);
-      expect(find.text('Bruno'), findsOneWidget);
+      // initial: at least Alice and Bruno should be present (use keys to avoid brittle text matching)
+      expect(find.byKey(const Key('member_name_u1')), findsOneWidget);
+      expect(find.byKey(const Key('member_name_u2')), findsOneWidget);
 
       // search for Bruno
-      await tester.enterText(find.byType(TextField), 'Bruno');
+      await tester.enterText(find.byType(TextField).first, 'Bruno');
       await tester.pumpAndSettle();
-      expect(find.text('Alice'), findsNothing);
-      // 'Bruno' appears both in the TextField (EditableText) and as a tile; ensure at least one match
-      expect(find.text('Bruno'), findsWidgets);
+      expect(find.byKey(const Key('member_name_u1')), findsNothing);
+      // 'Bruno' appears as a member tile keyed by user id; ensure at least one match
+      expect(find.byKey(const Key('member_name_u2')), findsOneWidget);
 
       // clear search and filter by tag 'samba'
-      await tester.enterText(find.byType(TextField), '');
+      await tester.enterText(find.byType(TextField).first, '');
       await tester.pumpAndSettle();
 
       // open filter modal
@@ -69,15 +67,14 @@ void main() {
         await tester.pumpAndSettle();
 
         // expect Alice and Bruno present
-        expect(find.text('Alice'), findsOneWidget);
-        expect(find.text('Bruno'), findsOneWidget);
+        expect(find.byKey(const Key('member_name_u1')), findsOneWidget);
+        expect(find.byKey(const Key('member_name_u2')), findsOneWidget);
       }
 
       // For test stability, skip UI navigation tap (layout/scroll in tests can be brittle).
       // Verify that the community list shows expected members after filtering instead.
-      expect(find.text('Alice'), findsOneWidget);
-      expect(find.text('Bruno'), findsOneWidget);
-
+      expect(find.byKey(const Key('member_name_u1')), findsOneWidget);
+      expect(find.byKey(const Key('member_name_u2')), findsOneWidget);
     });
   });
 }
