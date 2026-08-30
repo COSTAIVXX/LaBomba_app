@@ -35,6 +35,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
   StreamSubscription<Map<String, int>>? _reactionsSub;
   bool _liked = false;
   int _likeCount = 0;
+  bool _reactionPending = false; // prevent duplicate requests
   static const String _likeEmoji = '❤️';
 
   @override
@@ -409,24 +410,40 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                               const SizedBox(width: 8),
                               IconButton(
                                 onPressed: () async {
-                                  // like toggle
+                                  // like toggle with optimistic UI and duplicate-request protection
+                                  if (_reactionPending) return;
                                   final user = FirebaseAuth.instance.currentUser;
                                   if (user == null) {
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(const SnackBar(content: Text('Faça login para curtir')));
                                     return;
                                   }
-                                  await _reactionService.toggleReactionOnStory(
-                                      ownerId: widget.userId,
-                                      storyId: _stories[_index]['__id'] as String,
-                                      userId: user.uid,
-                                      emoji: _likeEmoji);
-                                  final has = await _reactionService.userHasReactedToStory(
-                                      ownerId: widget.userId,
-                                      storyId: _stories[_index]['__id'] as String,
-                                      userId: user.uid,
-                                      emoji: _likeEmoji);
-                                  setState(() => _liked = has);
+                                  _reactionPending = true;
+                                  final prevLiked = _liked;
+                                  // optimistic update
+                                  setState(() {
+                                    _liked = !_liked;
+                                    _likeCount = _liked ? _likeCount + 1 : (_likeCount > 0 ? _likeCount - 1 : 0);
+                                  });
+
+                                  try {
+                                    await _reactionService.toggleReactionOnStory(
+                                        ownerId: widget.userId,
+                                        storyId: _stories[_index]['__id'] as String,
+                                        userId: user.uid,
+                                        emoji: _likeEmoji);
+                                    // backend change will be reflected by the reactions subscription
+                                  } catch (e) {
+                                    // revert optimistic update on error
+                                    setState(() {
+                                      _liked = prevLiked;
+                                      _likeCount = prevLiked ? _likeCount + 1 : (_likeCount > 0 ? _likeCount - 1 : 0);
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Erro ao atualizar curtida. Tente novamente.')));
+                                  } finally {
+                                    _reactionPending = false;
+                                  }
                                 },
                                 icon: Stack(
                                   alignment: Alignment.center,
