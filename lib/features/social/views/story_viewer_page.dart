@@ -376,6 +376,31 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 ),
               ),
 
+              // Top-right: viewers button (visible to story owner)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: FutureBuilder(
+                  future: FirebaseAuth.instance.currentUser?.uid == widget.userId
+                      ? Future.value(true)
+                      : FirebaseAuth.instance.currentUser
+                          ?.getIdTokenResult(true)
+                          .then((r) => (r.claims ?? {})['isAdmin'] == true),
+                  builder: (context, snap) {
+                    final allowed = snap.data == true;
+                    if (!allowed) return const SizedBox.shrink();
+                    return IconButton(
+                      icon: const Icon(Icons.remove_red_eye, color: Colors.white),
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => StoryViewersPage(
+                                ownerId: widget.userId, storyId: _stories[_index]['__id'] as String, firestore: _fs)));
+                      },
+                    );
+                  },
+                ),
+              ),
+
               // Left/right tap areas
               Positioned.fill(
                 child: Row(
