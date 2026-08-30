@@ -234,14 +234,37 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
-      final viewerDoc = _fs.collection('users').doc(user.uid).collection('storyViews').doc('${widget.userId}_$storyId');
-      await viewerDoc.set({
+
+      // Do not record views for the story owner themselves
+      if (user.uid == widget.userId) return;
+
+      final viewerDocRef =
+          _fs.collection('users').doc(user.uid).collection('storyViews').doc('${widget.userId}_$storyId');
+
+      // Avoid unnecessary writes: check existence first to ensure one record per viewer
+      final snap = await viewerDocRef.get();
+      if (snap.exists) return;
+
+      await viewerDocRef.set({
         'ownerId': widget.userId,
         'storyId': storyId,
         'viewerId': user.uid,
         'createdAt': FieldValue.serverTimestamp(),
       });
-    } catch (_) {}
+    } catch (e) {
+      // On failure (network/permission), enqueue for retry via OutboxService
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) return;
+        final payload = {
+          'viewerId': user.uid,
+          'ownerId': widget.userId,
+          'storyId': storyId,
+          'createdAt': DateTime.now().toUtc().toIso8601String(),
+        };
+        await OutboxService.instance.enqueue({'type': 'story_view', 'payload': payload});
+      } catch (_) {}
+    }
   }
 
   @override

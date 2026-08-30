@@ -159,6 +159,23 @@ class OutboxService {
             final memoryId = payload['memoryId'] as String;
             final map = Map<String, dynamic>.from(payload['comment'] as Map<String, dynamic>);
             await _firestore.collection('memories').doc(memoryId).collection('comments').add(map);
+          } else if (type == 'story_view') {
+            // Persist a viewer-owned story view record:
+            // users/{viewerId}/storyViews/{ownerId}_{storyId}
+            final viewerId = payload['viewerId'] as String;
+            final ownerId = payload['ownerId'] as String;
+            final storyId = payload['storyId'] as String;
+            final docRef =
+                _firestore.collection('users').doc(viewerId).collection('storyViews').doc('${ownerId}_$storyId');
+            final sn = await docRef.get();
+            if (!sn.exists) {
+              await docRef.set({
+                'ownerId': ownerId,
+                'storyId': storyId,
+                'viewerId': viewerId,
+                'createdAt': FieldValue.serverTimestamp(),
+              });
+            }
           } else if (type == 'mem_comment_delete') {
             final memoryId = payload['memoryId'] as String;
             final commentId = payload['commentId'] as String;
@@ -196,9 +213,7 @@ class OutboxService {
         } catch (e) {
           // Transient failure: increment attempts and schedule next attempt with backoff
           final newAttempts = attempts + 1;
-          final backoffMs = (_baseBackoffMs * (1 << (attempts)))
-              .clamp(_baseBackoffMs, _maxBackoffMs)
-              .toInt();
+          final backoffMs = (_baseBackoffMs * (1 << (attempts))).clamp(_baseBackoffMs, _maxBackoffMs).toInt();
           final next = DateTime.now().add(Duration(milliseconds: backoffMs));
           final updated = Map<String, dynamic>.from(item)
             ..['attempts'] = newAttempts
