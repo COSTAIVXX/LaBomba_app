@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../services/reaction_service.dart';
+
 class StoryViewerPage extends StatefulWidget {
   final String userId;
   final FirebaseFirestore? firestore;
@@ -28,6 +30,13 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
   final PageController _pageController = PageController();
 
+  // Reaction / like state
+  final ReactionService _reactionService = ReactionService();
+  StreamSubscription<Map<String, int>>? _reactionsSub;
+  bool _liked = false;
+  int _likeCount = 0;
+  static const String _likeEmoji = '❤️';
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +45,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
   @override
   void dispose() {
+    _reactionsSub?.cancel();
     _disposeVideo();
     _progressTimer?.cancel();
     _pageController.dispose();
@@ -106,6 +116,28 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     // mark viewed
     _markViewed(story['__id']);
 
+    // start listening to reactions (like counts)
+    _reactionsSub?.cancel();
+    _reactionsSub = _reactionService
+        .reactionsCountStreamForStory(widget.userId, story['__id'] as String)
+        .listen((counts) => setState(() {
+              _likeCount = counts[_likeEmoji] ?? 0;
+            }));
+
+    // check if current user already liked this story
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final has = await _reactionService.userHasReactedToStory(
+            ownerId: widget.userId, storyId: story['__id'] as String, userId: currentUser.uid, emoji: _likeEmoji);
+        _liked = has;
+      } else {
+        _liked = false;
+      }
+    } catch (_) {
+      _liked = false;
+    }
+
     if (type == 'video' && mediaUrl != null) {
       try {
         _videoController = VideoPlayerController.networkUrl(Uri.parse(mediaUrl));
@@ -160,14 +192,51 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     }
   }
 
+  void _pause() {
+    _progressTimer?.cancel();
+    try {
+      _videoController?.pause();
+    } catch (_) {}
+  }
+
+  void _resume() {
+    // resume image timer continuing from current progress
+    try {
+      if (_videoController != null && _videoController!.value.isInitialized) {
+        _videoController!.play();
+      } else if (_currentDuration.inMilliseconds > 0) {
+        final elapsed = (_progress * _currentDuration.inMilliseconds).round();
+        _startedAt = DateTime.now().subtract(Duration(milliseconds: elapsed));
+        _progressTimer?.cancel();
+        const tickMs = 50;
+        _progressTimer = Timer.periodic(const Duration(milliseconds: tickMs), (t) {
+          if (!mounted) return;
+          final elapsed = DateTime.now().difference(_startedAt!).inMilliseconds;
+          final total = _currentDuration.inMilliseconds;
+          setState(() => _progress = (elapsed / total).clamp(0.0, 1.0));
+          if (elapsed >= total) {
+            t.cancel();
+            _next();
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
   Future<void> _markViewed(String? storyId) async {
+    // Record the view in a document owned by the viewer to comply with
+    // firestore.rules (users/{userId} may only be updated by that user).
+    // We write to: users/{viewerUid}/storyViews/{ownerId}_{storyId}
     if (storyId == null) return;
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
-      final docRef = _fs.collection('users').doc(widget.userId).collection('stories').doc(storyId);
-      await docRef.update({
-        'viewedBy': FieldValue.arrayUnion([user.uid])
+      final viewerDoc = _fs.collection('users').doc(user.uid).collection('storyViews').doc('${widget.userId}_$storyId');
+      await viewerDoc.set({
+        'ownerId': widget.userId,
+        'storyId': storyId,
+        'viewerId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (_) {}
   }
@@ -289,15 +358,100 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: _prev,
+                        onLongPressStart: (_) => _pause(),
+                        onLongPressEnd: (_) => _resume(),
                       ),
                     ),
                     Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onTap: _next,
+                        onLongPressStart: (_) => _pause(),
+                        onLongPressEnd: (_) => _resume(),
                       ),
                     ),
                   ],
+                ),
+              ),
+
+              // Interaction bar (reply + like)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 12,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(24)),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Responder',
+                                      hintStyle: TextStyle(color: Colors.white54)),
+                                  onSubmitted: (text) {
+                                    // reply integration can be wired to ChatService
+                                    if (text.trim().isEmpty) return;
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(content: Text('Resposta enviada (placeholder)')));
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () async {
+                                  // like toggle
+                                  final user = FirebaseAuth.instance.currentUser;
+                                  if (user == null) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(content: Text('Faça login para curtir')));
+                                    return;
+                                  }
+                                  await _reactionService.toggleReactionOnStory(
+                                      ownerId: widget.userId,
+                                      storyId: _stories[_index]['__id'] as String,
+                                      userId: user.uid,
+                                      emoji: _likeEmoji);
+                                  final has = await _reactionService.userHasReactedToStory(
+                                      ownerId: widget.userId,
+                                      storyId: _stories[_index]['__id'] as String,
+                                      userId: user.uid,
+                                      emoji: _likeEmoji);
+                                  setState(() => _liked = has);
+                                },
+                                icon: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Icon(_liked ? Icons.favorite : Icons.favorite_border,
+                                        color: _liked ? Colors.pinkAccent : Colors.white),
+                                    if (_likeCount > 0)
+                                      Positioned(
+                                        right: -28,
+                                        top: -6,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                              color: Colors.black45, borderRadius: BorderRadius.circular(12)),
+                                          child: Text('$_likeCount',
+                                              style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

@@ -58,8 +58,6 @@ import 'views/street_mode_settings_page.dart';
 import 'views/about_and_terms_page.dart';
 import 'views/admin/admin_moderation_page.dart';
 import 'views/admin/god_mode_dashboard.dart';
-import 'features/admin/god_mode_secure_page.dart';
-import 'features/admin/admin_guard.dart';
 import 'views/badge_generator_page.dart';
 import 'views/foliao_directory_page.dart';
 import 'views/splash_page.dart';
@@ -132,7 +130,7 @@ void main() {
           await ObservabilityService.reportError(e, s, reason: 'Main.remoteConfigInit');
         } catch (_) {}
       }
-   
+
       await ObservabilityService.logEvent('observability_init_success');
     } catch (e, s) {
       debugPrint('Observability init failed: $e');
@@ -160,7 +158,6 @@ void main() {
     await ObservabilityService.logEvent('client_repository_created');
 
     runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
-
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
@@ -169,7 +166,6 @@ void main() {
     } catch (_) {}
   });
 }
-
 
 class LaBombaApp extends StatefulWidget {
   // Recebe o repositório criado lá no main()
@@ -242,7 +238,10 @@ class _LaBombaAppState extends State<LaBombaApp> {
       ],
       child: Consumer<ThemeProvider>(builder: (context, themeProv, _) {
         // Trigger debug auto sign-in once after providers are ready (only non-release)
-        if (!_autoSignAttempted && !kReleaseMode && AuthService.masterEmail.isNotEmpty && AuthService.masterPassword.isNotEmpty) {
+        if (!_autoSignAttempted &&
+            !kReleaseMode &&
+            AuthService.masterEmail.isNotEmpty &&
+            AuthService.masterPassword.isNotEmpty) {
           _autoSignAttempted = true;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             try {
@@ -276,8 +275,7 @@ class _LaBombaAppState extends State<LaBombaApp> {
           ],
           initialRoute: '/splash',
           routes: {
-            '/splash': (context) =>
-                SplashPage(storageService: storageService),
+            '/splash': (context) => SplashPage(storageService: storageService),
             '/': (context) => TermsGate(storageService: storageService),
             '/landing': (context) => const LandingPage(),
             '/dashboard': (context) => const UserDashboardPage(),
@@ -293,10 +291,9 @@ class _LaBombaAppState extends State<LaBombaApp> {
                 ),
             '/chat': (context) => MemberAccessGate(
                   child: ChatPage(
-                  privateUserId:
-                      ModalRoute.of(context)?.settings.arguments as String?,
+                    privateUserId: ModalRoute.of(context)?.settings.arguments as String?,
+                  ),
                 ),
-            ),
             '/foliaos': (context) => const MemberAccessGate(
                   child: FoliaoDirectoryPage(),
                 ),
@@ -319,8 +316,7 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/notifications': (context) => const MemberAccessGate(
                   child: NotificationsPage(),
                 ),
-            '/onboarding': (context) =>
-                OnboardingPage(storageService: storageService),
+            '/onboarding': (context) => OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
             '/admin/god-mode': (context) {
               if (!context.watch<admin_provider.AdminAuthProvider>().isAuthenticated) {
@@ -343,18 +339,21 @@ class _LaBombaAppState extends State<LaBombaApp> {
               final uri = Uri.parse(name);
               if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'profile') {
                 if (uri.pathSegments.length == 1) {
-                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage()));
+                  return MaterialPageRoute(
+                      builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage()));
                 }
                 if (uri.pathSegments.length >= 2) {
                   final userId = uri.pathSegments[1];
-                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage(userId: userId)));
+                  return MaterialPageRoute(
+                      builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage(userId: userId)));
                 }
               }
               // Support /group/{groupId}
               if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'group') {
                 if (uri.pathSegments.length >= 2) {
                   final groupId = uri.pathSegments[1];
-                  return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: GroupChannelPage(groupId: groupId)));
+                  return MaterialPageRoute(
+                      builder: (ctx) => MemberAccessGate(child: GroupChannelPage(groupId: groupId)));
                 }
                 return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: GroupChannelPage()));
               }
