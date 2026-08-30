@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
+import '../../services/media_service.dart';
+import '../../services/storage_upload_service.dart';
 import './user_profile_service.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -55,6 +60,42 @@ class _UserProfilePageState extends State<UserProfilePage> {
     super.dispose();
   }
 
+  Future<void> _pickAndUploadAvatar() async {
+    if (_uid == null) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 2400, imageQuality: 90);
+    if (picked == null) return;
+
+    setState(() => _loading = true);
+    try {
+      final file = File(picked.path);
+      // compress
+      final compressed = await MediaService().compressImageFile(file, maxWidth: 1200, quality: 80);
+      final thumb = await MediaService().createThumbnail(file, maxWidth: 300, quality: 60);
+
+      // upload
+      final storage = StorageUploadService();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final avatarPath = storage.userAvatarPath(_uid!);
+      final avatarUrl = await storage.uploadFile(avatarPath, compressed);
+
+      // optionally upload thumbnail
+      final thumbPath = 'users/${_uid}/thumb_avatar_$timestamp.jpg';
+      await storage.uploadFile(thumbPath, thumb);
+
+      // update profile
+      final updated = _profile!.copyWith(avatarUrl: avatarUrl);
+      await _service.updateProfile(updated);
+      // ensure local reload
+      await _loadProfile(_uid!);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avatar atualizado')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar avatar')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   Future<void> _showEditDialog() async {
     if (_profile == null) return;
     _editNameController.text = _profile!.displayName;
@@ -66,15 +107,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _editNameController, decoration: const InputDecoration(labelText: 'Nome'), maxLength: 60),
-            TextField(controller: _editBioController, decoration: const InputDecoration(labelText: 'Bio'), maxLength: 1000, maxLines: 4),
+            TextField(
+                controller: _editNameController, decoration: const InputDecoration(labelText: 'Nome'), maxLength: 60),
+            TextField(
+                controller: _editBioController,
+                decoration: const InputDecoration(labelText: 'Bio'),
+                maxLength: 1000,
+                maxLines: 4),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: const Text('Cancelar')),
           FilledButton(
             onPressed: () {
-              final newProfile = _profile!.copyWith(displayName: _editNameController.text.trim(), bio: _editBioController.text.trim());
+              final newProfile =
+                  _profile!.copyWith(displayName: _editNameController.text.trim(), bio: _editBioController.text.trim());
               Navigator.of(ctx).pop(newProfile);
             },
             child: const Text('Salvar'),
@@ -90,7 +137,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         // reload locally
         await _loadProfile(updated.id);
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao salvar perfil')));
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao salvar perfil')));
       } finally {
         if (mounted) setState(() => _loading = false);
       }
@@ -110,7 +158,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircleAvatar(radius: 48, backgroundImage: _profile!.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null, child: _profile!.avatarUrl == null ? const Icon(Icons.person, size: 48) : null),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircleAvatar(
+                              radius: 48,
+                              backgroundImage: _profile!.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null,
+                              child: _profile!.avatarUrl == null ? const Icon(Icons.person, size: 48) : null),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: IconButton(
+                              tooltip: 'Alterar avatar',
+                              icon: const Icon(Icons.camera_alt, size: 20),
+                              onPressed: _pickAndUploadAvatar,
+                            ),
+                          )
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       Text(_profile!.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
