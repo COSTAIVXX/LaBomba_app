@@ -63,10 +63,12 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
 
   Future<void> _loadStories() async {
     try {
+      final threshold = DateTime.now().toUtc().subtract(const Duration(hours: 24));
       final snap = await _fs
           .collection('users')
           .doc(widget.userId)
           .collection('stories')
+          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
           .orderBy('createdAt', descending: false)
           .get();
       setState(() {

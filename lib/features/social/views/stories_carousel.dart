@@ -11,23 +11,48 @@ class StoriesCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final threshold = DateTime.now().toUtc().subtract(const Duration(hours: 24));
     return SizedBox(
       height: 110,
       child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _fs.collection('users').orderBy('displayName').limit(20).snapshots(),
+        // Query active stories from all users in the last 24 hours using collectionGroup
+        stream: _fs
+            .collectionGroup('stories')
+            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
         builder: (context, snap) {
           if (!snap.hasData) return const Center(child: SizedBox(height: 60));
           final docs = snap.data!.docs;
+
+          // Build a map of ownerId -> latest story doc to show one avatar per owner
+          final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> latestByOwner = {};
+          for (final d in docs) {
+            // ownerId is the parent of the stories collection: /users/{ownerId}/stories/{storyId}
+            final parent = d.reference.parent.parent;
+            if (parent == null) continue;
+            final ownerId = parent.id;
+            if (!latestByOwner.containsKey(ownerId)) {
+              latestByOwner[ownerId] = d;
+            }
+          }
+
+          final owners = latestByOwner.entries.toList(growable: false);
+
+          if (owners.isEmpty) return const Center(child: SizedBox(height: 60));
+
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
-              final d = docs[index];
-              final name = (d.data()['displayName'] as String?) ?? 'Usuário';
-              final avatar = d.data()['photoURL'] as String?;
-              final userId = d.id;
+              final entry = owners[index];
+              final ownerId = entry.key;
+              final data = entry.value.data();
+              final name = (data['authorName'] as String?) ?? (data['displayName'] as String?) ?? 'Usuário';
+              final avatar = (data['authorPhoto'] as String?) ?? (data['photoURL'] as String?);
               return GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => StoryViewerPage(userId: userId, firestore: _fs))),
+                onTap: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => StoryViewerPage(userId: ownerId, firestore: _fs))),
                 child: Column(
                   children: [
                     Container(
@@ -48,13 +73,15 @@ class StoriesCarousel extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    SizedBox(width: 72, child: Text(name, overflow: TextOverflow.ellipsis, maxLines: 1, textAlign: TextAlign.center)),
+                    SizedBox(
+                        width: 72,
+                        child: Text(name, overflow: TextOverflow.ellipsis, maxLines: 1, textAlign: TextAlign.center)),
                   ],
                 ),
               );
             },
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemCount: docs.length,
+            itemCount: owners.length,
           );
         },
       ),
