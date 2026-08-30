@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +11,8 @@ import '../../services/auth_service.dart';
 import '../../services/media_service.dart';
 import '../../services/storage_upload_service.dart';
 import './user_profile_service.dart';
+import '../../services/outbox_service.dart';
+import '../../features/chat/views/chat_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String? userId;
@@ -27,6 +31,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final _editNameController = TextEditingController();
   final _editBioController = TextEditingController();
 
+  // social state
+  bool _isFollowing = false;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _currentUserSub;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +47,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
       _service.userProfileStream(_uid!).listen((p) {
         if (p != null) setState(() => _profile = p);
       });
+
+      // listen to current user's doc to determine follow state
+      final currentUid = Provider.of<AuthService>(context, listen: false).currentUser?.uid;
+      if (currentUid != null) {
+        _currentUserSub = FirebaseFirestore.instance.collection('users').doc(currentUid).snapshots().listen((s) {
+          final following = (s.data()?['following'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+          final isFollowing = following.contains(_uid);
+          if (mounted) setState(() => _isFollowing = isFollowing);
+        });
+      }
     } else {
       _loading = false;
     }
@@ -57,6 +75,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void dispose() {
     _editNameController.dispose();
     _editBioController.dispose();
+    _currentUserSub?.cancel();
     super.dispose();
   }
 
@@ -147,6 +166,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final current = Provider.of<AuthService>(context, listen: false).currentUser?.uid;
+    final isOwn = current != null && _profile != null && current == _profile!.id;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
       body: _loading
@@ -165,15 +187,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               radius: 48,
                               backgroundImage: _profile!.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null,
                               child: _profile!.avatarUrl == null ? const Icon(Icons.person, size: 48) : null),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: IconButton(
-                              tooltip: 'Alterar avatar',
-                              icon: const Icon(Icons.camera_alt, size: 20),
-                              onPressed: _pickAndUploadAvatar,
-                            ),
-                          )
+                          if (isOwn)
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: IconButton(
+                                tooltip: 'Alterar avatar',
+                                icon: const Icon(Icons.camera_alt, size: 20),
+                                onPressed: _pickAndUploadAvatar,
+                              ),
+                            )
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -184,13 +207,58 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _statTile('Posts', _profile!.stats['posts'] ?? 0),
-                          _statTile('Seguidores', _profile!.stats['followers'] ?? 0),
-                          _statTile('Seguindo', _profile!.stats['following'] ?? 0),
+                          GestureDetector(
+                            onTap: () => _openPosts(),
+                            child: _statTile('Posts', _profile!.stats['posts'] ?? 0),
+                          ),
+                          GestureDetector(
+                            onTap: () => _openFollowers(),
+                            child: _statTile('Seguidores', _profile!.stats['followers'] ?? 0),
+                          ),
+                          GestureDetector(
+                            onTap: () => _openFollowing(),
+                            child: _statTile('Seguindo', _profile!.stats['following'] ?? 0),
+                          ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      if (!isOwn)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _toggleFollow,
+                              child: Text(_isFollowing ? 'Seguindo' : 'Seguir'),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton(
+                              onPressed: () => Navigator.push(
+                                  context, MaterialPageRoute(builder: (_) => ChatPage(privateUserId: _profile!.id))),
+                              child: const Text('Mensagem'),
+                            ),
+                            const SizedBox(width: 8),
+                            PopupMenuButton<String>(
+                              onSelected: (s) async {
+                                if (s == 'block') await _blockUser();
+                                if (s == 'mute') await _muteUser();
+                                if (s == 'report') await _reportUser();
+                              },
+                              itemBuilder: (_) => [
+                                const PopupMenuItem(value: 'block', child: Text('Bloquear')),
+                                const PopupMenuItem(value: 'mute', child: Text('Silenciar')),
+                                const PopupMenuItem(value: 'report', child: Text('Denunciar')),
+                              ],
+                            )
+                          ],
+                        )
+                      else
+                        FilledButton(onPressed: _showEditDialog, child: const Text('Editar perfil')),
+
                       const SizedBox(height: 20),
-                      FilledButton(onPressed: _showEditDialog, child: const Text('Editar perfil')),
+
+                      // Highlights / stories
+                      const SizedBox(height: 8),
+                      _buildHighlights(),
                     ],
                   ),
                 ),
@@ -205,5 +273,147 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Text(label, style: const TextStyle(color: Colors.grey)),
       ],
     );
+  }
+
+  Widget _buildHighlights() {
+    // Show story highlights (stories with isHighlight flag) if any
+    return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(_profile!.id)
+          .collection('stories')
+          .where('isHighlight', isEqualTo: true)
+          .orderBy('createdAt', descending: true)
+          .limit(6)
+          .get(),
+      builder: (context, snap) {
+        if (!snap.hasData) return const SizedBox.shrink();
+        final docs = snap.data!.docs;
+        if (docs.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Destaques', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 88,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) {
+                  final d = docs[index].data();
+                  final media = d['mediaUrl'] as String?;
+                  return GestureDetector(
+                    onTap: () {
+                      // open story viewer at this user's stories
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (_) => StoryViewerPage(userId: _profile!.id)));
+                    },
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage: media != null ? NetworkImage(media) : null,
+                      child: media == null ? const Icon(Icons.auto_stories) : null,
+                    ),
+                  );
+                },
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemCount: docs.length,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openPosts() {
+    // Reuse memories screen if posts are stored in memories; otherwise fallback
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => Scaffold(body: Center(child: Text('Posts de ${_profile!.displayName}')))));
+  }
+
+  void _openFollowers() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FollowersListPage(targetId: _profile!.id)));
+  }
+
+  void _openFollowing() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FollowingListPage(targetId: _profile!.id)));
+  }
+
+  Future<void> _toggleFollow() async {
+    final me = Provider.of<AuthService>(context, listen: false).currentUser;
+    if (me == null || _profile == null) return;
+    final myRef = FirebaseFirestore.instance.collection('users').doc(me.uid);
+    final targetRef = FirebaseFirestore.instance.collection('users').doc(_profile!.id);
+    try {
+      if (_isFollowing) {
+        await myRef.update({
+          'following': FieldValue.arrayRemove([_profile!.id])
+        });
+        // enqueue follower removal for target (server or outbox)
+        await OutboxService.instance.enqueue({
+          'type': 'unfollow',
+          'payload': {'from': me.uid, 'to': _profile!.id}
+        });
+      } else {
+        await myRef.update({
+          'following': FieldValue.arrayUnion([_profile!.id])
+        });
+        await OutboxService.instance.enqueue({
+          'type': 'follow',
+          'payload': {'from': me.uid, 'to': _profile!.id}
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao atualizar seguimento')));
+    }
+  }
+
+  Future<void> _blockUser() async {
+    final me = Provider.of<AuthService>(context, listen: false).currentUser;
+    if (me == null || _profile == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(me.uid).update({
+        'blocked': FieldValue.arrayUnion([_profile!.id])
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário bloqueado')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao bloquear usuário')));
+    }
+  }
+
+  Future<void> _muteUser() async {
+    final me = Provider.of<AuthService>(context, listen: false).currentUser;
+    if (me == null || _profile == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(me.uid).update({
+        'muted': FieldValue.arrayUnion([_profile!.id])
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário silenciado')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao silenciar usuário')));
+    }
+  }
+
+  Future<void> _reportUser() async {
+    if (_profile == null) return;
+    final me = Provider.of<AuthService>(context, listen: false).currentUser;
+    final report = {
+      'reportedId': _profile!.id,
+      'reporterId': me?.uid,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    try {
+      await FirebaseFirestore.instance.collection('reports').add(report);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
+    } catch (e) {
+      // enqueue if offline
+      try {
+        await OutboxService.instance.enqueue({'type': 'report_user', 'payload': report});
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
+      } catch (_) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao denunciar')));
+      }
+    }
   }
 }
