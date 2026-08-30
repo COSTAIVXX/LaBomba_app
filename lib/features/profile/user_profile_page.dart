@@ -13,6 +13,7 @@ import '../../services/storage_upload_service.dart';
 import './user_profile_service.dart';
 import '../../services/outbox_service.dart';
 import '../../features/chat/views/chat_page.dart';
+import './follow_requests_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String? userId;
@@ -33,6 +34,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // social state
   bool _isFollowing = false;
+  bool _followRequested = false; // whether current user has an outstanding follow request to this profile
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _currentUserSub;
 
   @override
@@ -54,7 +56,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _currentUserSub = FirebaseFirestore.instance.collection('users').doc(currentUid).snapshots().listen((s) {
           final following = (s.data()?['following'] as List<dynamic>?)?.cast<String>() ?? <String>[];
           final isFollowing = following.contains(_uid);
-          if (mounted) setState(() => _isFollowing = isFollowing);
+          final outgoing = (s.data()?['outgoingFollowRequests'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+          final requested = outgoing.contains(_uid);
+          if (mounted)
+            setState(() {
+              _isFollowing = isFollowing;
+              _followRequested = requested;
+            });
         });
       }
     } else {
@@ -252,7 +260,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           ],
                         )
                       else
-                        FilledButton(onPressed: _showEditDialog, child: const Text('Editar perfil')),
+                        Column(
+                          children: [
+                            FilledButton(onPressed: _showEditDialog, child: const Text('Editar perfil')),
+                            const SizedBox(height: 8),
+                            OutlinedButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => FollowRequestsPage()));
+                                },
+                                child: const Text('Solicitações'))
+                          ],
+                        ),
 
                       const SizedBox(height: 20),
 
@@ -345,7 +363,31 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (me == null || _profile == null) return;
     final myRef = FirebaseFirestore.instance.collection('users').doc(me.uid);
     final targetRef = FirebaseFirestore.instance.collection('users').doc(_profile!.id);
+
     try {
+      final targetSnap = await targetRef.get();
+      final isPrivate = (targetSnap.data()?['private'] as bool?) ?? false;
+
+      if (isPrivate) {
+        // private accounts use outgoingFollowRequests on requester side
+        if (_followRequested) {
+          // cancel request
+          await myRef.update({
+            'outgoingFollowRequests': FieldValue.arrayRemove([_profile!.id])
+          });
+          if (mounted) setState(() => _followRequested = false);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação cancelada')));
+        } else {
+          await myRef.update({
+            'outgoingFollowRequests': FieldValue.arrayUnion([_profile!.id])
+          });
+          if (mounted) setState(() => _followRequested = true);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação enviada')));
+        }
+        return;
+      }
+
+      // public account: immediate follow/unfollow
       if (_isFollowing) {
         await myRef.update({
           'following': FieldValue.arrayRemove([_profile!.id])

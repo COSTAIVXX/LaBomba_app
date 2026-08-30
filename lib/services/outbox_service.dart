@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'storage_platform.dart';
 import 'storage_service.dart';
@@ -189,6 +190,35 @@ class OutboxService {
             }
             try {
               await _firestore.collection('users').doc(ownerId).collection('stories').doc(storyId).delete();
+            } catch (_) {}
+          } else if (type == 'follow') {
+            // Handle follow: increment follower/following counters for public accounts
+            final from = payload['from'] as String;
+            final to = payload['to'] as String;
+            try {
+              final toRef = _firestore.collection('users').doc(to);
+              final toSnap = await toRef.get();
+              final isPrivate = (toSnap.data()?['private'] as bool?) ?? false;
+              if (!isPrivate) {
+                final fromRef = _firestore.collection('users').doc(from);
+                await _firestore.runTransaction((tx) async {
+                  tx.update(toRef, {'stats.followers': FieldValue.increment(1)});
+                  tx.update(fromRef, {'stats.following': FieldValue.increment(1)});
+                });
+              } else {
+                // private account: follower should have created an outgoingFollowRequests entry on their own user doc
+              }
+            } catch (_) {}
+          } else if (type == 'unfollow') {
+            final from = payload['from'] as String;
+            final to = payload['to'] as String;
+            try {
+              final toRef = _firestore.collection('users').doc(to);
+              final fromRef = _firestore.collection('users').doc(from);
+              await _firestore.runTransaction((tx) async {
+                tx.update(toRef, {'stats.followers': FieldValue.increment(-1)});
+                tx.update(fromRef, {'stats.following': FieldValue.increment(-1)});
+              });
             } catch (_) {}
           } else if (type == 'mem_comment_delete') {
             final memoryId = payload['memoryId'] as String;

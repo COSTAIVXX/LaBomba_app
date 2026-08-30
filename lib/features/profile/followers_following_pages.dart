@@ -26,21 +26,56 @@ class FollowersListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Query users where following array contains targetId
-    final stream =
-        FirebaseFirestore.instance.collection('users').where('following', arrayContains: targetId).snapshots();
+    // First try to read an explicit followers array on the target user's document.
+    // If present, prefer that (useful for private-account flows). Otherwise fall back to
+    // querying users where their 'following' array contains the targetId.
     return Scaffold(
       appBar: AppBar(title: const Text('Seguidores')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: stream,
-        builder: (context, snap) {
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-          final docs = snap.data!.docs;
-          if (docs.isEmpty) return const Center(child: Text('Nenhum seguidor ainda'));
-          return ListView.separated(
-            itemCount: docs.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) => _SimpleUserTile(data: docs[index].data()),
+      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        future: FirebaseFirestore.instance.collection('users').doc(targetId).get(),
+        builder: (context, docSnap) {
+          if (!docSnap.hasData) return const Center(child: CircularProgressIndicator());
+          final doc = docSnap.data!;
+          final followers = (doc.data()?['followers'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+          if (followers.isNotEmpty) {
+            // load follower user docs by id
+            return FutureBuilder<List<Map<String, dynamic>>>(
+              future: () async {
+                final batch = <Future<DocumentSnapshot<Map<String, dynamic>>>>[];
+                for (final uid in followers) {
+                  batch.add(FirebaseFirestore.instance.collection('users').doc(uid).get());
+                }
+                final snaps = await Future.wait(batch);
+                return snaps.where((s) => s.exists).map((s) => s.data() as Map<String, dynamic>).toList();
+              }(),
+              builder: (context, fb) {
+                if (!fb.hasData) return const Center(child: CircularProgressIndicator());
+                final list = fb.data!;
+                if (list.isEmpty) return const Center(child: Text('Nenhum seguidor ainda'));
+                return ListView.separated(
+                  itemCount: list.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) => _SimpleUserTile(data: list[index]),
+                );
+              },
+            );
+          }
+
+          // Fallback: query users where following contains targetId
+          final stream =
+              FirebaseFirestore.instance.collection('users').where('following', arrayContains: targetId).snapshots();
+          return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: stream,
+            builder: (context, snap) {
+              if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+              final docs = snap.data!.docs;
+              if (docs.isEmpty) return const Center(child: Text('Nenhum seguidor ainda'));
+              return ListView.separated(
+                itemCount: docs.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) => _SimpleUserTile(data: docs[index].data()),
+              );
+            },
           );
         },
       ),
