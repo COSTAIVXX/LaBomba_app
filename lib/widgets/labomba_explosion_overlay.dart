@@ -35,7 +35,8 @@ class LaBombaExplosionOverlay extends StatefulWidget {
     final hapticEnabled =
         await storage.read(key: 'settings_alert_haptic') != 'false';
     final streetMode = await storage.read(key: StreetModeService.key) == 'true';
-    if ((!visualEnabled || streetMode) && !soundEnabled && !hapticEnabled) return;
+    if ((!visualEnabled || streetMode) && !soundEnabled && !hapticEnabled)
+      return;
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
       builder: (_) => LaBombaExplosionOverlay(

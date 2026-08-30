@@ -22,10 +22,12 @@ void main() {
         'presence': 'away',
         'tags': ['samba', 'dance']
       });
-      await fake
-          .collection('users')
-          .doc('u3')
-          .set({'displayName': 'Carla', 'photoURL': null, 'presence': 'offline', 'tags': []});
+      await fake.collection('users').doc('u3').set({
+        'displayName': 'Carla',
+        'photoURL': null,
+        'presence': 'offline',
+        'tags': []
+      });
     });
 
     testWidgets('shows users and filters by search and tag', (tester) async {
@@ -33,7 +35,8 @@ void main() {
       final widget = MaterialApp(
         onGenerateRoute: (settings) {
           pushed.add(settings.name ?? '');
-          return MaterialPageRoute(builder: (_) => const Scaffold(body: Text('navigated')));
+          return MaterialPageRoute(
+              builder: (_) => const Scaffold(body: Text('navigated')));
         },
         home: CommunityPage(firestore: fake),
       );

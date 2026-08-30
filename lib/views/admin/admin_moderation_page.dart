@@ -26,7 +26,8 @@ class AdminModerationPage extends StatelessWidget {
         stream: service.openReportsStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Não foi possível carregar denúncias.'));
+            return const Center(
+                child: Text('Não foi possível carregar denúncias.'));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -43,16 +44,15 @@ class AdminModerationPage extends StatelessWidget {
               final report = reports[index];
               return Card(
                 child: ListTile(
-                  leading: const Icon(Icons.flag_outlined, color: Colors.orange),
+                  leading:
+                      const Icon(Icons.flag_outlined, color: Colors.orange),
                   title: Text('${report.contentType}: ${report.contentId}'),
                   subtitle: Text(report.reason),
                   trailing: PopupMenuButton<String>(
                     onSelected: (action) async {
-                      final moderatorId = context
-                              .read<AuthService>()
-                              .currentUser
-                              ?.uid ??
-                          'admin';
+                      final moderatorId =
+                          context.read<AuthService>().currentUser?.uid ??
+                              'admin';
                       if (action == 'hide') {
                         await service.hideMemory(
                           memoryId: report.contentId,
@@ -68,8 +68,10 @@ class AdminModerationPage extends StatelessWidget {
                       }
                     },
                     itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'hide', child: Text('Ocultar conteúdo')),
-                      PopupMenuItem(value: 'dismiss', child: Text('Ignorar denúncia')),
+                      PopupMenuItem(
+                          value: 'hide', child: Text('Ocultar conteúdo')),
+                      PopupMenuItem(
+                          value: 'dismiss', child: Text('Ignorar denúncia')),
                     ],
                   ),
                 ),

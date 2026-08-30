@@ -23,7 +23,8 @@ class MemoryComment {
     required this.createdAt,
   });
 
-  factory MemoryComment.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory MemoryComment.fromDocument(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     final timestamp = data['createdAt'];
     return MemoryComment(
@@ -59,14 +60,17 @@ class MemorySocialService {
       final ids = snapshot.docs.map((d) => d.id).toList(growable: false);
       // persist cache
       try {
-        await _storage.write(key: 'mem_likes_$memoryId', value: jsonEncode(ids));
+        await _storage.write(
+            key: 'mem_likes_$memoryId', value: jsonEncode(ids));
       } catch (_) {}
       controller.add(ids);
     }, onError: (e, s) async {
       try {
         final raw = await _storage.read(key: 'mem_likes_$memoryId');
         if (raw != null && raw.isNotEmpty) {
-          final list = (jsonDecode(raw) as List).map((e) => e as String).toList(growable: false);
+          final list = (jsonDecode(raw) as List)
+              .map((e) => e as String)
+              .toList(growable: false);
           controller.add(list);
         } else {
           controller.add(const []);
@@ -94,8 +98,10 @@ class MemorySocialService {
       try {
         final likesRaw = await _storage.read(key: 'mem_likes_$memoryId');
         final commentsRaw = await _storage.read(key: 'mem_comments_$memoryId');
-        final likesCount = likesRaw == null ? 0 : (jsonDecode(likesRaw) as List).length;
-        final commentsCount = commentsRaw == null ? 0 : (jsonDecode(commentsRaw) as List).length;
+        final likesCount =
+            likesRaw == null ? 0 : (jsonDecode(likesRaw) as List).length;
+        final commentsCount =
+            commentsRaw == null ? 0 : (jsonDecode(commentsRaw) as List).length;
         return likesCount + commentsCount;
       } catch (_) {
         return 0;
@@ -109,25 +115,31 @@ class MemorySocialService {
         .orderBy('createdAt', descending: false)
         .snapshots()
         .listen((snapshot) async {
-      final list = snapshot.docs.map(MemoryComment.fromDocument).toList(growable: false);
+      final list =
+          snapshot.docs.map(MemoryComment.fromDocument).toList(growable: false);
       // persist cache
       try {
-        final serial = list.map((c) => {
-              'id': c.id,
-              'authorId': c.authorId,
-              'authorName': c.authorName,
-              'text': c.text,
-              'parentId': c.parentId,
-              'createdAt': c.createdAt.toIso8601String(),
-            }).toList(growable: false);
-        await _storage.write(key: 'mem_comments_$memoryId', value: jsonEncode(serial));
+        final serial = list
+            .map((c) => {
+                  'id': c.id,
+                  'authorId': c.authorId,
+                  'authorName': c.authorName,
+                  'text': c.text,
+                  'parentId': c.parentId,
+                  'createdAt': c.createdAt.toIso8601String(),
+                })
+            .toList(growable: false);
+        await _storage.write(
+            key: 'mem_comments_$memoryId', value: jsonEncode(serial));
       } catch (_) {}
       controller.add(list);
     }, onError: (e, s) async {
       try {
         final raw = await _storage.read(key: 'mem_comments_$memoryId');
         if (raw != null && raw.isNotEmpty) {
-          final decoded = (jsonDecode(raw) as List).map((e) => Map<String, dynamic>.from(e as Map)).toList(growable: false);
+          final decoded = (jsonDecode(raw) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList(growable: false);
           final list = decoded
               .map((d) => MemoryComment(
                     id: d['id'] as String,
@@ -135,7 +147,8 @@ class MemorySocialService {
                     authorName: d['authorName'] as String,
                     text: d['text'] as String,
                     parentId: d['parentId'] as String?,
-                    createdAt: DateTime.tryParse(d['createdAt'] as String) ?? DateTime.now(),
+                    createdAt: DateTime.tryParse(d['createdAt'] as String) ??
+                        DateTime.now(),
                   ))
               .toList(growable: false);
           controller.add(list);
@@ -173,7 +186,8 @@ class MemorySocialService {
       // enqueue to outbox for later sync
       try {
         await OutboxService.instance.enqueue({
-          'id': 'mem_like:${memoryId}:${userId}:${DateTime.now().millisecondsSinceEpoch}',
+          'id':
+              'mem_like:${memoryId}:${userId}:${DateTime.now().millisecondsSinceEpoch}',
           'type': 'mem_like',
           'payload': {'memoryId': memoryId, 'userId': userId},
           'createdAt': DateTime.now().toIso8601String(),
@@ -203,7 +217,8 @@ class MemorySocialService {
     } catch (e) {
       try {
         await OutboxService.instance.enqueue({
-          'id': 'mem_comment_add:${memoryId}:${DateTime.now().millisecondsSinceEpoch}',
+          'id':
+              'mem_comment_add:${memoryId}:${DateTime.now().millisecondsSinceEpoch}',
           'type': 'mem_comment_add',
           'payload': {'memoryId': memoryId, 'comment': commentMap},
           'createdAt': DateTime.now().toIso8601String(),
@@ -221,7 +236,8 @@ class MemorySocialService {
     } catch (e) {
       try {
         await OutboxService.instance.enqueue({
-          'id': 'mem_comment_delete:${memoryId}:${commentId}:${DateTime.now().millisecondsSinceEpoch}',
+          'id':
+              'mem_comment_delete:${memoryId}:${commentId}:${DateTime.now().millisecondsSinceEpoch}',
           'type': 'mem_comment_delete',
           'payload': {'memoryId': memoryId, 'commentId': commentId},
           'createdAt': DateTime.now().toIso8601String(),

@@ -29,7 +29,8 @@ class _MemoryStorageService implements StorageService {
 
 void main() {
   group('terms acceptance flow', () {
-    testWidgets('stores the versioned acceptance and prevents looped prompts', (tester) async {
+    testWidgets('stores the versioned acceptance and prevents looped prompts',
+        (tester) async {
       final storage = _MemoryStorageService();
 
       await tester.pumpWidget(
@@ -53,7 +54,8 @@ void main() {
       expect(find.byType(TermsPage), findsNothing);
     });
 
-    testWidgets('redirects directly to landing when the user already accepted', (tester) async {
+    testWidgets('redirects directly to landing when the user already accepted',
+        (tester) async {
       final storage = _MemoryStorageService();
       await storage.write(key: 'terms_accepted_v1', value: '1');
 
@@ -73,7 +75,8 @@ void main() {
   });
 
   group('onboarding persistence', () {
-    testWidgets('saves completion and routes to landing after the final slide', (tester) async {
+    testWidgets('saves completion and routes to landing after the final slide',
+        (tester) async {
       final storage = _MemoryStorageService();
 
       await tester.pumpWidget(
@@ -98,12 +101,15 @@ void main() {
   });
 
   group('auth service error handling', () {
-    test('returns a friendly message for Google sign-in failures without crashing the flow', () async {
+    test(
+        'returns a friendly message for Google sign-in failures without crashing the flow',
+        () async {
       final Type authServiceType = AuthService;
 
       Future<String> safeGoogleFlow() async {
         try {
-          throw Exception('Google Sign-In indisponível no momento. Tente novamente.');
+          throw Exception(
+              'Google Sign-In indisponível no momento. Tente novamente.');
         } catch (error) {
           final message = error.toString();
           if (message.contains('Google Sign-In')) {
@@ -118,7 +124,9 @@ void main() {
       expect(authServiceType, AuthService);
     });
 
-    test('returns a friendly message for email/password failures without crashing the flow', () async {
+    test(
+        'returns a friendly message for email/password failures without crashing the flow',
+        () async {
       Future<String> safeEmailPasswordFlow() async {
         try {
           throw Exception('Credenciais inválidas. Verifique e-mail e senha.');

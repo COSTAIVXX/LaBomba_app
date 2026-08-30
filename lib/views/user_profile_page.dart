@@ -87,7 +87,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         style: Theme.of(context).textTheme.headlineSmall),
                     if (user.email != null) ...[
                       const SizedBox(height: 4),
-                      Text(user.email!, style: Theme.of(context).textTheme.bodySmall),
+                      Text(user.email!,
+                          style: Theme.of(context).textTheme.bodySmall),
                     ],
                     if ((_profile?.bio ?? '').isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -186,7 +187,11 @@ class _MemoryTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                 ),
               )
-            : CachedNetworkImage(imageUrl: memory.imageUrls.first, fit: BoxFit.cover, placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2))),
+            : CachedNetworkImage(
+                imageUrl: memory.imageUrls.first,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2))),
       ),
     );
   }
@@ -203,7 +208,8 @@ class _MemoryTile extends StatelessWidget {
               onTap: () => Navigator.pop(context, 'view'),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              leading:
+                  const Icon(Icons.delete_outline, color: Colors.redAccent),
               title: const Text('Excluir memória'),
               onTap: () => Navigator.pop(context, 'delete'),
             ),

@@ -66,7 +66,8 @@ class MemberAccessService {
       return const MemberAccessStatus(
         authenticated: true,
         authorized: false,
-        message: 'Não foi possível confirmar seu cadastro agora. Tente novamente.',
+        message:
+            'Não foi possível confirmar seu cadastro agora. Tente novamente.',
       );
     }
 

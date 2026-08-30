@@ -11,14 +11,16 @@ class StoriesCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final threshold = DateTime.now().toUtc().subtract(const Duration(hours: 24));
+    final threshold =
+        DateTime.now().toUtc().subtract(const Duration(hours: 24));
     return SizedBox(
       height: 110,
       child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         // Query active stories from all users in the last 24 hours using collectionGroup
         stream: _fs
             .collectionGroup('stories')
-            .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
+            .where('createdAt',
+                isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snap) {
@@ -26,7 +28,8 @@ class StoriesCarousel extends StatelessWidget {
           final docs = snap.data!.docs;
 
           // Build a map of ownerId -> latest story doc to show one avatar per owner
-          final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>> latestByOwner = {};
+          final Map<String, QueryDocumentSnapshot<Map<String, dynamic>>>
+              latestByOwner = {};
           for (final d in docs) {
             // ownerId is the parent of the stories collection: /users/{ownerId}/stories/{storyId}
             final parent = d.reference.parent.parent;
@@ -48,11 +51,17 @@ class StoriesCarousel extends StatelessWidget {
               final entry = owners[index];
               final ownerId = entry.key;
               final data = entry.value.data();
-              final name = (data['authorName'] as String?) ?? (data['displayName'] as String?) ?? 'Usuário';
-              final avatar = (data['authorPhoto'] as String?) ?? (data['photoURL'] as String?);
+              final name = (data['authorName'] as String?) ??
+                  (data['displayName'] as String?) ??
+                  'Usuário';
+              final avatar = (data['authorPhoto'] as String?) ??
+                  (data['photoURL'] as String?);
               return GestureDetector(
                 onTap: () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => StoryViewerPage(userId: ownerId, firestore: _fs))),
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            StoryViewerPage(userId: ownerId, firestore: _fs))),
                 child: Column(
                   children: [
                     Container(
@@ -60,22 +69,35 @@ class StoriesCarousel extends StatelessWidget {
                       height: 68,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(colors: [Colors.pinkAccent, Colors.orangeAccent]),
-                        boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.08 * 255).round()), blurRadius: 4)],
+                        gradient: const LinearGradient(
+                            colors: [Colors.pinkAccent, Colors.orangeAccent]),
+                        boxShadow: [
+                          BoxShadow(
+                              color:
+                                  Colors.black.withAlpha((0.08 * 255).round()),
+                              blurRadius: 4)
+                        ],
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(3),
                         child: CircleAvatar(
                           radius: 30,
-                          backgroundImage: avatar != null ? NetworkImage(avatar) : null,
-                          child: avatar == null ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?') : null,
+                          backgroundImage:
+                              avatar != null ? NetworkImage(avatar) : null,
+                          child: avatar == null
+                              ? Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : '?')
+                              : null,
                         ),
                       ),
                     ),
                     const SizedBox(height: 6),
                     SizedBox(
                         width: 72,
-                        child: Text(name, overflow: TextOverflow.ellipsis, maxLines: 1, textAlign: TextAlign.center)),
+                        child: Text(name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            textAlign: TextAlign.center)),
                   ],
                 ),
               );

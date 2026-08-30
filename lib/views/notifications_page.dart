@@ -32,10 +32,13 @@ class NotificationsPage extends StatelessWidget {
             StreamBuilder<List<BroadcastMessage>>(
               stream: broadcastService.streamAllBroadcasts(),
               builder: (context, snap) {
-                if (snap.hasError) return const Center(child: Text('Falha ao carregar avisos.'));
-                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                if (snap.hasError)
+                  return const Center(child: Text('Falha ao carregar avisos.'));
+                if (!snap.hasData)
+                  return const Center(child: CircularProgressIndicator());
                 final items = snap.data!;
-                if (items.isEmpty) return const Center(child: Text('Sem avisos no momento.'));
+                if (items.isEmpty)
+                  return const Center(child: Text('Sem avisos no momento.'));
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: items.length,
@@ -44,11 +47,17 @@ class NotificationsPage extends StatelessWidget {
                     final b = items[index];
                     return Card(
                       child: ListTile(
-                        title: Text(b.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(b.title,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(b.body),
-                        trailing: Text(_shortDate(b.createdAt), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        trailing: Text(_shortDate(b.createdAt),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12)),
                         onTap: () async {
-                          if (context.mounted) await LaBombaExplosionOverlay.show(context, message: b.title);
+                          if (context.mounted)
+                            await LaBombaExplosionOverlay.show(context,
+                                message: b.title);
                         },
                       ),
                     );
@@ -62,14 +71,16 @@ class NotificationsPage extends StatelessWidget {
               stream: service.streamForCurrentUser(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Não foi possível carregar notificações.'));
+                  return const Center(
+                      child: Text('Não foi possível carregar notificações.'));
                 }
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final notifications = snapshot.data!;
                 if (notifications.isEmpty) {
-                  return const Center(child: Text('Você não tem notificações novas.'));
+                  return const Center(
+                      child: Text('Você não tem notificações novas.'));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -83,7 +94,9 @@ class NotificationsPage extends StatelessWidget {
                           notification.read
                               ? Icons.notifications_none
                               : Icons.notifications_active,
-                          color: notification.read ? Colors.grey : Theme.of(context).colorScheme.secondary,
+                          color: notification.read
+                              ? Colors.grey
+                              : Theme.of(context).colorScheme.secondary,
                         ),
                         title: Text(notification.title),
                         subtitle: Text(notification.body),
@@ -92,7 +105,8 @@ class NotificationsPage extends StatelessWidget {
                             await service.markAsRead(notification.id);
                           }
                           if (context.mounted) {
-                            await LaBombaExplosionOverlay.show(context, message: notification.title);
+                            await LaBombaExplosionOverlay.show(context,
+                                message: notification.title);
                           }
                         },
                       ),

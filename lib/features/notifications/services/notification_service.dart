@@ -24,8 +24,7 @@ class AppNotification {
       id: document.id,
       title: data['title'] as String? ?? 'La Bomba',
       body: data['body'] as String? ?? '',
-      createdAt:
-          timestamp is Timestamp ? timestamp.toDate() : DateTime.now(),
+      createdAt: timestamp is Timestamp ? timestamp.toDate() : DateTime.now(),
       read: data['read'] as bool? ?? false,
     );
   }
@@ -64,4 +63,5 @@ class NotificationService {
         .doc(notificationId)
         .set({'read': true}, SetOptions(merge: true));
   }
+
 }

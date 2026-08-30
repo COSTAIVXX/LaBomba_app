@@ -23,14 +23,20 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
 
   Stream<int> _activeUsersCountStream() {
     // count aggregation is not universally available on all SDKs; fallback to query snapshot length
-    return _firestore.collection('users').where('presence', isEqualTo: 'online').snapshots().map((s) => s.docs.length);
+    return _firestore
+        .collection('users')
+        .where('presence', isEqualTo: 'online')
+        .snapshots()
+        .map((s) => s.docs.length);
   }
 
   Stream<int> _postsTodayCountStream() {
-    final startOfDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final startOfDay =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     return _firestore
         .collection('posts')
-        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
         .snapshots()
         .map((s) => s.docs.length);
   }
@@ -40,7 +46,12 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _reportsQueue() {
-    return _firestore.collection('posts').where('reports', isGreaterThan: 0).orderBy('createdAt', descending: true).limit(50).snapshots();
+    return _firestore
+        .collection('posts')
+        .where('reports', isGreaterThan: 0)
+        .orderBy('createdAt', descending: true)
+        .limit(50)
+        .snapshots();
   }
 
   Future<void> _enqueueAdminRequest(Map<String, dynamic> payload) async {
@@ -56,27 +67,39 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
 
   Future<void> _requestDeletePost(String postId) async {
     await _enqueueAdminRequest({'type': 'delete_post', 'postId': postId});
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação de exclusão enviada')));
+    if (mounted)
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Solicitação de exclusão enviada')));
   }
 
   Future<void> _requestBanUser(String userId) async {
     await _enqueueAdminRequest({'type': 'ban_user', 'userId': userId});
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação de banimento enviada')));
+    if (mounted)
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Solicitação de banimento enviada')));
   }
 
   Future<void> _requestMassFcm(String title, String body) async {
     setState(() => _sending = true);
     try {
-      await _enqueueAdminRequest({'type': 'mass_fcm', 'title': title, 'body': body});
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação de envio FCM enviada')));
+      await _enqueueAdminRequest(
+          {'type': 'mass_fcm', 'title': title, 'body': body});
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Solicitação de envio FCM enviada')));
     } finally {
       setState(() => _sending = false);
     }
   }
 
   Future<void> _toggleFlag(String key, bool value) async {
-    await _firestore.collection('admin_config').doc('flags').set({key: value}, SetOptions(merge: true));
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Configuração atualizada')));
+    await _firestore
+        .collection('admin_config')
+        .doc('flags')
+        .set({key: value}, SetOptions(merge: true));
+    if (mounted)
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Configuração atualizada')));
   }
 
   @override
@@ -93,7 +116,8 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
         backgroundColor: const Color(0xFF0A0A0A),
         appBar: AppBar(
           backgroundColor: const Color(0xFF0A0A0A),
-          title: const Text('God Mode — Painel Executivo', style: TextStyle(color: Colors.white)),
+          title: const Text('God Mode — Painel Executivo',
+              style: TextStyle(color: Colors.white)),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -113,7 +137,8 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                     Expanded(
                       child: Card(
                         color: const Color(0xFF111214),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: StreamBuilder<int>(
@@ -123,9 +148,15 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Foliões Ativos', style: TextStyle(color: Colors.white70)),
+                                    const Text('Foliões Ativos',
+                                        style:
+                                            TextStyle(color: Colors.white70)),
                                     const SizedBox(height: 8),
-                                    Text(val.toString(), style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 20, fontWeight: FontWeight.bold)),
+                                    Text(val.toString(),
+                                        style: const TextStyle(
+                                            color: Color(0xFFF59E0B),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
                                   ],
                                 );
                               }),
@@ -136,7 +167,8 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                     Expanded(
                       child: Card(
                         color: const Color(0xFF111214),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: StreamBuilder<int>(
@@ -146,9 +178,15 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Posts Hoje', style: TextStyle(color: Colors.white70)),
+                                    const Text('Posts Hoje',
+                                        style:
+                                            TextStyle(color: Colors.white70)),
                                     const SizedBox(height: 8),
-                                    Text(val.toString(), style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 20, fontWeight: FontWeight.bold)),
+                                    Text(val.toString(),
+                                        style: const TextStyle(
+                                            color: Color(0xFFF59E0B),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
                                   ],
                                 );
                               }),
@@ -159,20 +197,32 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                     Expanded(
                       child: Card(
                         color: const Color(0xFF111214),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                          child: StreamBuilder<
+                                  DocumentSnapshot<Map<String, dynamic>>>(
                               stream: _systemStatusStream(),
                               builder: (context, snap) {
                                 final data = snap.data?.data();
-                                final ok = data == null ? '—' : (data['fcm_ok'] == true ? 'OK' : 'Problemas');
+                                final ok = data == null
+                                    ? '—'
+                                    : (data['fcm_ok'] == true
+                                        ? 'OK'
+                                        : 'Problemas');
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Status FCM', style: TextStyle(color: Colors.white70)),
+                                    const Text('Status FCM',
+                                        style:
+                                            TextStyle(color: Colors.white70)),
                                     const SizedBox(height: 8),
-                                    Text(ok, style: const TextStyle(color: Color(0xFFF59E0B), fontSize: 20, fontWeight: FontWeight.bold)),
+                                    Text(ok,
+                                        style: const TextStyle(
+                                            color: Color(0xFFF59E0B),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
                                   ],
                                 );
                               }),
@@ -188,46 +238,78 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                 Expanded(
                   child: Card(
                     color: const Color(0xFF0E0E0F),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Fila de Moderação', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const Text('Fila de Moderação',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           Expanded(
-                            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                            child: StreamBuilder<
+                                QuerySnapshot<Map<String, dynamic>>>(
                               stream: _reportsQueue(),
                               builder: (context, snap) {
-                                if (snap.hasError) return const Center(child: Text('Erro ao carregar reports'));
-                                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                                if (snap.hasError)
+                                  return const Center(
+                                      child: Text('Erro ao carregar reports'));
+                                if (!snap.hasData)
+                                  return const Center(
+                                      child: CircularProgressIndicator());
                                 final docs = snap.data!.docs;
-                                if (docs.isEmpty) return const Center(child: Text('Nenhum post reportado', style: TextStyle(color: Colors.white70)));
+                                if (docs.isEmpty)
+                                  return const Center(
+                                      child: Text('Nenhum post reportado',
+                                          style: TextStyle(
+                                              color: Colors.white70)));
                                 return ListView.separated(
                                   itemCount: docs.length,
-                                  separatorBuilder: (_, __) => const Divider(color: Colors.white12),
+                                  separatorBuilder: (_, __) =>
+                                      const Divider(color: Colors.white12),
                                   itemBuilder: (context, index) {
                                     final d = docs[index];
                                     final data = d.data();
                                     final postId = d.id;
-                                    final authorId = data['userId'] as String? ?? '';
-                                    final content = (data['content'] ?? data['text'] ?? '') as String;
-                                    final reports = (data['reports'] ?? 0) as int;
+                                    final authorId =
+                                        data['userId'] as String? ?? '';
+                                    final content = (data['content'] ??
+                                        data['text'] ??
+                                        '') as String;
+                                    final reports =
+                                        (data['reports'] ?? 0) as int;
                                     return ListTile(
-                                      title: Text(content, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white)),
-                                      subtitle: Text('Reports: $reports • Author: $authorId', style: const TextStyle(color: Colors.white54)),
+                                      title: Text(content,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                              color: Colors.white)),
+                                      subtitle: Text(
+                                          'Reports: $reports • Author: $authorId',
+                                          style: const TextStyle(
+                                              color: Colors.white54)),
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           TextButton(
-                                            onPressed: () => _requestDeletePost(postId),
-                                            child: const Text('Solicitar exclusão', style: TextStyle(color: Color(0xFFF59E0B))),
+                                            onPressed: () =>
+                                                _requestDeletePost(postId),
+                                            child: const Text(
+                                                'Solicitar exclusão',
+                                                style: TextStyle(
+                                                    color: Color(0xFFF59E0B))),
                                           ),
                                           const SizedBox(width: 8),
                                           TextButton(
-                                            onPressed: () => _requestBanUser(authorId),
-                                            child: const Text('Solicitar ban', style: TextStyle(color: Colors.redAccent)),
+                                            onPressed: () =>
+                                                _requestBanUser(authorId),
+                                            child: const Text('Solicitar ban',
+                                                style: TextStyle(
+                                                    color: Colors.redAccent)),
                                           ),
                                         ],
                                       ),
@@ -243,49 +325,81 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                           // Mass FCM form
                           const Divider(color: Colors.white12),
                           const SizedBox(height: 8),
-                          const Text('Disparo FCM em Massa', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const Text('Disparo FCM em Massa',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _broadcastTitle,
                             style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(hintText: 'Título', hintStyle: TextStyle(color: Colors.white38), filled: true, fillColor: Color(0xFF141416)),
+                            decoration: const InputDecoration(
+                                hintText: 'Título',
+                                hintStyle: TextStyle(color: Colors.white38),
+                                filled: true,
+                                fillColor: Color(0xFF141416)),
                           ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _broadcastBody,
                             style: const TextStyle(color: Colors.white),
                             maxLines: 3,
-                            decoration: const InputDecoration(hintText: 'Mensagem', hintStyle: TextStyle(color: Colors.white38), filled: true, fillColor: Color(0xFF141416)),
+                            decoration: const InputDecoration(
+                                hintText: 'Mensagem',
+                                hintStyle: TextStyle(color: Colors.white38),
+                                filled: true,
+                                fillColor: Color(0xFF141416)),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B)),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFF59E0B)),
                                   onPressed: _sending
                                       ? null
                                       : () async {
-                                          final title = _broadcastTitle.text.trim();
-                                          final body = _broadcastBody.text.trim();
+                                          final title =
+                                              _broadcastTitle.text.trim();
+                                          final body =
+                                              _broadcastBody.text.trim();
                                           if (title.isEmpty || body.isEmpty) {
-                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha título e mensagem')));
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content: Text(
+                                                        'Preencha título e mensagem')));
                                             return;
                                           }
                                           // Require long-press confirmation: show confirmation dialog
                                           final sure = await showDialog<bool>(
                                               context: context,
                                               builder: (ctx) => AlertDialog(
-                                                    title: const Text('Confirmar envio em massa'),
-                                                    content: const Text('Enviar notificação para todos os dispositivos é uma ação sensível. Confirma?'),
+                                                    title: const Text(
+                                                        'Confirmar envio em massa'),
+                                                    content: const Text(
+                                                        'Enviar notificação para todos os dispositivos é uma ação sensível. Confirma?'),
                                                     actions: [
-                                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                                                      ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirmar')),
+                                                      TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  ctx, false),
+                                                          child: const Text(
+                                                              'Cancelar')),
+                                                      ElevatedButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  ctx, true),
+                                                          child: const Text(
+                                                              'Confirmar')),
                                                     ],
                                                   ));
-                                          if (sure == true) await _requestMassFcm(title, body);
+                                          if (sure == true)
+                                            await _requestMassFcm(title, body);
                                         },
-                                  child: Text(_sending ? 'Enviando...' : 'Enviar (Requer confirmação)'),
+                                  child: Text(_sending
+                                      ? 'Enviando...'
+                                      : 'Enviar (Requer confirmação)'),
                                 ),
                               ),
                             ],
@@ -304,30 +418,50 @@ class _GodModeSecurePageState extends State<GodModeSecurePage> {
                     Expanded(
                       child: Card(
                         color: const Color(0xFF111214),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Configurações Master', style: TextStyle(color: Colors.white70)),
+                              const Text('Configurações Master',
+                                  style: TextStyle(color: Colors.white70)),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Expanded(child: Text('Ativar Abadá 2026', style: TextStyle(color: Colors.white))),
+                                  const Expanded(
+                                      child: Text('Ativar Abadá 2026',
+                                          style:
+                                              TextStyle(color: Colors.white))),
                                   Switch(
                                     value: false,
-                                    onChanged: (v) => _toggleFlag('abadá_2026_enabled', v),
+                                    onChanged: (v) =>
+                                        _toggleFlag('abadá_2026_enabled', v),
                                   )
                                 ],
                               ),
                               Row(
                                 children: [
-                                  const Expanded(child: Text('Limpar Cache', style: TextStyle(color: Colors.white))),
+                                  const Expanded(
+                                      child: Text('Limpar Cache',
+                                          style:
+                                              TextStyle(color: Colors.white))),
                                   ElevatedButton(
                                     onPressed: () async {
-                                      await _firestore.collection('admin_requests').add({'type': 'clear_cache', 'createdAt': FieldValue.serverTimestamp(), 'createdBy': FirebaseAuth.instance.currentUser?.uid});
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação de limpeza de cache enviada')));
+                                      await _firestore
+                                          .collection('admin_requests')
+                                          .add({
+                                        'type': 'clear_cache',
+                                        'createdAt':
+                                            FieldValue.serverTimestamp(),
+                                        'createdBy': FirebaseAuth
+                                            .instance.currentUser?.uid
+                                      });
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Solicitação de limpeza de cache enviada')));
                                     },
                                     child: const Text('Solicitar'),
                                   )

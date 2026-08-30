@@ -57,8 +57,9 @@ class _UserLoginPageState extends State<UserLoginPage> {
       }
 
       // Sincronização de rota limpa e segura pós-autenticação bem-sucedida
-            debugPrint('NAV: user login success, navigating to /dashboard');
-            Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+      debugPrint('NAV: user login success, navigating to /dashboard');
+      Navigator.pushNamedAndRemoveUntil(
+          context, '/dashboard', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +83,8 @@ class _UserLoginPageState extends State<UserLoginPage> {
         return;
       }
 
-      Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+          context, '/dashboard', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -33,7 +33,9 @@ class _AdminGuardState extends State<AdminGuard> {
       }
       final idr = await user.getIdTokenResult(true);
       final claims = idr.claims ?? {};
-      final isAdmin = (claims['isAdmin'] == true) || (claims['role'] == 'director') || (claims['role'] == 'admin');
+      final isAdmin = (claims['isAdmin'] == true) ||
+          (claims['role'] == 'director') ||
+          (claims['role'] == 'admin');
       setState(() => _isAdmin = isAdmin);
     } catch (_) {
       setState(() => _isAdmin = false);
@@ -42,7 +44,8 @@ class _AdminGuardState extends State<AdminGuard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isAdmin == null) return const Center(child: CircularProgressIndicator());
+    if (_isAdmin == null)
+      return const Center(child: CircularProgressIndicator());
     if (_isAdmin == true) return widget.child;
 
     return widget.onDenied ?? const _AccessDenied();
@@ -62,7 +65,8 @@ class _AccessDenied extends StatelessWidget {
           children: const [
             Icon(Icons.lock_outline, size: 64, color: Colors.grey),
             SizedBox(height: 12),
-            Text('Você não tem permissão para acessar esta área.', style: TextStyle(fontSize: 16)),
+            Text('Você não tem permissão para acessar esta área.',
+                style: TextStyle(fontSize: 16)),
           ],
         ),
       ),

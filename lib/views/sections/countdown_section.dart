@@ -94,14 +94,18 @@ class _CountdownSectionState extends State<CountdownSection> {
               const SizedBox(height: 32),
               Wrap(
                 spacing: 8,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _TimeBlock(value: days.toString().padLeft(2, '0'), label: 'D'),
-                          _TimeBlock(value: hours.toString().padLeft(2, '0'), label: 'H'),
-                          _TimeBlock(value: minutes.toString().padLeft(2, '0'), label: 'M'),
-                          _TimeBlock(value: seconds.toString().padLeft(2, '0'), label: 'S'),
-                        ],
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  _TimeBlock(
+                      value: days.toString().padLeft(2, '0'), label: 'D'),
+                  _TimeBlock(
+                      value: hours.toString().padLeft(2, '0'), label: 'H'),
+                  _TimeBlock(
+                      value: minutes.toString().padLeft(2, '0'), label: 'M'),
+                  _TimeBlock(
+                      value: seconds.toString().padLeft(2, '0'), label: 'S'),
+                ],
               ),
             ],
           ),

@@ -24,10 +24,7 @@ class HeatExplosionService {
     final events = _events;
     if (events == null) return const Stream.empty();
 
-    return events
-        .orderBy('createdAt', descending: true)
-        .limit(20)
-        .snapshots();
+    return events.orderBy('createdAt', descending: true).limit(20).snapshots();
   }
 
   Future<String> trigger({

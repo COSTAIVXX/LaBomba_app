@@ -19,7 +19,8 @@ class Reaction {
     required this.createdAt,
   });
 
-  Reaction copyWith({String? id, String? userId, String? type, DateTime? createdAt}) {
+  Reaction copyWith(
+      {String? id, String? userId, String? type, DateTime? createdAt}) {
     return Reaction(
       id: id ?? this.id,
       userId: userId ?? this.userId,
@@ -59,7 +60,12 @@ class Comment {
     this.deleted = false,
   });
 
-  Comment copyWith({String? id, String? authorId, String? text, DateTime? createdAt, bool? deleted}) {
+  Comment copyWith(
+      {String? id,
+      String? authorId,
+      String? text,
+      DateTime? createdAt,
+      bool? deleted}) {
     return Comment(
       id: id ?? this.id,
       authorId: authorId ?? this.authorId,
@@ -99,7 +105,8 @@ class PostInteraction {
   })  : comments = List.unmodifiable(comments ?? const []),
         reactions = List.unmodifiable(reactions ?? const []);
 
-  PostInteraction copyWith({String? postId, List<Comment>? comments, List<Reaction>? reactions}) {
+  PostInteraction copyWith(
+      {String? postId, List<Comment>? comments, List<Reaction>? reactions}) {
     return PostInteraction(
       postId: postId ?? this.postId,
       comments: comments ?? this.comments,
@@ -115,7 +122,9 @@ class PostInteraction {
 
   /// Soft-delete a comment by id (keeps history for moderation/audit)
   PostInteraction deleteComment(String commentId) {
-    final updated = comments.map((c) => c.id == commentId ? c.copyWith(deleted: true) : c).toList();
+    final updated = comments
+        .map((c) => c.id == commentId ? c.copyWith(deleted: true) : c)
+        .toList();
     return copyWith(comments: updated);
   }
 
@@ -139,10 +148,15 @@ class PostInteraction {
         'reactions': reactions.map((r) => r.toJson()).toList(),
       };
 
-  factory PostInteraction.fromJson(Map<String, dynamic> json) => PostInteraction(
+  factory PostInteraction.fromJson(Map<String, dynamic> json) =>
+      PostInteraction(
         postId: json['postId'] as String,
-        comments: (json['comments'] as List<dynamic>?)?.map((e) => Comment.fromJson(e as Map<String, dynamic>)).toList(),
-        reactions: (json['reactions'] as List<dynamic>?)?.map((e) => Reaction.fromJson(e as Map<String, dynamic>)).toList(),
+        comments: (json['comments'] as List<dynamic>?)
+            ?.map((e) => Comment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        reactions: (json['reactions'] as List<dynamic>?)
+            ?.map((e) => Reaction.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 
   /// Convenience: return number of non-deleted comments
@@ -158,5 +172,6 @@ class PostInteraction {
   }
 
   @override
-  String toString() => 'PostInteraction(postId: $postId, comments: ${comments.length}, reactions: ${reactions.length})';
+  String toString() =>
+      'PostInteraction(postId: $postId, comments: ${comments.length}, reactions: ${reactions.length})';
 }

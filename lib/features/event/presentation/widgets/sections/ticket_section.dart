@@ -104,15 +104,14 @@ class _TicketSectionState extends State<TicketSection> {
     final client = await _ensureClient(context);
     if (client == null || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-              'Redirecionando para o Mercado Pago... (Integração pendente)'),
-          backgroundColor: const Color(0xFF009EE3),
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      SnackBar(
+        content: const Text(
+            'Redirecionando para o Mercado Pago... (Integração pendente)'),
+        backgroundColor: const Color(0xFF009EE3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
     await _finalizePurchase(context, client, 'Mercado Pago');
   }
@@ -128,7 +127,8 @@ class _TicketSectionState extends State<TicketSection> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..multiply(Matrix4.diagonal3Values(scale, scale, 1.0)),
+        transform: Matrix4.identity()
+          ..multiply(Matrix4.diagonal3Values(scale, scale, 1.0)),
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
           gradient: LinearGradient(

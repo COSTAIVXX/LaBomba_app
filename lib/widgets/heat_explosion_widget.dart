@@ -43,7 +43,8 @@ class _HeatExplosionWidgetState extends State<HeatExplosionWidget> {
       if (change.type != DocumentChangeType.added || !mounted) continue;
       if (_localEventIds.remove(change.doc.id)) continue;
       final name = change.doc.data()?['displayName'] as String? ?? 'Alguém';
-      unawaited(LaBombaExplosionOverlay.show(context, message: '$name mandou calor!'));
+      unawaited(LaBombaExplosionOverlay.show(context,
+          message: '$name mandou calor!'));
     }
   }
 
@@ -52,7 +53,8 @@ class _HeatExplosionWidgetState extends State<HeatExplosionWidget> {
     final user = context.read<GoogleAuthProvider>().currentUserData;
     final userId = user?.uid;
     if (userId == null || userId.isEmpty) {
-      AppFeedback.showWarning(context, 'Entre para enviar uma explosão de calor.');
+      AppFeedback.showWarning(
+          context, 'Entre para enviar uma explosão de calor.');
       return;
     }
 

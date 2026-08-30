@@ -75,8 +75,11 @@ class UserProfile {
       photoUrl: json['photoUrl'] as String?,
       isCloseFriend: json['isCloseFriend'] as bool? ?? false,
       status: json['status'] as String?,
-      friends: (json['friends'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      pendingRequests: (json['pendingRequests'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      friends:
+          (json['friends'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      pendingRequests: (json['pendingRequests'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 
@@ -100,5 +103,6 @@ class UserProfile {
   }
 
   @override
-  int get hashCode => Object.hash(uid, name, email, photoUrl, isCloseFriend, status, Object.hashAll(friends), Object.hashAll(pendingRequests));
+  int get hashCode => Object.hash(uid, name, email, photoUrl, isCloseFriend,
+      status, Object.hashAll(friends), Object.hashAll(pendingRequests));
 }

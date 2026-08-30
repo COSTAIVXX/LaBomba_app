@@ -29,8 +29,7 @@ class ModerationReport {
       contentId: data['contentId'] as String? ?? '',
       reason: data['reason'] as String? ?? 'Sem motivo informado',
       reporterId: data['reporterId'] as String? ?? '',
-      createdAt:
-          timestamp is Timestamp ? timestamp.toDate() : DateTime.now(),
+      createdAt: timestamp is Timestamp ? timestamp.toDate() : DateTime.now(),
       status: data['status'] as String? ?? 'open',
     );
   }
@@ -78,8 +77,8 @@ class ModerationService {
       'hiddenAt': FieldValue.serverTimestamp(),
       'hiddenBy': moderatorId,
     }, SetOptions(merge: true));
-    await resolveReport(reportId: reportId, moderatorId: moderatorId,
-        resolution: 'hidden');
+    await resolveReport(
+        reportId: reportId, moderatorId: moderatorId, resolution: 'hidden');
   }
 
   Future<void> resolveReport({

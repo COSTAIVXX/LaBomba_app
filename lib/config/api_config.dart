@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
   // Allow override at compile time: --dart-define=API_BASE_URL=https://api.example.com
-  static const _envBase = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  static const _envBase =
+      String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
   static String get baseUrl {
     if (_envBase.isNotEmpty) return _envBase;

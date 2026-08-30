@@ -85,8 +85,7 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
             if (widget.compact)
               StreamBuilder<List<MemoryComment>>(
                 stream: _service.commentsStream(widget.memoryId),
-                builder: (_, snapshot) =>
-                    Text('${snapshot.data?.length ?? 0}'),
+                builder: (_, snapshot) => Text('${snapshot.data?.length ?? 0}'),
               ),
           ],
         );
@@ -133,7 +132,9 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
             child: TextField(
               controller: _commentController,
               decoration: InputDecoration(
-                hintText: _replyTo == null ? 'Escreva um comentário...' : 'Responder...',
+                hintText: _replyTo == null
+                    ? 'Escreva um comentário...'
+                    : 'Responder...',
               ),
             ),
           ),
@@ -148,7 +149,8 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
       stream: _service.commentsStream(widget.memoryId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(child: Text('Não foi possível carregar comentários.'));
+          return const Center(
+              child: Text('Não foi possível carregar comentários.'));
         }
         final comments = snapshot.data ?? const <MemoryComment>[];
         if (comments.isEmpty) {
@@ -163,10 +165,10 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
               final comment = comments[index];
               final depth = comment.parentId == null ? 0 : 1;
               return _CommentTile(
-                 key: ValueKey(comment.id),
-                 comment: comment,
-                 leftPadding: 12.0 + depth * 24,
-                 onReply: () => setState(() => _replyTo = comment.id),
+                key: ValueKey(comment.id),
+                comment: comment,
+                leftPadding: 12.0 + depth * 24,
+                onReply: () => setState(() => _replyTo = comment.id),
               );
             },
           ),
@@ -181,7 +183,11 @@ class _CommentTile extends StatelessWidget {
   final double leftPadding;
   final VoidCallback onReply;
 
-  const _CommentTile({super.key, required this.comment, required this.leftPadding, required this.onReply});
+  const _CommentTile(
+      {super.key,
+      required this.comment,
+      required this.leftPadding,
+      required this.onReply});
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +197,8 @@ class _CommentTile extends StatelessWidget {
         dense: true,
         title: Text(comment.authorName),
         subtitle: Text(comment.text),
-        trailing: TextButton(onPressed: onReply, child: const Text('Responder')),
+        trailing:
+            TextButton(onPressed: onReply, child: const Text('Responder')),
       ),
     );
   }

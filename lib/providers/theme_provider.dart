@@ -29,7 +29,8 @@ class ThemeProvider extends ChangeNotifier {
     _isDark = dark ?? !_isDark;
     notifyListeners();
     try {
-      await _storage.write(key: _keyDarkTheme, value: _isDark ? 'true' : 'false');
+      await _storage.write(
+          key: _keyDarkTheme, value: _isDark ? 'true' : 'false');
     } catch (_) {}
   }
 }

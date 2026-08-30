@@ -4,7 +4,8 @@ import 'storage_service.dart';
 class MobileStorageService implements StorageService {
   final FlutterSecureStorage _storage;
 
-  MobileStorageService({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
+  MobileStorageService({FlutterSecureStorage? storage})
+      : _storage = storage ?? const FlutterSecureStorage();
 
   @override
   Future<void> write({required String key, required String value}) async {
@@ -29,5 +30,6 @@ class MobileStorageService implements StorageService {
 
 // Platform-aliased class used by conditional imports
 class PlatformStorageService extends MobileStorageService {
-  PlatformStorageService({FlutterSecureStorage? storage}) : super(storage: storage);
+  PlatformStorageService({FlutterSecureStorage? storage})
+      : super(storage: storage);
 }

@@ -38,13 +38,14 @@ class LandingPage extends StatelessWidget {
                       ),
                       child: const Text(
                         'Entrar',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextButton(
-                                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                    onPressed: () => Navigator.pushNamed(context, '/login'),
                     child: const Text(
                       'Administrador',
                       style: TextStyle(
@@ -61,7 +62,8 @@ class LandingPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/terms'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/terms'),
                           child: const Text(
                             'Termos de Uso',
                             style: TextStyle(
@@ -72,7 +74,8 @@ class LandingPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/privacy'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/privacy'),
                           child: const Text(
                             'Política de Privacidade',
                             style: TextStyle(

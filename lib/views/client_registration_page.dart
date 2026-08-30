@@ -197,7 +197,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Cadastro do Comprador',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
         backgroundColor: Colors.transparent,
         foregroundColor: const Color(0xFF0F172A),
         elevation: 0,
@@ -251,17 +252,22 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: const LinearGradient(
-                                colors: [AppTheme.primary, AppTheme.primaryLight],
+                                colors: [
+                                  AppTheme.primary,
+                                  AppTheme.primaryLight
+                                ],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primary.withValues(alpha: 0.22),
+                                  color:
+                                      AppTheme.primary.withValues(alpha: 0.22),
                                   blurRadius: 18,
                                   offset: const Offset(0, 10),
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 36),
+                            child: const Icon(Icons.person_add_alt_1,
+                                color: Colors.white, size: 36),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -285,11 +291,14 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                           const SizedBox(height: 32),
                           OutlinedButton.icon(
                             onPressed: _saving ? null : _handleGoogleSignIn,
-                            icon: const Icon(Icons.g_mobiledata, size: 28, color: AppTheme.primary),
-                            label: const Text('Continuar com o Google', style: TextStyle(color: Color(0xFF0F172A))),
+                            icon: const Icon(Icons.g_mobiledata,
+                                size: 28, color: AppTheme.primary),
+                            label: const Text('Continuar com o Google',
+                                style: TextStyle(color: Color(0xFF0F172A))),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: AppTheme.primary, width: 1.4),
+                              side: const BorderSide(
+                                  color: AppTheme.primary, width: 1.4),
                               backgroundColor: const Color(0xFFF8FBFF),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
@@ -298,7 +307,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                           const SizedBox(height: 24),
                           const Row(
                             children: [
-                              Expanded(child: Divider(color: Color(0xFFBFDBFE))),
+                              Expanded(
+                                  child: Divider(color: Color(0xFFBFDBFE))),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: Text('OU PREENCHA',
@@ -307,7 +317,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12)),
                               ),
-                              Expanded(child: Divider(color: Color(0xFFBFDBFE))),
+                              Expanded(
+                                  child: Divider(color: Color(0xFFBFDBFE))),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -388,8 +399,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                         WrapCrossAlignment.center,
                                     children: [
                                       const Text('Li e aceito os ',
-                                          style:
-                                              TextStyle(color: Color(0xFF475569))),
+                                          style: TextStyle(
+                                              color: Color(0xFF475569))),
                                       GestureDetector(
                                         onTap: _showTermsDialog,
                                         child: const Text(
@@ -481,11 +492,13 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
         fillColor: const Color(0xFFF8FBFF),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -594,8 +607,7 @@ class _TermsDialogState extends State<_TermsDialog> {
             color: Colors.white.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: AppTheme.primary.withValues(alpha: 0.25),
-                width: 1.5),
+                color: AppTheme.primary.withValues(alpha: 0.25), width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: AppTheme.primary.withValues(alpha: 0.18),

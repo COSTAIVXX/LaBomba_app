@@ -61,7 +61,10 @@ class UserAppBarActions extends StatelessWidget {
               if (photo != null && photo.isNotEmpty)
                 CircleAvatar(radius: 16, backgroundImage: NetworkImage(photo))
               else
-                CircleAvatar(radius: 16, child: Text(display.isNotEmpty ? display[0].toUpperCase() : 'U')),
+                CircleAvatar(
+                    radius: 16,
+                    child: Text(
+                        display.isNotEmpty ? display[0].toUpperCase() : 'U')),
               const SizedBox(width: 8),
               Text(display, style: const TextStyle(fontSize: 14)),
             ],
@@ -95,11 +98,14 @@ class UserAppBarActions extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'settings', child: Text('Configurações')),
+            const PopupMenuItem(
+                value: 'settings', child: Text('Configurações')),
             const PopupMenuItem(value: 'profile', child: Text('Meu perfil')),
-            const PopupMenuItem(value: 'notifications', child: Text('Notificações')),
+            const PopupMenuItem(
+                value: 'notifications', child: Text('Notificações')),
             const PopupMenuItem(value: 'moderation', child: Text('Moderação')),
-            const PopupMenuItem(value: 'badge', child: Text('Meu crachá Folião Raiz')),
+            const PopupMenuItem(
+                value: 'badge', child: Text('Meu crachá Folião Raiz')),
             const PopupMenuItem(value: 'foliaos', child: Text('Foliões')),
             const PopupMenuItem(value: 'signout', child: Text('Sair')),
           ],

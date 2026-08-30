@@ -23,14 +23,16 @@ void main() {
       expect(snap.docs, isEmpty);
 
       // add
-      await service.toggleReactionOnPost(postId: postId, userId: userId, emoji: emoji);
+      await service.toggleReactionOnPost(
+          postId: postId, userId: userId, emoji: emoji);
       snap = await col.get();
       expect(snap.docs.length, 1);
       expect(snap.docs.first.data()['userId'], userId);
       expect(snap.docs.first.data()['type'], emoji);
 
       // remove
-      await service.toggleReactionOnPost(postId: postId, userId: userId, emoji: emoji);
+      await service.toggleReactionOnPost(
+          postId: postId, userId: userId, emoji: emoji);
       snap = await col.get();
       expect(snap.docs, isEmpty);
     });
@@ -47,9 +49,11 @@ void main() {
       final sub = stream.listen((e) => events.add(Map<String, int>.from(e)));
 
       // add two different reactions
-      await service.toggleReactionOnPost(postId: postId, userId: userA, emoji: heart);
+      await service.toggleReactionOnPost(
+          postId: postId, userId: userA, emoji: heart);
       await Future.delayed(const Duration(milliseconds: 10));
-      await service.toggleReactionOnPost(postId: postId, userId: userB, emoji: fire);
+      await service.toggleReactionOnPost(
+          postId: postId, userId: userB, emoji: fire);
       await Future.delayed(const Duration(milliseconds: 50));
 
       // we expect at least one event with both counts present (order of arrival may vary)

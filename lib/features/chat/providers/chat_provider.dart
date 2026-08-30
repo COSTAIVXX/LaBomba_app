@@ -64,12 +64,17 @@ class ChatProvider with ChangeNotifier {
       // If storage read fails, continue but do not silently bypass too aggressively
     }
 
-    await _service.sendMessage(senderId: senderId, senderName: senderName, text: text, stickerUrl: stickerUrl);
+    await _service.sendMessage(
+        senderId: senderId,
+        senderName: senderName,
+        text: text,
+        stickerUrl: stickerUrl);
 
     // Persist timestamp
     try {
       final key = 'chat_last_sent_${_service.roomId}_$senderId';
-      await _storage.write(key: key, value: DateTime.now().millisecondsSinceEpoch.toString());
+      await _storage.write(
+          key: key, value: DateTime.now().millisecondsSinceEpoch.toString());
     } catch (_) {}
   }
 

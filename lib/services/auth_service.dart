@@ -18,8 +18,10 @@ class AuthService {
   String? lastAuthErrorCode;
   // Load master credentials from environment to avoid hardcoding secrets.
   // In CI or development you can pass --dart-define=MASTER_EMAIL=... --dart-define=MASTER_PASSWORD=...
-  static const String masterEmail = String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
-  static const String masterPassword = String.fromEnvironment('MASTER_PASSWORD', defaultValue: '');
+  static const String masterEmail =
+      String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
+  static const String masterPassword =
+      String.fromEnvironment('MASTER_PASSWORD', defaultValue: '');
 
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -35,12 +37,15 @@ class AuthService {
   /// ValueNotifier instead of checking FirebaseAuth.instance.currentUser directly.
   /// Values: unknown -> initial, unauthenticated, authenticated (normal user), admin (master)
   static const AuthStatus initialAuthStatus = AuthStatus.unknown;
-  final ValueNotifier<AuthStatus> authStatus = ValueNotifier<AuthStatus>(initialAuthStatus);
+  final ValueNotifier<AuthStatus> authStatus =
+      ValueNotifier<AuthStatus>(initialAuthStatus);
 
-  bool get isMasterUser => (_masterSessionActive) ||
+  bool get isMasterUser =>
+      (_masterSessionActive) ||
       (_auth.currentUser?.email?.toLowerCase() == masterEmail.toLowerCase());
 
-  AuthService({StorageService? storageService}) : _storage = storageService ?? PlatformStorageService() {
+  AuthService({StorageService? storageService})
+      : _storage = storageService ?? PlatformStorageService() {
     // Listen to Firebase Auth state changes and update centralized auth status.
     _auth.authStateChanges().listen((firebaseUser) async {
       try {
@@ -72,9 +77,9 @@ class AuthService {
     // Disallow master bypass in release builds for safety.
     if (kReleaseMode) return false;
     if (masterEmail.isEmpty || masterPassword.isEmpty) return false;
-    return email.trim().toLowerCase() == masterEmail.toLowerCase() && password == masterPassword;
+    return email.trim().toLowerCase() == masterEmail.toLowerCase() &&
+        password == masterPassword;
   }
-
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
@@ -105,7 +110,8 @@ class AuthService {
       lastAuthErrorCode = null;
 
       // Determine admin status by matching masterEmail or via AdminProfileService later
-      final isAdmin = masterEmail.isNotEmpty && (user.email?.toLowerCase() == masterEmail.toLowerCase());
+      final isAdmin = masterEmail.isNotEmpty &&
+          (user.email?.toLowerCase() == masterEmail.toLowerCase());
       await setAdminSession(isAdmin);
       if (isAdmin) _masterSessionActive = true;
 
@@ -201,7 +207,8 @@ class AuthService {
     } on PlatformException catch (_) {
       return null;
     } catch (_) {
-      throw Exception('Google Sign-In indisponível no momento. Tente novamente.');
+      throw Exception(
+          'Google Sign-In indisponível no momento. Tente novamente.');
     }
   }
 
@@ -308,4 +315,3 @@ class AuthService {
     }
   }
 }
-

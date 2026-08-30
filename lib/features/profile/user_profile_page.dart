@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +14,8 @@ import './user_profile_service.dart';
 import '../../services/outbox_service.dart';
 import '../../features/chat/views/chat_page.dart';
 import './follow_requests_page.dart';
+import '../social/views/story_viewer_page.dart';
+import './followers_following_pages.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String? userId;
@@ -34,7 +36,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // social state
   bool _isFollowing = false;
-  bool _followRequested = false; // whether current user has an outstanding follow request to this profile
+  bool _followRequested =
+      false; // whether current user has an outstanding follow request to this profile
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _currentUserSub;
 
   @override
@@ -51,12 +54,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
 
       // listen to current user's doc to determine follow state
-      final currentUid = Provider.of<AuthService>(context, listen: false).currentUser?.uid;
+      final currentUid =
+          Provider.of<AuthService>(context, listen: false).currentUser?.uid;
       if (currentUid != null) {
-        _currentUserSub = FirebaseFirestore.instance.collection('users').doc(currentUid).snapshots().listen((s) {
-          final following = (s.data()?['following'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+        _currentUserSub = FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .snapshots()
+            .listen((s) {
+          final following =
+              (s.data()?['following'] as List<dynamic>?)?.cast<String>() ??
+                  <String>[];
           final isFollowing = following.contains(_uid);
-          final outgoing = (s.data()?['outgoingFollowRequests'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+          final outgoing =
+              (s.data()?['outgoingFollowRequests'] as List<dynamic>?)
+                      ?.cast<String>() ??
+                  <String>[];
           final requested = outgoing.contains(_uid);
           if (mounted)
             setState(() {
@@ -90,15 +103,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _pickAndUploadAvatar() async {
     if (_uid == null) return;
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 2400, imageQuality: 90);
+    final picked = await picker.pickImage(
+        source: ImageSource.gallery, maxWidth: 2400, imageQuality: 90);
     if (picked == null) return;
 
     setState(() => _loading = true);
     try {
       final file = File(picked.path);
       // compress
-      final compressed = await MediaService().compressImageFile(file, maxWidth: 1200, quality: 80);
-      final thumb = await MediaService().createThumbnail(file, maxWidth: 300, quality: 60);
+      final compressed = await MediaService()
+          .compressImageFile(file, maxWidth: 1200, quality: 80);
+      final thumb = await MediaService()
+          .createThumbnail(file, maxWidth: 300, quality: 60);
 
       // upload
       final storage = StorageUploadService();
@@ -115,9 +131,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
       await _service.updateProfile(updated);
       // ensure local reload
       await _loadProfile(_uid!);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avatar atualizado')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Avatar atualizado')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar avatar')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao enviar avatar')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -135,7 +155,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: _editNameController, decoration: const InputDecoration(labelText: 'Nome'), maxLength: 60),
+                controller: _editNameController,
+                decoration: const InputDecoration(labelText: 'Nome'),
+                maxLength: 60),
             TextField(
                 controller: _editBioController,
                 decoration: const InputDecoration(labelText: 'Bio'),
@@ -144,11 +166,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: const Text('Cancelar')),
           FilledButton(
             onPressed: () {
-              final newProfile =
-                  _profile!.copyWith(displayName: _editNameController.text.trim(), bio: _editBioController.text.trim());
+              final newProfile = _profile!.copyWith(
+                  displayName: _editNameController.text.trim(),
+                  bio: _editBioController.text.trim());
               Navigator.of(ctx).pop(newProfile);
             },
             child: const Text('Salvar'),
@@ -165,7 +190,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         await _loadProfile(updated.id);
       } catch (e) {
         if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao salvar perfil')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Falha ao salvar perfil')));
       } finally {
         if (mounted) setState(() => _loading = false);
       }
@@ -174,8 +200,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final current = Provider.of<AuthService>(context, listen: false).currentUser?.uid;
-    final isOwn = current != null && _profile != null && current == _profile!.id;
+    final current =
+        Provider.of<AuthService>(context, listen: false).currentUser?.uid;
+    final isOwn =
+        current != null && _profile != null && current == _profile!.id;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -193,8 +221,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         children: [
                           CircleAvatar(
                               radius: 48,
-                              backgroundImage: _profile!.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null,
-                              child: _profile!.avatarUrl == null ? const Icon(Icons.person, size: 48) : null),
+                              backgroundImage: _profile!.avatarUrl != null
+                                  ? NetworkImage(_profile!.avatarUrl!)
+                                  : null,
+                              child: _profile!.avatarUrl == null
+                                  ? const Icon(Icons.person, size: 48)
+                                  : null),
                           if (isOwn)
                             Positioned(
                               right: 0,
@@ -208,24 +240,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Text(_profile!.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(_profile!.displayName,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      if ((_profile!.bio ?? '').isNotEmpty) Text(_profile!.bio!, textAlign: TextAlign.center),
+                      if ((_profile!.bio ?? '').isNotEmpty)
+                        Text(_profile!.bio!, textAlign: TextAlign.center),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           GestureDetector(
                             onTap: () => _openPosts(),
-                            child: _statTile('Posts', _profile!.stats['posts'] ?? 0),
+                            child: _statTile(
+                                'Posts', _profile!.stats['posts'] ?? 0),
                           ),
                           GestureDetector(
                             onTap: () => _openFollowers(),
-                            child: _statTile('Seguidores', _profile!.stats['followers'] ?? 0),
+                            child: _statTile('Seguidores',
+                                _profile!.stats['followers'] ?? 0),
                           ),
                           GestureDetector(
                             onTap: () => _openFollowing(),
-                            child: _statTile('Seguindo', _profile!.stats['following'] ?? 0),
+                            child: _statTile(
+                                'Seguindo', _profile!.stats['following'] ?? 0),
                           ),
                         ],
                       ),
@@ -241,7 +279,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             const SizedBox(width: 8),
                             OutlinedButton(
                               onPressed: () => Navigator.push(
-                                  context, MaterialPageRoute(builder: (_) => ChatPage(privateUserId: _profile!.id))),
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ChatPage(
+                                          privateUserId: _profile!.id))),
                               child: const Text('Mensagem'),
                             ),
                             const SizedBox(width: 8),
@@ -252,9 +293,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                 if (s == 'report') await _reportUser();
                               },
                               itemBuilder: (_) => [
-                                const PopupMenuItem(value: 'block', child: Text('Bloquear')),
-                                const PopupMenuItem(value: 'mute', child: Text('Silenciar')),
-                                const PopupMenuItem(value: 'report', child: Text('Denunciar')),
+                                const PopupMenuItem(
+                                    value: 'block', child: Text('Bloquear')),
+                                const PopupMenuItem(
+                                    value: 'mute', child: Text('Silenciar')),
+                                const PopupMenuItem(
+                                    value: 'report', child: Text('Denunciar')),
                               ],
                             )
                           ],
@@ -262,11 +306,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       else
                         Column(
                           children: [
-                            FilledButton(onPressed: _showEditDialog, child: const Text('Editar perfil')),
+                            FilledButton(
+                                onPressed: _showEditDialog,
+                                child: const Text('Editar perfil')),
                             const SizedBox(height: 8),
                             OutlinedButton(
                                 onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => FollowRequestsPage()));
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (_) => FollowRequestsPage()));
                                 },
                                 child: const Text('Solicitações'))
                           ],
@@ -286,7 +333,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _statTile(String label, int value) {
     return Column(
       children: [
-        Text(value.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text(value.toString(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(color: Colors.grey)),
       ],
@@ -311,7 +359,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Destaques', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Destaques',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             SizedBox(
               height: 88,
@@ -323,13 +372,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   return GestureDetector(
                     onTap: () {
                       // open story viewer at this user's stories
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (_) => StoryViewerPage(userId: _profile!.id)));
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) =>
+                              StoryViewerPage(userId: _profile!.id)));
                     },
                     child: CircleAvatar(
                       radius: 40,
-                      backgroundImage: media != null ? NetworkImage(media) : null,
-                      child: media == null ? const Icon(Icons.auto_stories) : null,
+                      backgroundImage:
+                          media != null ? NetworkImage(media) : null,
+                      child:
+                          media == null ? const Icon(Icons.auto_stories) : null,
                     ),
                   );
                 },
@@ -346,23 +398,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   void _openPosts() {
     // Reuse memories screen if posts are stored in memories; otherwise fallback
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => Scaffold(body: Center(child: Text('Posts de ${_profile!.displayName}')))));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => Scaffold(
+            body: Center(child: Text('Posts de ${_profile!.displayName}')))));
   }
 
   void _openFollowers() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FollowersListPage(targetId: _profile!.id)));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => FollowersListPage(targetId: _profile!.id)));
   }
 
   void _openFollowing() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FollowingListPage(targetId: _profile!.id)));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => FollowingListPage(targetId: _profile!.id)));
   }
 
   Future<void> _toggleFollow() async {
     final me = Provider.of<AuthService>(context, listen: false).currentUser;
     if (me == null || _profile == null) return;
     final myRef = FirebaseFirestore.instance.collection('users').doc(me.uid);
-    final targetRef = FirebaseFirestore.instance.collection('users').doc(_profile!.id);
+    final targetRef =
+        FirebaseFirestore.instance.collection('users').doc(_profile!.id);
 
     try {
       final targetSnap = await targetRef.get();
@@ -376,13 +432,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
             'outgoingFollowRequests': FieldValue.arrayRemove([_profile!.id])
           });
           if (mounted) setState(() => _followRequested = false);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação cancelada')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Solicitação cancelada')));
         } else {
           await myRef.update({
             'outgoingFollowRequests': FieldValue.arrayUnion([_profile!.id])
           });
           if (mounted) setState(() => _followRequested = true);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Solicitação enviada')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Solicitação enviada')));
         }
         return;
       }
@@ -407,7 +465,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao atualizar seguimento')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Falha ao atualizar seguimento')));
     }
   }
 
@@ -418,9 +477,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       await FirebaseFirestore.instance.collection('users').doc(me.uid).update({
         'blocked': FieldValue.arrayUnion([_profile!.id])
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário bloqueado')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Usuário bloqueado')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao bloquear usuário')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao bloquear usuário')));
     }
   }
 
@@ -431,9 +492,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       await FirebaseFirestore.instance.collection('users').doc(me.uid).update({
         'muted': FieldValue.arrayUnion([_profile!.id])
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuário silenciado')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Usuário silenciado')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao silenciar usuário')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao silenciar usuário')));
     }
   }
 
@@ -447,14 +510,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
     };
     try {
       await FirebaseFirestore.instance.collection('reports').add(report);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
     } catch (e) {
       // enqueue if offline
       try {
-        await OutboxService.instance.enqueue({'type': 'report_user', 'payload': report});
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
+        await OutboxService.instance
+            .enqueue({'type': 'report_user', 'payload': report});
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
       } catch (_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao denunciar')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Falha ao denunciar')));
       }
     }
   }

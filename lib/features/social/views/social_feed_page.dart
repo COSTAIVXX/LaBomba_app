@@ -54,13 +54,15 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   Future<void> _persistPostsCache(List<QueryDocumentSnapshot> docs) async {
     try {
       final list = docs.map((d) {
-        final data = Map<String, dynamic>.from(d.data() as Map<String, dynamic>);
+        final data =
+            Map<String, dynamic>.from(d.data() as Map<String, dynamic>);
         // Normalize nested timestamps inside comments/reactions to ISO strings
         if (data['comments'] is List) {
           data['comments'] = (data['comments'] as List).map((c) {
             final m = Map<String, dynamic>.from(c as Map);
             final created = m['createdAt'];
-            if (created is Timestamp) m['createdAt'] = created.toDate().toIso8601String();
+            if (created is Timestamp)
+              m['createdAt'] = created.toDate().toIso8601String();
             return m;
           }).toList();
         }
@@ -68,7 +70,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           data['reactions'] = (data['reactions'] as List).map((r) {
             final m = Map<String, dynamic>.from(r as Map);
             final created = m['createdAt'];
-            if (created is Timestamp) m['createdAt'] = created.toDate().toIso8601String();
+            if (created is Timestamp)
+              m['createdAt'] = created.toDate().toIso8601String();
             return m;
           }).toList();
         }
@@ -82,8 +85,11 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     try {
       final raw = await _storage.read(key: _postsCacheKey());
       if (raw == null || raw.isEmpty) return <Map<String, dynamic>>[];
-      final decoded = (jsonDecode(raw) as List<dynamic>).cast<Map<String, dynamic>>();
-      return decoded.map((e) => Map<String, dynamic>.from(e)).toList(growable: false);
+      final decoded =
+          (jsonDecode(raw) as List<dynamic>).cast<Map<String, dynamic>>();
+      return decoded
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(growable: false);
     } catch (_) {
       return <Map<String, dynamic>>[];
     }
@@ -91,7 +97,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
 
   PostInteraction _mapToInteractionFromCache(Map<String, dynamic> entry) {
     final id = entry['id'] as String? ?? '';
-    final data = Map<String, dynamic>.from(entry['data'] as Map<String, dynamic>? ?? {});
+    final data =
+        Map<String, dynamic>.from(entry['data'] as Map<String, dynamic>? ?? {});
 
     final commentsRaw = data['comments'] as List<dynamic>? ?? [];
     final reactionsRaw = data['reactions'] as List<dynamic>? ?? [];
@@ -99,7 +106,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final comments = commentsRaw.map((c) {
       final map = Map<String, dynamic>.from(c as Map);
       final createdStr = map['createdAt'] as String?;
-      final createdAt = createdStr != null ? DateTime.tryParse(createdStr) ?? DateTime.now() : DateTime.now();
+      final createdAt = createdStr != null
+          ? DateTime.tryParse(createdStr) ?? DateTime.now()
+          : DateTime.now();
       return Comment(
         id: map['id'] as String,
         authorId: map['authorId'] as String,
@@ -112,7 +121,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final reactions = reactionsRaw.map((r) {
       final map = Map<String, dynamic>.from(r as Map);
       final createdStr = map['createdAt'] as String?;
-      final createdAt = createdStr != null ? DateTime.tryParse(createdStr) ?? DateTime.now() : DateTime.now();
+      final createdAt = createdStr != null
+          ? DateTime.tryParse(createdStr) ?? DateTime.now()
+          : DateTime.now();
       return Reaction(
         id: map['id'] as String,
         userId: map['userId'] as String,
@@ -121,7 +132,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       );
     }).toList();
 
-    return PostInteraction(postId: id, comments: comments, reactions: reactions);
+    return PostInteraction(
+        postId: id, comments: comments, reactions: reactions);
   }
 
   @override
@@ -169,8 +181,12 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                   }
                   final cached = cacheSnap.data ?? <Map<String, dynamic>>[];
                   if (cached.isEmpty) {
-                    if (snapshot.hasError) return Center(child: Text('Erro ao carregar feed: ${snapshot.error}'));
-                    return const Center(child: Text('Nenhuma postagem encontrada'));
+                    if (snapshot.hasError)
+                      return Center(
+                          child:
+                              Text('Erro ao carregar feed: ${snapshot.error}'));
+                    return const Center(
+                        child: Text('Nenhuma postagem encontrada'));
                   }
 
                   return FutureBuilder<List<String>>(
@@ -178,18 +194,23 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                     builder: (context, cfSnap) {
                       final closeFriends = cfSnap.data ?? <String>[];
                       final entries = cached
-                          .map<MapEntry<Map<String, dynamic>, PostInteraction>>((e) =>
-                              MapEntry<Map<String, dynamic>, PostInteraction>(
-                                  Map<String, dynamic>.from(e), _mapToInteractionFromCache(e)))
+                          .map<MapEntry<Map<String, dynamic>, PostInteraction>>(
+                              (e) => MapEntry<Map<String, dynamic>,
+                                      PostInteraction>(
+                                  Map<String, dynamic>.from(e),
+                                  _mapToInteractionFromCache(e)))
                           .toList();
                       final filtered = entries.where((entry) {
                         if (!_onlyCloseFriends) return true;
                         final data = entry.key['data'] as Map<String, dynamic>?;
-                        final author = data != null ? data['authorId'] as String? : null;
+                        final author =
+                            data != null ? data['authorId'] as String? : null;
                         return author != null && closeFriends.contains(author);
                       }).toList();
 
-                      if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
+                      if (filtered.isEmpty)
+                        return const Center(
+                            child: Text('Nenhuma postagem encontrada'));
 
                       // Include Stories carousel above the posts list
                       return SingleChildScrollView(
@@ -200,11 +221,14 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              itemCount: filtered.length + (filtered.length >= _limit ? 1 : 0),
+                              itemCount: filtered.length +
+                                  (filtered.length >= _limit ? 1 : 0),
                               itemBuilder: (context, index) {
                                 if (index == filtered.length) {
                                   return Center(
-                                    child: TextButton(onPressed: _loadMore, child: const Text('Carregar mais')),
+                                    child: TextButton(
+                                        onPressed: _loadMore,
+                                        child: const Text('Carregar mais')),
                                   );
                                 }
                                 final entry = filtered[index].key;
@@ -229,16 +253,20 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
               builder: (context, cfSnap) {
                 final closeFriends = cfSnap.data ?? <String>[];
 
-                final entries = docs.map((d) => MapEntry(d, _docToInteraction(d))).toList();
+                final entries =
+                    docs.map((d) => MapEntry(d, _docToInteraction(d))).toList();
 
                 final filtered = entries.where((entry) {
                   if (!_onlyCloseFriends) return true;
                   final d = entry.key;
-                  final author = (d.data() as Map<String, dynamic>?)?['authorId'] as String?;
+                  final author = (d.data()
+                      as Map<String, dynamic>?)?['authorId'] as String?;
                   return author != null && closeFriends.contains(author);
                 }).toList();
 
-                if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
+                if (filtered.isEmpty)
+                  return const Center(
+                      child: Text('Nenhuma postagem encontrada'));
 
                 // Include Stories carousel above the posts list
                 return SingleChildScrollView(
@@ -249,11 +277,14 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filtered.length + (filtered.length >= _limit ? 1 : 0),
+                        itemCount: filtered.length +
+                            (filtered.length >= _limit ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == filtered.length) {
                             return Center(
-                              child: TextButton(onPressed: _loadMore, child: const Text('Carregar mais')),
+                              child: TextButton(
+                                  onPressed: _loadMore,
+                                  child: const Text('Carregar mais')),
                             );
                           }
                           final doc = filtered[index].key;
@@ -330,7 +361,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       );
     }).toList();
 
-    return PostInteraction(postId: postId, comments: comments, reactions: reactions);
+    return PostInteraction(
+        postId: postId, comments: comments, reactions: reactions);
   }
 
   Widget _buildPostCard(PostInteraction post, String docId) {
@@ -346,7 +378,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Post: ${post.postId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('Post: ${post.postId}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 Text('${post.activeCommentsCount} comentários',
                     style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
@@ -357,7 +390,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
               future: _firestore.collection('posts').doc(docId).get(),
               builder: (context, snap) {
                 final data = snap.data?.data() as Map<String, dynamic>?;
-                final content = data != null && data.containsKey('content') ? data['content'] as String : '';
+                final content = data != null && data.containsKey('content')
+                    ? data['content'] as String
+                    : '';
                 return Text(content);
               },
             ),
@@ -392,13 +427,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                     else if (v == 'share') await _sharePost(docId);
                   },
                   itemBuilder: (c) => [
-                    const PopupMenuItem(value: 'refresh', child: Text('Atualizar')),
+                    const PopupMenuItem(
+                        value: 'refresh', child: Text('Atualizar')),
                     const PopupMenuItem(value: 'edit', child: Text('Editar')),
-                    const PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                    const PopupMenuItem(
+                        value: 'delete', child: Text('Excluir')),
                     const PopupMenuItem(value: 'save', child: Text('Salvar')),
                     const PopupMenuItem(value: 'hide', child: Text('Ocultar')),
-                    const PopupMenuItem(value: 'report', child: Text('Denunciar')),
-                    const PopupMenuItem(value: 'share', child: Text('Compartilhar')),
+                    const PopupMenuItem(
+                        value: 'report', child: Text('Denunciar')),
+                    const PopupMenuItem(
+                        value: 'share', child: Text('Compartilhar')),
                   ],
                 ),
               ],
@@ -411,18 +450,22 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                   ListTile(
                     dense: true,
                     title: Text(c.text),
-                    subtitle: Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
+                    subtitle:
+                        Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
                     trailing: _canDeleteComment(c, post)
                         ? IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.redAccent),
                             onPressed: () => _deleteComment(docId, c),
                           )
                         : null,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 72.0, right: 8.0, bottom: 8.0),
+                    padding: const EdgeInsets.only(
+                        left: 72.0, right: 8.0, bottom: 8.0),
                     child: StreamBuilder<Map<String, int>>(
-                      stream: ReactionService().reactionsCountStreamForComment(docId, c.id),
+                      stream: ReactionService()
+                          .reactionsCountStreamForComment(docId, c.id),
                       builder: (context, rsnap) {
                         final counts = rsnap.data ?? <String, int>{};
                         return ReactionBar(
@@ -430,17 +473,24 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                           onChanged: (emoji, added) async {
                             final uid = _currentUid;
                             if (uid == null) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Faça login para reagir.')));
                               return;
                             }
                             try {
-                              await ReactionService()
-                                  .toggleReactionOnComment(postId: docId, commentId: c.id, userId: uid, emoji: emoji);
+                              await ReactionService().toggleReactionOnComment(
+                                  postId: docId,
+                                  commentId: c.id,
+                                  userId: uid,
+                                  emoji: emoji);
                             } catch (e) {
                               debugPrint('Comment reaction failed: $e');
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(content: Text('Falha ao reagir no comentário')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Falha ao reagir no comentário')));
                             }
                           },
                         );
@@ -468,11 +518,12 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final uid = _currentUid;
     try {
       final doc = await _firestore.collection('posts').doc(postId).get();
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       if (data == null) return;
       if (uid != data['userId']) {
         if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem permissão para editar')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Sem permissão para editar')));
         return;
       }
       final current = data['content'] as String? ?? '';
@@ -483,17 +534,28 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           title: const Text('Editar postagem'),
           content: TextField(controller: controller, maxLines: 5),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-            FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Salvar')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar')),
+            FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Salvar')),
           ],
         ),
       );
       if (save != true) return;
       final newContent = controller.text.trim();
-      await _firestore.collection('posts').doc(postId).update({'content': newContent});
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post atualizado')));
+      await _firestore
+          .collection('posts')
+          .doc(postId)
+          .update({'content': newContent});
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Post atualizado')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao editar post')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao editar post')));
     }
   }
 
@@ -501,11 +563,12 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final uid = _currentUid;
     try {
       final doc = await _firestore.collection('posts').doc(postId).get();
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       if (data == null) return;
       if (uid != data['userId']) {
         if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem permissão para excluir')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Sem permissão para excluir')));
         return;
       }
       final confirm = await showDialog<bool>(
@@ -514,16 +577,24 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           title: const Text('Excluir postagem'),
           content: const Text('Tem certeza que deseja excluir esta postagem?'),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-            FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Excluir')),
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar')),
+            FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Excluir')),
           ],
         ),
       );
       if (confirm != true) return;
       await PostService().deletePost(postId);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post excluído')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Post excluído')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao excluir post')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao excluir post')));
     }
   }
 
@@ -535,9 +606,13 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       await meRef.update({
         'savedPosts': FieldValue.arrayUnion([postId])
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post salvo')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Post salvo')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao salvar post')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao salvar post')));
     }
   }
 
@@ -549,9 +624,13 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       await meRef.update({
         'hiddenPosts': FieldValue.arrayUnion([postId])
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post ocultado')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Post ocultado')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao ocultar post')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao ocultar post')));
     }
   }
 
@@ -559,7 +638,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final uid = _currentUid;
     try {
       final doc = await _firestore.collection('posts').doc(postId).get();
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       final content = data?['content'] as String?;
       final report = {
         'type': 'post',
@@ -569,16 +648,22 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         'createdAt': DateTime.now().toUtc().toIso8601String(),
       };
       await _firestore.collection('reports').add(report);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
     } catch (e) {
       try {
         await OutboxService.instance.enqueue({
           'type': 'report_post',
           'payload': {'postId': postId, 'reporterId': _currentUid}
         });
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
+        if (mounted)
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
       } catch (_) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao denunciar')));
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Falha ao denunciar')));
       }
     }
   }
@@ -586,25 +671,29 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   Future<void> _sharePost(String postId) async {
     try {
       final doc = await _firestore.collection('posts').doc(postId).get();
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       final content = data?['content'] as String? ?? '';
       await Clipboard.setData(ClipboardData(text: content));
       if (mounted)
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Conteúdo copiado para área de transferência')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Conteúdo copiado para área de transferência')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao compartilhar')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao compartilhar')));
     }
   }
 
   Future<void> _addReaction(String postId, String type) async {
     final uid = _currentUid;
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Faça login para reagir.')));
       return;
     }
     try {
-      await ReactionService().toggleReactionOnPost(postId: postId, userId: uid, emoji: type);
+      await ReactionService()
+          .toggleReactionOnPost(postId: postId, userId: uid, emoji: type);
     } catch (e) {
       // enqueue to outbox as fallback for offline
       try {
@@ -614,15 +703,21 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           'type': 'post_reaction_add',
           'payload': {
             'postId': postId,
-            'reaction': {'id': id, 'userId': uid, 'type': type, 'createdAt': DateTime.now().toIso8601String()}
+            'reaction': {
+              'id': id,
+              'userId': uid,
+              'type': type,
+              'createdAt': DateTime.now().toIso8601String()
+            }
           },
           'createdAt': DateTime.now().toIso8601String(),
         });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Reação enfileirada e será sincronizada quando online')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content:
+                Text('Reação enfileirada e será sincronizada quando online')));
       } catch (_) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Não foi possível registrar a reação.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Não foi possível registrar a reação.')));
       }
     }
   }
@@ -630,7 +725,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   Future<void> _showAddCommentDialog(String postId) async {
     final uid = _currentUid;
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para comentar.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Faça login para comentar.')));
       return;
     }
     final controller = TextEditingController();
@@ -638,10 +734,15 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Adicionar comentário'),
-        content: TextField(controller: controller, autofocus: true, maxLines: 3),
+        content:
+            TextField(controller: controller, autofocus: true, maxLines: 3),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Enviar')),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancelar')),
+          FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Enviar')),
         ],
       ),
     );
@@ -660,7 +761,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       await _firestore.collection('posts').doc(postId).update({
         'comments': FieldValue.arrayUnion([map])
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário enviado')));
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Comentário enviado')));
     } catch (e) {
       try {
         await OutboxService.instance.enqueue({
@@ -669,10 +772,12 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           'payload': {'postId': postId, 'comment': map},
           'createdAt': DateTime.now().toIso8601String(),
         });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Comentário enfileirado e será sincronizado quando online')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+                'Comentário enfileirado e será sincronizado quando online')));
       } catch (_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar comentário')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao enviar comentário')));
       }
     }
   }
@@ -690,14 +795,16 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       await _firestore.collection('posts').doc(postId).update({
         'comments': FieldValue.arrayRemove([map])
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário removido')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Comentário removido')));
     } catch (e) {
       // If arrayRemove fails (e.g., timestamp mismatch), fallback to marking as deleted
       try {
         await _firestore.collection('posts').doc(postId).update({
           'deletedCommentIds': FieldValue.arrayUnion([comment.id])
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário marcado como removido')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Comentário marcado como removido')));
       } catch (_) {
         // enqueue delete attempt
         try {
@@ -709,15 +816,18 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             'deleted': comment.deleted,
           };
           await OutboxService.instance.enqueue({
-            'id': 'post_comment_delete:${postId}:${comment.id}:${DateTime.now().millisecondsSinceEpoch}',
+            'id':
+                'post_comment_delete:${postId}:${comment.id}:${DateTime.now().millisecondsSinceEpoch}',
             'type': 'post_comment_delete',
             'payload': {'postId': postId, 'comment': fallbackMap},
             'createdAt': DateTime.now().toIso8601String(),
           });
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Remoção enfileirada e será sincronizada quando online')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text(
+                  'Remoção enfileirada e será sincronizada quando online')));
         } catch (_) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao remover comentário')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Falha ao remover comentário')));
         }
       }
     }

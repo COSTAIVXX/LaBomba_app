@@ -17,8 +17,11 @@ class _GodModeContentPageState extends State<GodModeContentPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1F1B2E),
-        title: const Text('Excluir Postagem', style: TextStyle(color: Colors.white)),
-        content: const Text('Tem certeza que deseja apagar esta postagem definitivamente?', style: TextStyle(color: Colors.white70)),
+        title: const Text('Excluir Postagem',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+            'Tem certeza que deseja apagar esta postagem definitivamente?',
+            style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -26,7 +29,8 @@ class _GodModeContentPageState extends State<GodModeContentPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Excluir',
+                style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -71,13 +75,17 @@ class _GodModeContentPageState extends State<GodModeContentPage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Erro ao carregar', style: TextStyle(color: Colors.red)));
+          return const Center(
+              child: Text('Erro ao carregar',
+                  style: TextStyle(color: Colors.red)));
         }
 
         final posts = snapshot.data ?? [];
 
         if (posts.isEmpty) {
-          return const Center(child: Text('Sem postagens.', style: TextStyle(color: Colors.grey)));
+          return const Center(
+              child:
+                  Text('Sem postagens.', style: TextStyle(color: Colors.grey)));
         }
 
         return ListView.builder(
@@ -88,16 +96,22 @@ class _GodModeContentPageState extends State<GodModeContentPage> {
             return Card(
               color: const Color(0xFF1F1B2E),
               margin: const EdgeInsets.only(bottom: 12.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0)),
               child: ListTile(
-                title: Text(post.userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                title: Text(post.userName,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 4),
-                    Text(post.content, style: const TextStyle(color: Colors.white70)),
+                    Text(post.content,
+                        style: const TextStyle(color: Colors.white70)),
                     const SizedBox(height: 8),
-                    Text('ID: ${post.id}', style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                    Text('ID: ${post.id}',
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 10)),
                   ],
                 ),
                 trailing: Row(
@@ -105,7 +119,9 @@ class _GodModeContentPageState extends State<GodModeContentPage> {
                   children: [
                     IconButton(
                       icon: Icon(
-                        post.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                        post.isPinned
+                            ? Icons.push_pin
+                            : Icons.push_pin_outlined,
                         color: post.isPinned ? Colors.redAccent : Colors.grey,
                       ),
                       onPressed: () => _togglePin(post),

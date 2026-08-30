@@ -22,7 +22,9 @@ class RemoteConfigService {
         ));
       } catch (_) {
         // Older/newer versions of the plugin may use a different API; ignore failure here
-        if (kDebugMode) debugPrint('RemoteConfig: setConfigSettings may not be available on this version.');
+        if (kDebugMode)
+          debugPrint(
+              'RemoteConfig: setConfigSettings may not be available on this version.');
       }
 
       // Set sensible defaults so app has deterministic behavior before fetch
@@ -36,9 +38,11 @@ class RemoteConfigService {
       } catch (_) {
         // Some versions expect Map<String, String> or Map<String, dynamic>
         try {
-          await _remoteConfig!.setDefaults(defaults.map((k, v) => MapEntry(k, v.toString())));
+          await _remoteConfig!
+              .setDefaults(defaults.map((k, v) => MapEntry(k, v.toString())));
         } catch (e, s) {
-          await ObservabilityService.reportError(e, s, reason: 'RemoteConfig.setDefaults');
+          await ObservabilityService.reportError(e, s,
+              reason: 'RemoteConfig.setDefaults');
         }
       }
 
@@ -47,13 +51,15 @@ class RemoteConfigService {
         await _remoteConfig!.fetchAndActivate();
       } catch (e, s) {
         // Non-fatal: log to observability but don't block app startup
-        await ObservabilityService.reportError(e, s, reason: 'RemoteConfig.fetchAndActivate');
+        await ObservabilityService.reportError(e, s,
+            reason: 'RemoteConfig.fetchAndActivate');
       }
 
       ObservabilityService.logEvent('remote_config_init_success');
     } catch (e, s) {
       try {
-        await ObservabilityService.reportError(e, s, reason: 'RemoteConfig.init');
+        await ObservabilityService.reportError(e, s,
+            reason: 'RemoteConfig.init');
       } catch (_) {}
     }
   }

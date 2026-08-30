@@ -15,11 +15,13 @@ class ObservabilityService {
     try {
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     } catch (_) {
-      if (kDebugMode) debugPrint('Crashlytics collection could not be enabled at init.');
+      if (kDebugMode)
+        debugPrint('Crashlytics collection could not be enabled at init.');
     }
   }
 
-  static Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
+  static Future<void> logEvent(String name,
+      {Map<String, Object>? parameters}) async {
     try {
       await analytics?.logEvent(name: name, parameters: parameters);
     } catch (_) {}
@@ -34,9 +36,11 @@ class ObservabilityService {
   }
 
   /// Record a non-fatal error with Crashlytics (object + stacktrace)
-  static Future<void> reportError(Object error, StackTrace stack, {String? reason}) async {
+  static Future<void> reportError(Object error, StackTrace stack,
+      {String? reason}) async {
     try {
-      await FirebaseCrashlytics.instance.recordError(error, stack, reason: reason);
+      await FirebaseCrashlytics.instance
+          .recordError(error, stack, reason: reason);
     } catch (_) {}
   }
 
@@ -46,7 +50,8 @@ class ObservabilityService {
       // Forward to Crashlytics
       await FirebaseCrashlytics.instance.recordFlutterError(details);
     } catch (_) {
-      if (kDebugMode) debugPrint('Failed to record flutter error to Crashlytics');
+      if (kDebugMode)
+        debugPrint('Failed to record flutter error to Crashlytics');
     }
   }
 }

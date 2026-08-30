@@ -32,7 +32,8 @@ class _ChatPageState extends State<ChatPage> {
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _service.messagesStream(widget.chatId),
               builder: (context, snap) {
-                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snap.hasData)
+                  return const Center(child: CircularProgressIndicator());
                 final docs = snap.data!.docs;
                 return ListView.builder(
                   reverse: true,
@@ -44,10 +45,13 @@ class _ChatPageState extends State<ChatPage> {
                     final deliveredAt = data['deliveredAt'];
                     return ListTile(
                       title: Text(data['text'] as String? ?? ''),
-                      subtitle: Text('${data['senderId'] as String? ?? ''}${deliveredAt != null ? ' • entregue' : ''}'),
+                      subtitle: Text(
+                          '${data['senderId'] as String? ?? ''}${deliveredAt != null ? ' • entregue' : ''}'),
                       trailing: isRead
                           ? const Icon(Icons.done_all, color: Colors.blue)
-                          : (deliveredAt != null ? const Icon(Icons.done, color: Colors.grey) : const SizedBox.shrink()),
+                          : (deliveredAt != null
+                              ? const Icon(Icons.done, color: Colors.grey)
+                              : const SizedBox.shrink()),
                     );
                   },
                 );
@@ -59,14 +63,20 @@ class _ChatPageState extends State<ChatPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(controller: _ctrl, decoration: const InputDecoration(hintText: 'Mensagem')),
+                  child: TextField(
+                      controller: _ctrl,
+                      decoration: const InputDecoration(hintText: 'Mensagem')),
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () async {
                     final text = _ctrl.text.trim();
                     if (text.isEmpty) return;
-                    await _service.sendMessage(widget.chatId, {'text': text, 'createdAt': FieldValue.serverTimestamp(), 'senderId': 'me'});
+                    await _service.sendMessage(widget.chatId, {
+                      'text': text,
+                      'createdAt': FieldValue.serverTimestamp(),
+                      'senderId': 'me'
+                    });
                     _ctrl.clear();
                   },
                 )

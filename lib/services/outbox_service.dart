@@ -48,7 +48,9 @@ class OutboxService {
       final raw = await _storage.read(key: _key);
       if (raw == null || raw.isEmpty) return [];
       final decoded = (jsonDecode(raw) as List<dynamic>);
-      return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList(growable: false);
+      return decoded
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList(growable: false);
     } catch (_) {
       return [];
     }
@@ -60,10 +62,13 @@ class OutboxService {
     } catch (_) {}
   }
 
-  Future<void> _appendDeadLetter(Map<String, dynamic> item, {String? reason}) async {
+  Future<void> _appendDeadLetter(Map<String, dynamic> item,
+      {String? reason}) async {
     try {
       final raw = await _storage.read(key: _deadLetterKey);
-      final list = raw == null || raw.isEmpty ? <dynamic>[] : (jsonDecode(raw) as List<dynamic>);
+      final list = raw == null || raw.isEmpty
+          ? <dynamic>[]
+          : (jsonDecode(raw) as List<dynamic>);
       final entry = Map<String, dynamic>.from(item)
         ..['deadLetterAt'] = DateTime.now().toIso8601String()
         ..['deadReason'] = reason ?? 'max attempts reached or corrupted';
@@ -78,7 +83,9 @@ class OutboxService {
       final raw = await _storage.read(key: _deadLetterKey);
       if (raw == null || raw.isEmpty) return <Map<String, dynamic>>[];
       final decoded = (jsonDecode(raw) as List<dynamic>);
-      return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList(growable: false);
+      return decoded
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList(growable: false);
     } catch (_) {
       return <Map<String, dynamic>>[];
     }
@@ -128,7 +135,8 @@ class OutboxService {
         // Ensure metadata fields
         final attempts = (item['attempts'] as int?) ?? 0;
         final nextAttemptStr = item['nextAttemptAt'] as String?;
-        final nextAttempt = nextAttemptStr != null ? DateTime.tryParse(nextAttemptStr) : null;
+        final nextAttempt =
+            nextAttemptStr != null ? DateTime.tryParse(nextAttemptStr) : null;
 
         // If item is scheduled for future attempt, keep it
         if (nextAttempt != null && nextAttempt.isAfter(now)) {
@@ -149,25 +157,40 @@ class OutboxService {
           if (type == 'mem_like') {
             final memoryId = payload['memoryId'] as String;
             final userId = payload['userId'] as String;
-            final likeDoc = _firestore.collection('memories').doc(memoryId).collection('likes').doc(userId);
+            final likeDoc = _firestore
+                .collection('memories')
+                .doc(memoryId)
+                .collection('likes')
+                .doc(userId);
             final snapshot = await likeDoc.get();
             if (snapshot.exists) {
               await likeDoc.delete();
             } else {
-              await likeDoc.set({'userId': userId, 'createdAt': FieldValue.serverTimestamp()});
+              await likeDoc.set({
+                'userId': userId,
+                'createdAt': FieldValue.serverTimestamp()
+              });
             }
           } else if (type == 'mem_comment_add') {
             final memoryId = payload['memoryId'] as String;
-            final map = Map<String, dynamic>.from(payload['comment'] as Map<String, dynamic>);
-            await _firestore.collection('memories').doc(memoryId).collection('comments').add(map);
+            final map = Map<String, dynamic>.from(
+                payload['comment'] as Map<String, dynamic>);
+            await _firestore
+                .collection('memories')
+                .doc(memoryId)
+                .collection('comments')
+                .add(map);
           } else if (type == 'story_view') {
             // Persist a viewer-owned story view record:
             // users/{viewerId}/storyViews/{ownerId}_{storyId}
             final viewerId = payload['viewerId'] as String;
             final ownerId = payload['ownerId'] as String;
             final storyId = payload['storyId'] as String;
-            final docRef =
-                _firestore.collection('users').doc(viewerId).collection('storyViews').doc('${ownerId}_$storyId');
+            final docRef = _firestore
+                .collection('users')
+                .doc(viewerId)
+                .collection('storyViews')
+                .doc('${ownerId}_$storyId');
             final sn = await docRef.get();
             if (!sn.exists) {
               await docRef.set({
@@ -189,7 +212,12 @@ class OutboxService {
               } catch (_) {}
             }
             try {
-              await _firestore.collection('users').doc(ownerId).collection('stories').doc(storyId).delete();
+              await _firestore
+                  .collection('users')
+                  .doc(ownerId)
+                  .collection('stories')
+                  .doc(storyId)
+                  .delete();
             } catch (_) {}
           } else if (type == 'follow') {
             // Handle follow: increment follower/following counters for public accounts
@@ -202,8 +230,10 @@ class OutboxService {
               if (!isPrivate) {
                 final fromRef = _firestore.collection('users').doc(from);
                 await _firestore.runTransaction((tx) async {
-                  tx.update(toRef, {'stats.followers': FieldValue.increment(1)});
-                  tx.update(fromRef, {'stats.following': FieldValue.increment(1)});
+                  tx.update(
+                      toRef, {'stats.followers': FieldValue.increment(1)});
+                  tx.update(
+                      fromRef, {'stats.following': FieldValue.increment(1)});
                 });
               } else {
                 // private account: follower should have created an outgoingFollowRequests entry on their own user doc
@@ -217,28 +247,37 @@ class OutboxService {
               final fromRef = _firestore.collection('users').doc(from);
               await _firestore.runTransaction((tx) async {
                 tx.update(toRef, {'stats.followers': FieldValue.increment(-1)});
-                tx.update(fromRef, {'stats.following': FieldValue.increment(-1)});
+                tx.update(
+                    fromRef, {'stats.following': FieldValue.increment(-1)});
               });
             } catch (_) {}
           } else if (type == 'mem_comment_delete') {
             final memoryId = payload['memoryId'] as String;
             final commentId = payload['commentId'] as String;
-            await _firestore.collection('memories').doc(memoryId).collection('comments').doc(commentId).delete();
+            await _firestore
+                .collection('memories')
+                .doc(memoryId)
+                .collection('comments')
+                .doc(commentId)
+                .delete();
           } else if (type == 'post_comment_add') {
             final postId = payload['postId'] as String;
-            final map = Map<String, dynamic>.from(payload['comment'] as Map<String, dynamic>);
+            final map = Map<String, dynamic>.from(
+                payload['comment'] as Map<String, dynamic>);
             await _firestore.collection('posts').doc(postId).update({
               'comments': FieldValue.arrayUnion([map])
             });
           } else if (type == 'post_reaction_add') {
             final postId = payload['postId'] as String;
-            final map = Map<String, dynamic>.from(payload['reaction'] as Map<String, dynamic>);
+            final map = Map<String, dynamic>.from(
+                payload['reaction'] as Map<String, dynamic>);
             await _firestore.collection('posts').doc(postId).update({
               'reactions': FieldValue.arrayUnion([map])
             });
           } else if (type == 'post_comment_delete') {
             final postId = payload['postId'] as String;
-            final map = Map<String, dynamic>.from(payload['comment'] as Map<String, dynamic>);
+            final map = Map<String, dynamic>.from(
+                payload['comment'] as Map<String, dynamic>);
             // try arrayRemove; if fails, mark deleted id
             try {
               await _firestore.collection('posts').doc(postId).update({
@@ -246,18 +285,22 @@ class OutboxService {
               });
             } catch (_) {
               await _firestore.collection('posts').doc(postId).update({
-                'deletedCommentIds': FieldValue.arrayUnion([map['id'] as String])
+                'deletedCommentIds':
+                    FieldValue.arrayUnion([map['id'] as String])
               });
             }
           } else {
             // Unknown or corrupt item - record in dead-letter and drop
-            await _appendDeadLetter(item, reason: 'unknown type or corrupt payload');
+            await _appendDeadLetter(item,
+                reason: 'unknown type or corrupt payload');
             continue;
           }
         } catch (e) {
           // Transient failure: increment attempts and schedule next attempt with backoff
           final newAttempts = attempts + 1;
-          final backoffMs = (_baseBackoffMs * (1 << (attempts))).clamp(_baseBackoffMs, _maxBackoffMs).toInt();
+          final backoffMs = (_baseBackoffMs * (1 << (attempts)))
+              .clamp(_baseBackoffMs, _maxBackoffMs)
+              .toInt();
           final next = DateTime.now().add(Duration(milliseconds: backoffMs));
           final updated = Map<String, dynamic>.from(item)
             ..['attempts'] = newAttempts

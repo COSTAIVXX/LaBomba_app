@@ -38,7 +38,8 @@ class AppFeedback {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(announcement.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Text(announcement.title,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
                     Text(announcement.message),
                   ],
                 ),

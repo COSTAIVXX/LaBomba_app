@@ -23,7 +23,8 @@ class GoogleAuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  GoogleAuthProvider({required AuthService authService}) : _authService = authService;
+  GoogleAuthProvider({required AuthService authService})
+      : _authService = authService;
 
   Future<GoogleAuthData?> signInWithGoogle() async {
     _setLoading(true);
@@ -64,7 +65,11 @@ class GoogleAuthProvider extends ChangeNotifier {
   GoogleAuthData? get currentUserData {
     final u = _authService.currentUser;
     if (u == null) return null;
-    return GoogleAuthData(uid: u.uid, displayName: u.displayName, email: u.email, photoUrl: u.photoURL);
+    return GoogleAuthData(
+        uid: u.uid,
+        displayName: u.displayName,
+        email: u.email,
+        photoUrl: u.photoURL);
   }
 
   Future<void> signOut() async {

@@ -6,14 +6,17 @@ import 'test_helpers/fake_storage.dart';
 import 'package:labomba_app/features/memories/services/storage_memory_service.dart';
 
 void main() {
-  testWidgets('MemoriesListPage and MemoryEditorPage render and interact', (WidgetTester tester) async {
+  testWidgets('MemoriesListPage and MemoryEditorPage render and interact',
+      (WidgetTester tester) async {
     final fakeStorage = FakeStorageService();
     final storageSvc = StorageMemoryService(fakeStorage, key: 'ui_memories');
     final provider = MemoryProvider(service: storageSvc);
 
     await tester.pumpWidget(
       MultiProvider(
-        providers: [ChangeNotifierProvider<MemoryProvider>.value(value: provider)],
+        providers: [
+          ChangeNotifierProvider<MemoryProvider>.value(value: provider)
+        ],
         child: MaterialApp(
           home: MemoriesListPage(),
         ),

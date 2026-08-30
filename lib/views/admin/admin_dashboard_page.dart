@@ -25,7 +25,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-              Navigator.pushReplacementNamed(context, '/login');
+          Navigator.pushReplacementNamed(context, '/login');
         }
       });
       return const Scaffold(body: SizedBox.shrink());
@@ -48,13 +48,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             await context.read<AdminAuthProvider>().logout();
             if (mounted) {
               Navigator.pushNamedAndRemoveUntil(
-                                context, '/login', (_) => false);
+                  context, '/login', (_) => false);
             }
           },
         );
 
-        final isMasterDeveloper =
-            context.watch<AuthService>().isMasterUser;
+        final isMasterDeveloper = context.watch<AuthService>().isMasterUser;
 
         return Scaffold(
           appBar: AppBar(

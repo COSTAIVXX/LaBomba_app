@@ -71,7 +71,8 @@ class _FeedPageState extends State<FeedPage> {
 
           return ListView.builder(
             itemCount: posts.length,
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             itemBuilder: (context, index) {
               final post = posts[index];
               return PostCard(

@@ -1,4 +1,3 @@
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -21,18 +20,20 @@ class PushNotificationService {
           badge: true,
           sound: true,
         );
-        await ObservabilityService.logEvent('push_permission_requested', parameters: {
-          'alert': settings.alert == true,
-          'badge': settings.badge == true,
-          'sound': settings.sound == true,
-        });
+        await ObservabilityService.logEvent('push_permission_requested',
+            parameters: {
+              'alert': settings.alert == true,
+              'badge': settings.badge == true,
+              'sound': settings.sound == true,
+            });
       }
 
       // Get the device token and persist it securely (for later server use)
       final token = await _messaging.getToken();
       if (token != null && token.isNotEmpty) {
         await _storage.write(key: 'fcm_token', value: token);
-        await ObservabilityService.logEvent('push_token_acquired', parameters: {'token_length': token.length});
+        await ObservabilityService.logEvent('push_token_acquired',
+            parameters: {'token_length': token.length});
       }
 
       // Listen for messages when app is foregrounded
@@ -45,7 +46,8 @@ class PushNotificationService {
           }
           // Convert message.data (Map<String, dynamic>) into Map<String, Object>
           try {
-            data.addAll(message.data.map((k, v) => MapEntry(k, (v ?? '').toString())));
+            data.addAll(
+                message.data.map((k, v) => MapEntry(k, (v ?? '').toString())));
           } catch (_) {}
           ObservabilityService.logEvent('push_received', parameters: data);
         } catch (e, s) {
@@ -57,7 +59,8 @@ class PushNotificationService {
       _messaging.onTokenRefresh.listen((newToken) async {
         try {
           await _storage.write(key: 'fcm_token', value: newToken);
-          await ObservabilityService.logEvent('push_token_refreshed', parameters: {'len': newToken.length});
+          await ObservabilityService.logEvent('push_token_refreshed',
+              parameters: {'len': newToken.length});
         } catch (e, s) {
           ObservabilityService.reportError(e, s, reason: 'Push.onTokenRefresh');
         }

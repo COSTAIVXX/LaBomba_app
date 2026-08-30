@@ -17,7 +17,12 @@ void main() {
       final list0 = await svc.fetchMemories();
       expect(list0, isEmpty);
 
-      final m = Memory(id: '1', title: 'Olá', description: 'desc', imageUrls: [], createdAt: DateTime.now());
+      final m = Memory(
+          id: '1',
+          title: 'Olá',
+          description: 'desc',
+          imageUrls: [],
+          createdAt: DateTime.now());
       await svc.saveMemory(m);
 
       final fetched = await svc.fetchMemories();

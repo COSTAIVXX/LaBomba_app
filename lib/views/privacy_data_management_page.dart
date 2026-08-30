@@ -14,8 +14,7 @@ class PrivacyDataManagementPage extends StatefulWidget {
       _PrivacyDataManagementPageState();
 }
 
-class _PrivacyDataManagementPageState
-    extends State<PrivacyDataManagementPage> {
+class _PrivacyDataManagementPageState extends State<PrivacyDataManagementPage> {
   static const _memoriesKey = 'memories_store';
   late final StorageService _storage;
   bool _loading = true;

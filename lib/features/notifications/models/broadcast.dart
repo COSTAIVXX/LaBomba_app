@@ -7,7 +7,12 @@ class BroadcastMessage {
   final DateTime createdAt;
   final String? authorId;
 
-  BroadcastMessage({required this.id, required this.title, required this.body, required this.createdAt, this.authorId});
+  BroadcastMessage(
+      {required this.id,
+      required this.title,
+      required this.body,
+      required this.createdAt,
+      this.authorId});
 
   factory BroadcastMessage.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};

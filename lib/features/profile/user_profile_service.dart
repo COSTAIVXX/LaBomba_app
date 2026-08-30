@@ -18,7 +18,8 @@ class UserProfileService {
 
   UserProfileService({FirebaseFirestore? firestore, StorageService? storage})
       : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? (throw ArgumentError('Provide a StorageService for caching'));
+        _storage = storage ??
+            (throw ArgumentError('Provide a StorageService for caching'));
 
   String _storageKey(String uid) => 'user_profile:$uid:v1';
 
@@ -47,7 +48,9 @@ class UserProfileService {
       _cache[uid] = profile;
 
       // persist to storage asynchronously (best-effort)
-      _storage.write(key: _storageKey(uid), value: jsonEncode(profile.toMap())).catchError((_) {});
+      _storage
+          .write(key: _storageKey(uid), value: jsonEncode(profile.toMap()))
+          .catchError((_) {});
       return profile;
     } catch (e) {
       if (kDebugMode) debugPrint('UserProfileService.getUserProfile error: $e');
@@ -60,20 +63,27 @@ class UserProfileService {
     final docRef = _firestore.collection('users').doc(uid);
     return docRef.snapshots().map((snap) {
       if (!snap.exists) return null;
-      final map = Map<String, dynamic>.from(snap.data() as Map<String, dynamic>);
+      final map =
+          Map<String, dynamic>.from(snap.data() as Map<String, dynamic>);
       map['id'] = snap.id;
       final profile = UserProfile.fromMap(map);
       // update cache + storage
       _cache[uid] = profile;
-      _storage.write(key: _storageKey(uid), value: jsonEncode(profile.toMap())).catchError((_) {});
+      _storage
+          .write(key: _storageKey(uid), value: jsonEncode(profile.toMap()))
+          .catchError((_) {});
       return profile;
     });
   }
 
   /// Update allowed profile fields (displayName, bio, avatarUrl). Enforces limits.
   Future<void> updateProfile(UserProfile profile) async {
-    final safeName = profile.displayName.length > 60 ? profile.displayName.substring(0, 60) : profile.displayName;
-    final safeBio = profile.bio != null && profile.bio!.length > 1000 ? profile.bio!.substring(0, 1000) : profile.bio;
+    final safeName = profile.displayName.length > 60
+        ? profile.displayName.substring(0, 60)
+        : profile.displayName;
+    final safeBio = profile.bio != null && profile.bio!.length > 1000
+        ? profile.bio!.substring(0, 1000)
+        : profile.bio;
 
     final data = <String, dynamic>{
       'displayName': safeName,
@@ -82,11 +92,15 @@ class UserProfileService {
       // stats should be updated by server-side functions or separate flows to avoid races
     };
 
-    await _firestore.collection('users').doc(profile.id).set(data, SetOptions(merge: true));
+    await _firestore
+        .collection('users')
+        .doc(profile.id)
+        .set(data, SetOptions(merge: true));
 
     final updated = profile.copyWith(displayName: safeName, bio: safeBio);
     _cache[profile.id] = updated;
-    await _storage.write(key: _storageKey(profile.id), value: jsonEncode(updated.toMap()));
+    await _storage.write(
+        key: _storageKey(profile.id), value: jsonEncode(updated.toMap()));
   }
 
   /// Clear in-memory and persistent cache for a user

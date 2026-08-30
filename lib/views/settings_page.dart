@@ -45,7 +45,8 @@ class _SettingsPageState extends State<SettingsPage> {
       final share = await _storage.read(key: _keyShareUsage);
       AdminProfile? profile;
       if (context.read<AuthService>().currentUser != null) {
-        profile = await AdminProfileService(storage: _storage).getCurrentUserProfile();
+        profile = await AdminProfileService(storage: _storage)
+            .getCurrentUserProfile();
       }
 
       // If no local display name and user is signed in, try fetch from profile service
@@ -56,7 +57,8 @@ class _SettingsPageState extends State<SettingsPage> {
             final profile = await AdminProfileService(
               storage: _storage,
             ).getCurrentUserProfile();
-            if (profile?.displayName != null && profile!.displayName!.isNotEmpty) {
+            if (profile?.displayName != null &&
+                profile!.displayName!.isNotEmpty) {
               dn = profile.displayName;
             }
           }
@@ -98,7 +100,8 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurações'), actions: [UserAppBarActions()]),
+      appBar: AppBar(
+          title: const Text('Configurações'), actions: [UserAppBarActions()]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Center(
@@ -107,114 +110,130 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                const Text('Perfil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: const InputDecoration(labelText: 'Nome de exibição', border: OutlineInputBorder()),
-                  controller: TextEditingController(text: _displayName),
-                  onChanged: (v) => _displayName = v,
-                  onSubmitted: (v) async => await _writeString(_keyDisplayName, v.trim()),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Bio',
-                    border: OutlineInputBorder(),
-                  ),
-                  controller: TextEditingController(text: _bio),
-                  onChanged: (value) => _bio = value,
-                ),
-                const SizedBox(height: 12),
-                ...['instagram', 'tiktok', 'twitter', 'whatsapp'].map(
-                  (network) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        labelText: network[0].toUpperCase() + network.substring(1),
-                        prefixIcon: Icon(_socialIcon(network)),
-                        border: const OutlineInputBorder(),
-                      ),
-                      controller: TextEditingController(
-                        text: _socialLinks[network] ?? '',
-                      ),
-                      onChanged: (value) => _socialLinks[network] = value.trim(),
+                    const Text('Perfil',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      decoration: const InputDecoration(
+                          labelText: 'Nome de exibição',
+                          border: OutlineInputBorder()),
+                      controller: TextEditingController(text: _displayName),
+                      onChanged: (v) => _displayName = v,
+                      onSubmitted: (v) async =>
+                          await _writeString(_keyDisplayName, v.trim()),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Preferências', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                SwitchListTile(
-                  title: const Text('Notificações'),
-                  value: _notificationsEnabled,
-                  onChanged: (v) async {
-                    setState(() => _notificationsEnabled = v);
-                    await _writeBool(_keyNotifications, v);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Tema escuro'),
-                  subtitle: const Text('Alterna a preferência de tema (aplicativo pode precisar reiniciar)') ,
-                  value: _darkTheme,
-                  onChanged: (v) async {
-                    setState(() => _darkTheme = v);
-                    await _writeBool(_keyDarkTheme, v);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Compartilhar dados de uso anônimos'),
-                  value: _shareUsage,
-                  onChanged: (v) async {
-                    setState(() => _shareUsage = v);
-                    await _writeBool(_keyShareUsage, v);
-                  },
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    // Persist display name locally
-                    final trimmed = _displayName.trim();
-                    await _writeString(_keyDisplayName, trimmed);
+                    const SizedBox(height: 12),
+                    TextField(
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Bio',
+                        border: OutlineInputBorder(),
+                      ),
+                      controller: TextEditingController(text: _bio),
+                      onChanged: (value) => _bio = value,
+                    ),
+                    const SizedBox(height: 12),
+                    ...['instagram', 'tiktok', 'twitter', 'whatsapp'].map(
+                      (network) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            labelText:
+                                network[0].toUpperCase() + network.substring(1),
+                            prefixIcon: Icon(_socialIcon(network)),
+                            border: const OutlineInputBorder(),
+                          ),
+                          controller: TextEditingController(
+                            text: _socialLinks[network] ?? '',
+                          ),
+                          onChanged: (value) =>
+                              _socialLinks[network] = value.trim(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Preferências',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    SwitchListTile(
+                      title: const Text('Notificações'),
+                      value: _notificationsEnabled,
+                      onChanged: (v) async {
+                        setState(() => _notificationsEnabled = v);
+                        await _writeBool(_keyNotifications, v);
+                      },
+                    ),
+                    SwitchListTile(
+                      title: const Text('Tema escuro'),
+                      subtitle: const Text(
+                          'Alterna a preferência de tema (aplicativo pode precisar reiniciar)'),
+                      value: _darkTheme,
+                      onChanged: (v) async {
+                        setState(() => _darkTheme = v);
+                        await _writeBool(_keyDarkTheme, v);
+                      },
+                    ),
+                    SwitchListTile(
+                      title: const Text('Compartilhar dados de uso anônimos'),
+                      value: _shareUsage,
+                      onChanged: (v) async {
+                        setState(() => _shareUsage = v);
+                        await _writeBool(_keyShareUsage, v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        // Persist display name locally
+                        final trimmed = _displayName.trim();
+                        await _writeString(_keyDisplayName, trimmed);
 
-                    // If user is logged in, update profile (Auth + Firestore)
-                    try {
-                      final auth = context.read<AuthService>();
-                      if (auth.currentUser != null) {
-                        await AdminProfileService(storage: _storage).updateProfile(
-                          displayName: trimmed,
-                          bio: _bio.trim(),
-                          socialLinks: Map<String, String>.from(_socialLinks),
-                        );
-                        // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
+                        // If user is logged in, update profile (Auth + Firestore)
                         try {
-                          await auth.reloadCurrentUser();
-                          // If a GoogleAuthProvider is registered, refresh it so listeners update
-                          try {
-                            final googleProvider = context.read<GoogleAuthProvider>();
-                            await googleProvider.refresh();
-                          } catch (_) {}
-                        } catch (_) {}
+                          final auth = context.read<AuthService>();
+                          if (auth.currentUser != null) {
+                            await AdminProfileService(storage: _storage)
+                                .updateProfile(
+                              displayName: trimmed,
+                              bio: _bio.trim(),
+                              socialLinks:
+                                  Map<String, String>.from(_socialLinks),
+                            );
+                            // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
+                            try {
+                              await auth.reloadCurrentUser();
+                              // If a GoogleAuthProvider is registered, refresh it so listeners update
+                              try {
+                                final googleProvider =
+                                    context.read<GoogleAuthProvider>();
+                                await googleProvider.refresh();
+                              } catch (_) {}
+                            } catch (_) {}
 
-                        AppFeedback.showSuccess(context, 'Preferências salvas e perfil atualizado');
-                        return;
-                      }
+                            AppFeedback.showSuccess(context,
+                                'Preferências salvas e perfil atualizado');
+                            return;
+                          }
+                        } catch (e) {
+                          // fall through to local save notification
+                        }
 
-                    } catch (e) {
-                      // fall through to local save notification
-                    }
-
-                    AppFeedback.showSuccess(context, 'Preferências salvas');
-                  },
-                  child: const Text('Salvar alterações'),
-                ),
-                const SizedBox(height: 24),
-                const Text('Privacidade', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                const Text('Gerencie suas preferências de privacidade e notificações aqui.'),
-              ],
-            ), // ListView
-          ), // ConstrainedBox
-        ), // Center
+                        AppFeedback.showSuccess(context, 'Preferências salvas');
+                      },
+                      child: const Text('Salvar alterações'),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('Privacidade',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    const Text(
+                        'Gerencie suas preferências de privacidade e notificações aqui.'),
+                  ],
+                ), // ListView
+              ), // ConstrainedBox
+            ), // Center
     );
   }
 }

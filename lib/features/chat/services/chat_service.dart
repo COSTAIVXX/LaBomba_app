@@ -24,7 +24,8 @@ class ChatService {
       String? text,
       String? stickerUrl,
       Map<String, dynamic>? meta}) async {
-    final col = _firestore.collection('chats').doc(roomId).collection('messages');
+    final col =
+        _firestore.collection('chats').doc(roomId).collection('messages');
     final doc = col.doc();
     final msg = ChatMessage(
       id: doc.id,

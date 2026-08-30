@@ -37,7 +37,8 @@ class _TermsPageState extends State<TermsPage> {
         return;
       }
 
-      final legacyValue = await widget.storageService.read(key: _legacyStorageKey);
+      final legacyValue =
+          await widget.storageService.read(key: _legacyStorageKey);
       if (legacyValue == '1') {
         await widget.storageService.write(key: _storageKey, value: '1');
         setState(() => _accepted = true);
@@ -71,9 +72,9 @@ class _TermsPageState extends State<TermsPage> {
           Text(
             'Termos de Uso',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: const Color(0xFF0F172A),
-              fontWeight: FontWeight.w700,
-            ),
+                  color: const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -96,9 +97,9 @@ class _TermsPageState extends State<TermsPage> {
           Text(
             'Política de Privacidade',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: const Color(0xFF0F172A),
-              fontWeight: FontWeight.w700,
-            ),
+                  color: const Color(0xFF0F172A),
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -145,7 +146,11 @@ class _TermsPageState extends State<TermsPage> {
               ),
               onPressed: _accepted && !_saving ? _accept : null,
               child: _saving
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Text('Aceitar e Continuar'),
             ),
           ),
@@ -198,7 +203,8 @@ class _TermsGateState extends State<TermsGate> {
         _checked = true;
       });
       if (_accepted) {
-        final onboarding = await widget.storageService.read(key: _onboardingKey);
+        final onboarding =
+            await widget.storageService.read(key: _onboardingKey);
         if (mounted) {
           Navigator.pushReplacementNamed(
             context,
@@ -213,7 +219,8 @@ class _TermsGateState extends State<TermsGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_checked) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_checked)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_accepted) return const SizedBox.shrink();
     return TermsPage(storageService: widget.storageService);
   }

@@ -9,7 +9,8 @@ class ContentService {
   // 1. Buscar as configurações gerais do evento do Firestore
   Future<Map<String, dynamic>> fetchEventConfig() async {
     try {
-      final doc = await _firestore.collection('site_config').doc('event_details').get();
+      final doc =
+          await _firestore.collection('site_config').doc('event_details').get();
       if (doc.exists && doc.data() != null) {
         return doc.data()!;
       }
@@ -42,13 +43,13 @@ class ContentService {
   Future<String> uploadMedia(Uint8List fileBytes, String fileName) async {
     try {
       final ref = _storage.ref().child('site_assets/$fileName');
-      
+
       // Metadados para garantir o tipo correto na web e mobile
       final metadata = SettableMetadata(contentType: 'image/png');
-      
+
       final uploadTask = await ref.putData(fileBytes, metadata);
       final downloadUrl = await uploadTask.ref.getDownloadURL();
-      
+
       return downloadUrl;
     } catch (e) {
       debugPrint('Erro no upload para o Storage: $e');
@@ -57,7 +58,8 @@ class ContentService {
   }
 
   // 4. Salvar referência da imagem da galeria no Firestore
-  Future<void> updateGalleryItem(String year, String imageUrl, String tag) async {
+  Future<void> updateGalleryItem(
+      String year, String imageUrl, String tag) async {
     try {
       await _firestore.collection('gallery').doc(year).set({
         'year': year,

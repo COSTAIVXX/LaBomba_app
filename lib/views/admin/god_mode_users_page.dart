@@ -10,14 +10,16 @@ class GodModeUsersPage extends StatefulWidget {
 }
 
 class _GodModeUsersPageState extends State<GodModeUsersPage> {
-  final CollectionReference _clientsCollection =
-      FirebaseFirestore.instance.collection('clients'); // Default collection name
+  final CollectionReference _clientsCollection = FirebaseFirestore.instance
+      .collection('clients'); // Default collection name
 
   void _toggleBan(String clientId, bool currentBanStatus) {
     // Exemplo de como um banimento funcionaria (adicionando um field 'isBanned' no Firestore)
     _clientsCollection.doc(clientId).update({'isBanned': !currentBanStatus});
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(!currentBanStatus ? 'Usuário banido' : 'Usuário desbanido')),
+      SnackBar(
+          content:
+              Text(!currentBanStatus ? 'Usuário banido' : 'Usuário desbanido')),
     );
   }
 
@@ -31,13 +33,17 @@ class _GodModeUsersPageState extends State<GodModeUsersPage> {
         }
 
         if (snapshot.hasError) {
-          return const Center(child: Text('Erro ao carregar usuários', style: TextStyle(color: Colors.red)));
+          return const Center(
+              child: Text('Erro ao carregar usuários',
+                  style: TextStyle(color: Colors.red)));
         }
 
         final docs = snapshot.data?.docs ?? [];
 
         if (docs.isEmpty) {
-          return const Center(child: Text('Nenhum usuário encontrado.', style: TextStyle(color: Colors.grey)));
+          return const Center(
+              child: Text('Nenhum usuário encontrado.',
+                  style: TextStyle(color: Colors.grey)));
         }
 
         return ListView.builder(
@@ -57,12 +63,18 @@ class _GodModeUsersPageState extends State<GodModeUsersPage> {
                   backgroundColor: isBanned ? Colors.red : Colors.grey[800],
                   child: const Icon(Icons.person, color: Colors.white),
                 ),
-                title: Text(client.fullName, style: TextStyle(color: isBanned ? Colors.red : Colors.white, fontWeight: FontWeight.bold)),
+                title: Text(client.fullName,
+                    style: TextStyle(
+                        color: isBanned ? Colors.red : Colors.white,
+                        fontWeight: FontWeight.bold)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(client.phone, style: const TextStyle(color: Colors.white70)),
-                    Text('ID: ${client.id}', style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                    Text(client.phone,
+                        style: const TextStyle(color: Colors.white70)),
+                    Text('ID: ${client.id}',
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 10)),
                   ],
                 ),
                 trailing: PopupMenuButton<String>(
@@ -76,11 +88,14 @@ class _GodModeUsersPageState extends State<GodModeUsersPage> {
                   itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'ban',
-                      child: Text(isBanned ? 'Desbanir Usuário' : 'Banir Usuário', style: const TextStyle(color: Colors.white)),
+                      child: Text(
+                          isBanned ? 'Desbanir Usuário' : 'Banir Usuário',
+                          style: const TextStyle(color: Colors.white)),
                     ),
                     const PopupMenuItem(
                       value: 'promote',
-                      child: Text('Promover a Admin', style: TextStyle(color: Colors.white)),
+                      child: Text('Promover a Admin',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),

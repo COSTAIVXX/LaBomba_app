@@ -18,8 +18,7 @@ class _FoliaoDirectoryPageState extends State<FoliaoDirectoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUid =
-        context.watch<GoogleAuthProvider>().currentUserData?.uid;
+    final currentUid = context.watch<GoogleAuthProvider>().currentUserData?.uid;
 
     return Scaffold(
       appBar: AppBar(
@@ -63,17 +62,16 @@ class _FoliaoDirectoryPageState extends State<FoliaoDirectoryPage> {
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: foliaos.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 8),
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final foliao = foliaos[index];
                           return Card(
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundImage: foliao.photoUrl?.isNotEmpty ==
-                                        true
-                                    ? NetworkImage(foliao.photoUrl!)
-                                    : null,
+                                backgroundImage:
+                                    foliao.photoUrl?.isNotEmpty == true
+                                        ? NetworkImage(foliao.photoUrl!)
+                                        : null,
                                 child: foliao.photoUrl?.isNotEmpty == true
                                     ? null
                                     : Text(foliao.displayName[0].toUpperCase()),

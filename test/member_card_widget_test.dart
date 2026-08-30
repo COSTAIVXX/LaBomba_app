@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:labomba_app/features/social/views/community_page.dart';
 
 void main() {
-  testWidgets('MemberCard displays name, bio, vip and presence and chat button navigates', (WidgetTester tester) async {
+  testWidgets(
+      'MemberCard displays name, bio, vip and presence and chat button navigates',
+      (WidgetTester tester) async {
     const userId = 'u1';
     const name = 'Maria Folia';
     const bio = 'Foliã do bloco';
@@ -14,7 +16,15 @@ void main() {
         '/chat': (context) => const Scaffold(body: Text('Chat opened')),
         '/profile/u1': (context) => const Scaffold(body: Text('Profile u1')),
       },
-      home: Scaffold(body: Center(child: MemberCard(userId: userId, name: name, avatarUrl: null, presence: presence, vip: true, bio: bio))),
+      home: Scaffold(
+          body: Center(
+              child: MemberCard(
+                  userId: userId,
+                  name: name,
+                  avatarUrl: null,
+                  presence: presence,
+                  vip: true,
+                  bio: bio))),
     );
 
     await tester.pumpWidget(widget);

@@ -59,7 +59,11 @@ class _ReactionBarState extends State<ReactionBar> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
-                children: [Text(e, style: const TextStyle(fontSize: 16)), const SizedBox(width: 6), Text('$count', style: const TextStyle(color: Colors.white70))],
+                children: [
+                  Text(e, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 6),
+                  Text('$count', style: const TextStyle(color: Colors.white70))
+                ],
               ),
             ),
           ),

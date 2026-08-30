@@ -9,7 +9,8 @@ class StorageMemoryService implements MemoryService {
   final String _key;
   String get _backupKey => '${_key}_backup';
 
-  StorageMemoryService(this._storage, {String key = 'memories_store'}) : _key = key;
+  StorageMemoryService(this._storage, {String key = 'memories_store'})
+      : _key = key;
 
   Future<List<Memory>> _readAll() async {
     final raw = await _storage.read(key: _key);
@@ -41,7 +42,8 @@ class StorageMemoryService implements MemoryService {
       throw const FormatException('Invalid memories cache format');
     }
     return decoded
-        .map((entry) => Memory.fromJson(Map<String, dynamic>.from(entry as Map)))
+        .map(
+            (entry) => Memory.fromJson(Map<String, dynamic>.from(entry as Map)))
         .toList();
   }
 

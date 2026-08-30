@@ -12,9 +12,14 @@ class RankingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Ranking Semanal')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _fs.collection('userStats').orderBy('score', descending: true).limit(50).snapshots(),
+        stream: _fs
+            .collection('userStats')
+            .orderBy('score', descending: true)
+            .limit(50)
+            .snapshots(),
         builder: (context, snap) {
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snap.hasData)
+            return const Center(child: CircularProgressIndicator());
           final docs = snap.data!.docs;
           return ListView.builder(
             itemCount: docs.length,

@@ -57,7 +57,8 @@ class Memory {
         title: json['title'] as String,
         description: json['description'] as String?,
         date: DateTime.parse(json['date'] as String),
-        imageUrls: (json['imageUrls'] as List<dynamic>?)?.cast<String>() ?? const [],
+        imageUrls:
+            (json['imageUrls'] as List<dynamic>?)?.cast<String>() ?? const [],
         createdAt: DateTime.parse(json['createdAt'] as String),
         ownerId: json['ownerId'] as String?,
       );

@@ -31,7 +31,8 @@ class PostService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
-          .map((doc) => Post.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map(
+              (doc) => Post.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     });
   }

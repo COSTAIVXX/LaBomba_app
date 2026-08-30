@@ -61,10 +61,11 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
   void initState() {
     super.initState();
     if (widget.isVideo) {
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.media.path))
-        ..initialize().then((_) {
-          if (mounted) setState(() {});
-        });
+      _videoController =
+          VideoPlayerController.networkUrl(Uri.parse(widget.media.path))
+            ..initialize().then((_) {
+              if (mounted) setState(() {});
+            });
     }
   }
 
@@ -105,7 +106,15 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
             .map(
               (gif) => InkWell(
                 onTap: () => Navigator.pop(context, gif),
-                child: CachedNetworkImage(imageUrl: gif, fit: BoxFit.cover, placeholder: (_, __) => Shimmer.fromColors(baseColor: Colors.grey.shade300, highlightColor: Colors.grey.shade100, child: Container(color: Colors.grey.shade300)), errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
+                child: CachedNetworkImage(
+                    imageUrl: gif,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey.shade100,
+                        child: Container(color: Colors.grey.shade300)),
+                    errorWidget: (_, __, ___) =>
+                        const Icon(Icons.broken_image_outlined)),
               ),
             )
             .toList(),
@@ -135,7 +144,9 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
         if (diff < _uploadCooldown) {
           final remain = _uploadCooldown - diff;
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aguarde ${remain.inSeconds}s antes de enviar outra mídia.')));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    'Aguarde ${remain.inSeconds}s antes de enviar outra mídia.')));
           }
           return;
         }
@@ -146,72 +157,80 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
         'users/${user.uid}/memories/${const Uuid().v4()}.$extension',
       );
 
-        try {
-          if (widget.isVideo) {
-            final File original = File(widget.media.path);
-            final File compressed = await MediaCompressor.compressVideoFile(original);
-            await ref.putFile(compressed);
-          } else {
-            final File original = File(widget.media.path);
-            final Uint8List compressed = await MediaCompressor.compressImageFile(original);
-            await ref.putData(
-              compressed,
-              SettableMetadata(contentType: 'image/jpeg'),
+      try {
+        if (widget.isVideo) {
+          final File original = File(widget.media.path);
+          final File compressed =
+              await MediaCompressor.compressVideoFile(original);
+          await ref.putFile(compressed);
+        } else {
+          final File original = File(widget.media.path);
+          final Uint8List compressed =
+              await MediaCompressor.compressImageFile(original);
+          await ref.putData(
+            compressed,
+            SettableMetadata(contentType: 'image/jpeg'),
           );
-          }
-        } catch (e) {
-          // Wrap upload/compression errors to be handled below
-          throw Exception('Erro durante compressão/upload: $e');
         }
-
-        final url = await ref.getDownloadURL();
-        final caption = _captionController.text.trim();
-        final mediaUrls = [url, if (_selectedGif != null) _selectedGif!];
-        await context.read<MemoryProvider>().addOrUpdate(
-              Memory(
-                id: const Uuid().v4(),
-                title: caption.isEmpty ? 'Memória da folia' : caption,
-                description: caption.isEmpty ? null : caption,
-                imageUrls: mediaUrls,
-                ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
-              ),
-            );
-
-        // Persist last upload time for rate limiting
-        await _storageService.write(key: lastKey, value: DateTime.now().millisecondsSinceEpoch.toString());
-
-        if (mounted) Navigator.popUntil(context, ModalRoute.withName('/memories'));
       } catch (e) {
-        if (mounted) await _showErrorRetry('Falha ao publicar mídia: ${e.toString()}', _publish);
-      } finally {
-        if (mounted) setState(() => _publishing = false);
+        // Wrap upload/compression errors to be handled below
+        throw Exception('Erro durante compressão/upload: $e');
       }
-    }
 
-    Future<void> _showErrorRetry(String message, Future<void> Function() retry) async {
-      return showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Erro ao enviar mídia'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+      final url = await ref.getDownloadURL();
+      final caption = _captionController.text.trim();
+      final mediaUrls = [url, if (_selectedGif != null) _selectedGif!];
+      await context.read<MemoryProvider>().addOrUpdate(
+            Memory(
+              id: const Uuid().v4(),
+              title: caption.isEmpty ? 'Memória da folia' : caption,
+              description: caption.isEmpty ? null : caption,
+              imageUrls: mediaUrls,
+              ownerId: context.read<GoogleAuthProvider>().currentUserData?.uid,
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // allow retry after brief delay so UI can update
-                Future.delayed(const Duration(milliseconds: 100), () => retry());
-              },
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      );
+          );
+
+      // Persist last upload time for rate limiting
+      await _storageService.write(
+          key: lastKey,
+          value: DateTime.now().millisecondsSinceEpoch.toString());
+
+      if (mounted)
+        Navigator.popUntil(context, ModalRoute.withName('/memories'));
+    } catch (e) {
+      if (mounted)
+        await _showErrorRetry(
+            'Falha ao publicar mídia: ${e.toString()}', _publish);
+    } finally {
+      if (mounted) setState(() => _publishing = false);
     }
+  }
+
+  Future<void> _showErrorRetry(
+      String message, Future<void> Function() retry) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Erro ao enviar mídia'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // allow retry after brief delay so UI can update
+              Future.delayed(const Duration(milliseconds: 100), () => retry());
+            },
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _preview() {
     if (widget.isVideo) {
@@ -256,61 +275,63 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: ColorFiltered(
-              colorFilter: _filters[_filterIndex],
-              child: _preview(),
-            ),
-          ),
-          const SizedBox(height: 18),
-          const Text('Filtro carnavalesco',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          Wrap(
-            spacing: 8,
-            children: List.generate(
-              _filters.length,
-              (index) => ChoiceChip(
-                label: Text(index == 0 ? 'Original' : 'Folia $index'),
-                selected: _filterIndex == index,
-                onSelected: (_) => setState(() => _filterIndex = index),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: ColorFiltered(
+                  colorFilter: _filters[_filterIndex],
+                  child: _preview(),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          TextField(
-            controller: _captionController,
-            maxLines: 3,
-            maxLength: _maxCaptionLength,
-            onChanged: _validateCaption,
-            textInputAction: TextInputAction.newline,
-            decoration: const InputDecoration(
-              labelText: 'Legenda rápida',
-              hintText: 'Conte como foi esse momento...',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          if (_validationMessage != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                _validationMessage!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              const SizedBox(height: 18),
+              const Text('Filtro carnavalesco',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 8,
+                children: List.generate(
+                  _filters.length,
+                  (index) => ChoiceChip(
+                    label: Text(index == 0 ? 'Original' : 'Folia $index'),
+                    selected: _filterIndex == index,
+                    onSelected: (_) => setState(() => _filterIndex = index),
+                  ),
+                ),
               ),
-            ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: _pickGif,
-            icon: const Icon(Icons.gif_box_outlined),
-            label: Text(_selectedGif == null ? 'Adicionar GIF' : 'GIF adicionado'),
-          ),
-          const SizedBox(height: 18),
-          FilledButton.icon(
-            onPressed: _publishing ? null : _publish,
-            icon: const Icon(Icons.publish),
-            label: const Text('Publicar memória'),
-          ),
-        ],
+              const SizedBox(height: 18),
+              TextField(
+                controller: _captionController,
+                maxLines: 3,
+                maxLength: _maxCaptionLength,
+                onChanged: _validateCaption,
+                textInputAction: TextInputAction.newline,
+                decoration: const InputDecoration(
+                  labelText: 'Legenda rápida',
+                  hintText: 'Conte como foi esse momento...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              if (_validationMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    _validationMessage!,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _pickGif,
+                icon: const Icon(Icons.gif_box_outlined),
+                label: Text(
+                    _selectedGif == null ? 'Adicionar GIF' : 'GIF adicionado'),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: _publishing ? null : _publish,
+                icon: const Icon(Icons.publish),
+                label: const Text('Publicar memória'),
+              ),
+            ],
           ),
         ),
       ),

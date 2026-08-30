@@ -11,14 +11,21 @@ void main() {
 
     setUp(() {
       fakeStorage = FakeStorageService();
-      provider = MemoryProvider(service: StorageMemoryService(fakeStorage, key: 'prov_memories'));
+      provider = MemoryProvider(
+          service: StorageMemoryService(fakeStorage, key: 'prov_memories'));
     });
 
-    test('load returns empty initially and addOrUpdate stores memory', () async {
+    test('load returns empty initially and addOrUpdate stores memory',
+        () async {
       await provider.load();
       expect(provider.memories, isEmpty);
 
-      final m = Memory(id: 'a1', title: 'Test', description: 'x', imageUrls: [], createdAt: DateTime.now());
+      final m = Memory(
+          id: 'a1',
+          title: 'Test',
+          description: 'x',
+          imageUrls: [],
+          createdAt: DateTime.now());
       await provider.addOrUpdate(m);
       expect(provider.memories.length, 1);
       expect(provider.memories.first.id, 'a1');

@@ -83,8 +83,10 @@ void main() {
       debugPrint('Erro ao inicializar o Firebase: $e');
       // Report initialization error to Crashlytics/Observability if available
       try {
-        await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
-        await ObservabilityService.logEvent('firebase_initialization_failure', parameters: {'error': e.toString()});
+        await ObservabilityService.reportError(e, s,
+            reason: 'Main.firebaseInitialize');
+        await ObservabilityService.logEvent('firebase_initialization_failure',
+            parameters: {'error': e.toString()});
       } catch (_) {}
     }
 
@@ -107,7 +109,8 @@ void main() {
         // PlatformDispatcher.instance.onError returns a bool that indicates whether the
         // error was handled. We return true after reporting to avoid default propagation.
         PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-          ObservabilityService.reportError(error, stack, reason: 'PlatformDispatcher.onError');
+          ObservabilityService.reportError(error, stack,
+              reason: 'PlatformDispatcher.onError');
           return true;
         };
       } catch (_) {}
@@ -127,7 +130,8 @@ void main() {
         await ObservabilityService.logEvent('remote_config_success');
       } catch (e, s) {
         try {
-          await ObservabilityService.reportError(e, s, reason: 'Main.remoteConfigInit');
+          await ObservabilityService.reportError(e, s,
+              reason: 'Main.remoteConfigInit');
         } catch (_) {}
       }
 
@@ -135,7 +139,8 @@ void main() {
     } catch (e, s) {
       debugPrint('Observability init failed: $e');
       try {
-        await ObservabilityService.reportError(e, s, reason: 'Main.observabilityInit');
+        await ObservabilityService.reportError(e, s,
+            reason: 'Main.observabilityInit');
       } catch (_) {}
     }
 
@@ -147,7 +152,8 @@ void main() {
     } catch (e, s) {
       debugPrint('GoogleSignIn initialization failed: $e');
       try {
-        await ObservabilityService.reportError(e, s, reason: 'Main.googleSignInInit');
+        await ObservabilityService.reportError(e, s,
+            reason: 'Main.googleSignInInit');
       } catch (_) {}
     }
 
@@ -157,11 +163,13 @@ void main() {
     final clientRepository = SecureClientRepository(secureStorage);
     await ObservabilityService.logEvent('client_repository_created');
 
-    runApp(LaBombaApp(repository: clientRepository, storageService: secureStorage));
+    runApp(LaBombaApp(
+        repository: clientRepository, storageService: secureStorage));
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
-      await ObservabilityService.reportError(error, stack, reason: 'Main.uncaughtError');
+      await ObservabilityService.reportError(error, stack,
+          reason: 'Main.uncaughtError');
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     } catch (_) {}
   });
@@ -173,7 +181,8 @@ class LaBombaApp extends StatefulWidget {
   final StorageService storageService;
 
   // Exige o repositório e storage no construtor
-  const LaBombaApp({super.key, required this.repository, required this.storageService});
+  const LaBombaApp(
+      {super.key, required this.repository, required this.storageService});
 
   @override
   _LaBombaAppState createState() => _LaBombaAppState();
@@ -201,7 +210,8 @@ class _LaBombaAppState extends State<LaBombaApp> {
         Provider<StorageService>(create: (_) => widget.storageService),
 
         ChangeNotifierProvider(
-          create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
+          create: (context) => admin_provider.AdminAuthProvider(
+              authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
           // 4. Injeta o repositório pronto para o ClientProvider usar!
@@ -211,14 +221,17 @@ class _LaBombaAppState extends State<LaBombaApp> {
           create: (_) => ShopProvider(),
         ),
         ChangeNotifierProvider(
-          create: (context) => GoogleAuthProvider(authService: context.read<AuthService>()),
+          create: (context) =>
+              GoogleAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
-          create: (context) => EventConfigProvider(authService: context.read<AuthService>()),
+          create: (context) =>
+              EventConfigProvider(authService: context.read<AuthService>()),
         ),
         // Memories provider (storage-backed)
         ChangeNotifierProvider(
-          create: (context) => MemoryProvider(service: StorageMemoryService(widget.storageService)),
+          create: (context) => MemoryProvider(
+              service: StorageMemoryService(widget.storageService)),
         ),
         // Chat provider (real-time)
         ChangeNotifierProvider(
@@ -252,10 +265,12 @@ class _LaBombaAppState extends State<LaBombaApp> {
               );
               debugPrint('AUTOTEST: master sign-in result: ${result != null}');
               final currentUser = authService.currentUser;
-              debugPrint('AUTOTEST: currentUser present: ${currentUser != null}');
+              debugPrint(
+                  'AUTOTEST: currentUser present: ${currentUser != null}');
               final token = await authService.getIdToken(forceRefresh: true);
               debugPrint('AUTOTEST: idToken present: ${token != null}');
-              debugPrint('AUTOTEST: authStatus: ${authService.authStatus.value}');
+              debugPrint(
+                  'AUTOTEST: authStatus: ${authService.authStatus.value}');
               final isAdmin = await authService.isAdminAuthenticated();
               debugPrint('AUTOTEST: isAdminAuthenticated: $isAdmin');
             } catch (e) {
@@ -271,7 +286,9 @@ class _LaBombaAppState extends State<LaBombaApp> {
           themeMode: themeProv.themeMode,
           // Firebase Analytics navigator observer to automatically log screen transitions
           navigatorObservers: [
-            FirebaseAnalyticsObserver(analytics: ObservabilityService.analytics ?? FirebaseAnalytics.instance),
+            FirebaseAnalyticsObserver(
+                analytics: ObservabilityService.analytics ??
+                    FirebaseAnalytics.instance),
           ],
           initialRoute: '/splash',
           routes: {
@@ -291,19 +308,27 @@ class _LaBombaAppState extends State<LaBombaApp> {
                 ),
             '/chat': (context) => MemberAccessGate(
                   child: ChatPage(
-                    privateUserId: ModalRoute.of(context)?.settings.arguments as String?,
+                    privateUserId:
+                        ModalRoute.of(context)?.settings.arguments as String?,
                   ),
                 ),
             '/foliaos': (context) => const MemberAccessGate(
                   child: FoliaoDirectoryPage(),
                 ),
-            '/settings': (context) => const MemberAccessGate(child: SettingsHubPage()),
-            '/settings/profile': (context) => const MemberAccessGate(child: SettingsPage()),
-            '/settings/theme': (context) => const MemberAccessGate(child: SettingsThemePage()),
-            '/settings/privacy': (context) => const MemberAccessGate(child: SettingsPrivacyPage()),
-            '/settings/privacy/data': (context) => const MemberAccessGate(child: PrivacyDataManagementPage()),
-            '/settings/sound-alerts': (context) => const MemberAccessGate(child: SoundAlertsSettingsPage()),
-            '/settings/street-mode': (context) => const MemberAccessGate(child: StreetModeSettingsPage()),
+            '/settings': (context) =>
+                const MemberAccessGate(child: SettingsHubPage()),
+            '/settings/profile': (context) =>
+                const MemberAccessGate(child: SettingsPage()),
+            '/settings/theme': (context) =>
+                const MemberAccessGate(child: SettingsThemePage()),
+            '/settings/privacy': (context) =>
+                const MemberAccessGate(child: SettingsPrivacyPage()),
+            '/settings/privacy/data': (context) =>
+                const MemberAccessGate(child: PrivacyDataManagementPage()),
+            '/settings/sound-alerts': (context) =>
+                const MemberAccessGate(child: SoundAlertsSettingsPage()),
+            '/settings/street-mode': (context) =>
+                const MemberAccessGate(child: StreetModeSettingsPage()),
             '/about': (context) => const AboutAndTermsPage(),
             '/profile': (context) => MemberAccessGate(
                   child: profile_feature.UserProfilePage(),
@@ -311,23 +336,30 @@ class _LaBombaAppState extends State<LaBombaApp> {
             '/social/feed': (context) => const MemberAccessGate(
                   child: SocialFeedPage(),
                 ),
-            '/community': (context) => const MemberAccessGate(child: CommunityPage()),
-            '/groups': (context) => const MemberAccessGate(child: GroupChannelPage()),
+            '/community': (context) =>
+                const MemberAccessGate(child: CommunityPage()),
+            '/groups': (context) =>
+                const MemberAccessGate(child: GroupChannelPage()),
             '/notifications': (context) => const MemberAccessGate(
                   child: NotificationsPage(),
                 ),
-            '/onboarding': (context) => OnboardingPage(storageService: storageService),
+            '/onboarding': (context) =>
+                OnboardingPage(storageService: storageService),
             '/admin/moderation': (context) => const AdminModerationPage(),
             '/admin/god-mode': (context) {
-              if (!context.watch<admin_provider.AdminAuthProvider>().isAuthenticated) {
+              if (!context
+                  .watch<admin_provider.AdminAuthProvider>()
+                  .isAuthenticated) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+                  if (context.mounted)
+                    Navigator.pushReplacementNamed(context, '/login');
                 });
                 return const Scaffold(body: SizedBox.shrink());
               }
               return const GodModeDashboard();
             },
-            '/admin/master-developer': (context) => const MasterDeveloperDashboardPage(),
+            '/admin/master-developer': (context) =>
+                const MasterDeveloperDashboardPage(),
             '/badge': (context) => const BadgeGeneratorPage(),
             '/terms': (context) => TermsPage(storageService: storageService),
             '/privacy': (context) => const PrivacyPage(),
@@ -337,25 +369,33 @@ class _LaBombaAppState extends State<LaBombaApp> {
             // Support /profile and /profile/{userId}
             try {
               final uri = Uri.parse(name);
-              if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'profile') {
+              if (uri.pathSegments.isNotEmpty &&
+                  uri.pathSegments[0] == 'profile') {
                 if (uri.pathSegments.length == 1) {
                   return MaterialPageRoute(
-                      builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage()));
+                      builder: (ctx) => MemberAccessGate(
+                          child: profile_feature.UserProfilePage()));
                 }
                 if (uri.pathSegments.length >= 2) {
                   final userId = uri.pathSegments[1];
                   return MaterialPageRoute(
-                      builder: (ctx) => MemberAccessGate(child: profile_feature.UserProfilePage(userId: userId)));
+                      builder: (ctx) => MemberAccessGate(
+                          child:
+                              profile_feature.UserProfilePage(userId: userId)));
                 }
               }
               // Support /group/{groupId}
-              if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'group') {
+              if (uri.pathSegments.isNotEmpty &&
+                  uri.pathSegments[0] == 'group') {
                 if (uri.pathSegments.length >= 2) {
                   final groupId = uri.pathSegments[1];
                   return MaterialPageRoute(
-                      builder: (ctx) => MemberAccessGate(child: GroupChannelPage(groupId: groupId)));
+                      builder: (ctx) => MemberAccessGate(
+                          child: GroupChannelPage(groupId: groupId)));
                 }
-                return MaterialPageRoute(builder: (ctx) => MemberAccessGate(child: GroupChannelPage()));
+                return MaterialPageRoute(
+                    builder: (ctx) =>
+                        MemberAccessGate(child: GroupChannelPage()));
               }
             } catch (_) {}
             return null;

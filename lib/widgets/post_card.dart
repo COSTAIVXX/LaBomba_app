@@ -36,8 +36,11 @@ class PostCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: Colors.grey[800],
-                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                child: avatarUrl == null
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
               ),
               const SizedBox(width: 12.0),
               Expanded(
@@ -82,7 +85,8 @@ class PostCard extends StatelessWidget {
               Expanded(
                 child: postId == null
                     ? ReactionBar(onChanged: (emoji, added) {
-                        debugPrint('Reaction $emoji toggled: $added (no postId)');
+                        debugPrint(
+                            'Reaction $emoji toggled: $added (no postId)');
                       })
                     : StreamBuilder<Map<String, int>>(
                         stream: ReactionService().reactionsCountStream(postId!),
@@ -94,14 +98,21 @@ class PostCard extends StatelessWidget {
                               final auth = context.read<AuthService>();
                               final uid = auth.currentUser?.uid;
                               if (uid == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Faça login para reagir.')));
                                 return;
                               }
                               try {
-                                await ReactionService().toggleReactionOnPost(postId: postId!, userId: uid, emoji: emoji);
+                                await ReactionService().toggleReactionOnPost(
+                                    postId: postId!, userId: uid, emoji: emoji);
                               } catch (e) {
                                 debugPrint('Reaction update failed: $e');
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao atualizar reação')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Falha ao atualizar reação')));
                               }
                             },
                           );
@@ -120,15 +131,23 @@ class PostCard extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('Comentários', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const Text('Comentários',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 12),
-                                const Text('Comentários ainda não implementados.'),
+                                const Text(
+                                    'Comentários ainda não implementados.'),
                                 const SizedBox(height: 12),
                                 Row(children: [
                                   Expanded(
-                                    child: TextField(decoration: const InputDecoration(hintText: 'Escreva um comentário...')),
+                                    child: TextField(
+                                        decoration: const InputDecoration(
+                                            hintText:
+                                                'Escreva um comentário...')),
                                   ),
-                                  IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.send)),
+                                  IconButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      icon: const Icon(Icons.send)),
                                 ])
                               ],
                             ),

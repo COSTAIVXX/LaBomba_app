@@ -34,8 +34,10 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               if (!isAdminCommon) return const SizedBox.shrink();
               return TextButton.icon(
                 onPressed: () => Navigator.pushNamed(context, '/admin/clients'),
-                icon: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white),
-                label: const Text('Admin', style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.admin_panel_settings_rounded,
+                    color: Colors.white),
+                label:
+                    const Text('Admin', style: TextStyle(color: Colors.white)),
               );
             },
           ),
@@ -67,7 +69,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
         unselectedItemColor: Colors.white54,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
-          BottomNavigationBarItem(icon: Icon(Icons.card_membership), label: 'Passaportes'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.card_membership), label: 'Passaportes'),
           BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Comunidade'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
@@ -87,10 +90,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
       ),
     );
 
-
 // ----------------------- Tab Widgets -----------------------
   }
-
 }
 
 class _FeedTab extends StatelessWidget {
@@ -105,23 +106,37 @@ class _FeedTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Mural de Avisos', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('Mural de Avisos',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Expanded(
                   child: Card(
                     color: const Color(0xFF111827),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: ListView.separated(
                         itemCount: 6,
-                        separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                        separatorBuilder: (_, __) =>
+                            const Divider(color: Colors.white10),
                         itemBuilder: (context, index) {
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text('Aviso ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                            subtitle: Text('Detalhes do aviso número ${index + 1}', style: const TextStyle(color: Colors.white70)),
-                            leading: CircleAvatar(backgroundColor: AppTheme.primary, child: const Icon(Icons.campaign, color: Colors.white)),
+                            title: Text('Aviso ${index + 1}',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700)),
+                            subtitle: Text(
+                                'Detalhes do aviso número ${index + 1}',
+                                style: const TextStyle(color: Colors.white70)),
+                            leading: CircleAvatar(
+                                backgroundColor: AppTheme.primary,
+                                child: const Icon(Icons.campaign,
+                                    color: Colors.white)),
                           );
                         },
                       ),
@@ -137,12 +152,17 @@ class _FeedTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Feed', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('Feed',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Expanded(
                   child: Card(
                     color: const Color(0xFF0B1220),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: ListView.builder(
@@ -158,15 +178,25 @@ class _FeedTab extends StatelessWidget {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CircleAvatar(radius: 22, backgroundColor: Colors.indigoAccent, child: Text('${index + 1}')),
+                                CircleAvatar(
+                                    radius: 22,
+                                    backgroundColor: Colors.indigoAccent,
+                                    child: Text('${index + 1}')),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('Usuário ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                                      Text('Usuário ${index + 1}',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800)),
                                       const SizedBox(height: 6),
-                                      Text('Comentário de exemplo no feed número ${index + 1}.', style: const TextStyle(color: Colors.white70)),
+                                      Text(
+                                          'Comentário de exemplo no feed número ${index + 1}.',
+                                          style: const TextStyle(
+                                              color: Colors.white70)),
                                     ],
                                   ),
                                 )
@@ -197,15 +227,22 @@ class _VipTab extends StatelessWidget {
         children: [
           Card(
             color: const Color(0xFF1E1B4B),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Passaportes VIP', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                  Text('Passaportes VIP',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800)),
                   SizedBox(height: 8),
-                  Text('Garanta seu lugar no Bloco La Bomba 2027. Lotes limitados.', style: TextStyle(color: Colors.white70)),
+                  Text(
+                      'Garanta seu lugar no Bloco La Bomba 2027. Lotes limitados.',
+                      style: TextStyle(color: Colors.white70)),
                 ],
               ),
             ),
@@ -214,22 +251,35 @@ class _VipTab extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.6, crossAxisSpacing: 12, mainAxisSpacing: 12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.6,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12),
             itemCount: 4,
             itemBuilder: (context, index) {
               return Card(
                 color: const Color(0xFF0B1220),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Lote ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                      Text('Lote ${index + 1}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800)),
                       const SizedBox(height: 6),
-                      Text('Ingressos restantes: ${100 - index * 12}', style: const TextStyle(color: Colors.white70)),
+                      Text('Ingressos restantes: ${100 - index * 12}',
+                          style: const TextStyle(color: Colors.white70)),
                       const Spacer(),
-                      ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary), child: const Text('Reservar'))
+                      ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary),
+                          child: const Text('Reservar'))
                     ],
                   ),
                 ),
@@ -250,20 +300,30 @@ class _CommunityTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Comunidade', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Comunidade',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Expanded(
             child: Card(
               color: const Color(0xFF0B1220),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: ListView.separated(
                 padding: const EdgeInsets.all(12),
                 itemCount: 20,
-                separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                separatorBuilder: (_, __) =>
+                    const Divider(color: Colors.white10),
                 itemBuilder: (context, index) => ListTile(
-                  leading: CircleAvatar(backgroundColor: Colors.deepPurpleAccent, child: Text('${index + 1}')),
-                  title: Text('Foliao ${index + 1}', style: const TextStyle(color: Colors.white)),
-                  subtitle: Text('Status: online', style: const TextStyle(color: Colors.white70)),
+                  leading: CircleAvatar(
+                      backgroundColor: Colors.deepPurpleAccent,
+                      child: Text('${index + 1}')),
+                  title: Text('Foliao ${index + 1}',
+                      style: const TextStyle(color: Colors.white)),
+                  subtitle: Text('Status: online',
+                      style: const TextStyle(color: Colors.white70)),
                 ),
               ),
             ),
@@ -286,19 +346,29 @@ class _ProfileTab extends StatelessWidget {
         children: [
           Card(
             color: const Color(0xFF111827),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  CircleAvatar(radius: 36, backgroundColor: Colors.indigoAccent, child: Text(user?.displayName != null ? user!.displayName![0] : '?')),
+                  CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.indigoAccent,
+                      child: Text(user?.displayName != null
+                          ? user!.displayName![0]
+                          : '?')),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(user?.displayName ?? 'Usuário', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                      Text(user?.displayName ?? 'Usuário',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800)),
                       const SizedBox(height: 6),
-                      Text(user?.email ?? '', style: const TextStyle(color: Colors.white70)),
+                      Text(user?.email ?? '',
+                          style: const TextStyle(color: Colors.white70)),
                     ],
                   )
                 ],
@@ -306,7 +376,10 @@ class _ProfileTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          FilledButton.icon(onPressed: () => Navigator.pushNamed(context, '/settings'), icon: const Icon(Icons.settings), label: const Text('Configurações')),
+          FilledButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/settings'),
+              icon: const Icon(Icons.settings),
+              label: const Text('Configurações')),
         ],
       ),
     );

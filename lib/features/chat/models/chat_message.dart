@@ -32,7 +32,9 @@ class ChatMessage {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     DateTime created;
     try {
-      created = DateTime.parse(data['createdAt'] as String? ?? DateTime.now().toUtc().toIso8601String()).toLocal();
+      created = DateTime.parse(data['createdAt'] as String? ??
+              DateTime.now().toUtc().toIso8601String())
+          .toLocal();
     } catch (_) {
       created = DateTime.now();
     }
@@ -42,7 +44,8 @@ class ChatMessage {
       senderName: data['senderName'] as String? ?? 'Anon',
       text: data['text'] as String?,
       stickerUrl: data['stickerUrl'] as String?,
-      meta: (data['meta'] as Map<String, dynamic>?) ?? (data['context'] as Map<String, dynamic>?),
+      meta: (data['meta'] as Map<String, dynamic>?) ??
+          (data['context'] as Map<String, dynamic>?),
       createdAt: created,
     );
   }

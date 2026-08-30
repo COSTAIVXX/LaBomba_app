@@ -36,7 +36,8 @@ class _CreatePostModalState extends State<CreatePostModal> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Você precisa estar logado para postar.')),
+          const SnackBar(
+              content: Text('Você precisa estar logado para postar.')),
         );
       }
     } catch (e) {

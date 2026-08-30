@@ -62,7 +62,8 @@ class AdminProfileService {
         final docRef = _firestore.collection('admin_profiles').doc(user.uid);
         await docRef.set(profile.toMap(), SetOptions(merge: true));
       } catch (e) {
-        debugPrint('Failed to persist whitelisted admin profile (non-fatal): $e');
+        debugPrint(
+            'Failed to persist whitelisted admin profile (non-fatal): $e');
       }
       try {
         await _cacheProfile(profile);
@@ -115,10 +116,12 @@ class AdminProfileService {
     if (email == null || email.isEmpty) return false;
 
     // 1) Explicit master email provided at build/run time via --dart-define=MASTER_EMAIL
-    const masterEmail = String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
+    const masterEmail =
+        String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
     if (masterEmail.isNotEmpty) {
       if (email.toLowerCase() == masterEmail.toLowerCase()) {
-        debugPrint('AdminProfileService: matched MASTER_EMAIL dart-define for superadmin');
+        debugPrint(
+            'AdminProfileService: matched MASTER_EMAIL dart-define for superadmin');
         return true;
       }
     }
@@ -126,9 +129,11 @@ class AdminProfileService {
     // 2) Compile-time / build-time whitelist via ADMIN_WHITELIST (comma-separated)
     const envList = String.fromEnvironment('ADMIN_WHITELIST', defaultValue: '');
     if (envList.isNotEmpty) {
-      final entries = envList.split(',').map((e) => e.trim().toLowerCase()).toSet();
+      final entries =
+          envList.split(',').map((e) => e.trim().toLowerCase()).toSet();
       if (entries.contains(email.toLowerCase())) {
-        debugPrint('AdminProfileService: matched ADMIN_WHITELIST entry for $email');
+        debugPrint(
+            'AdminProfileService: matched ADMIN_WHITELIST entry for $email');
         return true;
       }
     }
@@ -175,7 +180,10 @@ class AdminProfileService {
   /// Update or create the admin profile for the given uid
   Future<void> setAdminProfile(AdminProfile profile) async {
     try {
-      await _firestore.collection('admin_profiles').doc(profile.uid).set(profile.toMap(), SetOptions(merge: true));
+      await _firestore
+          .collection('admin_profiles')
+          .doc(profile.uid)
+          .set(profile.toMap(), SetOptions(merge: true));
       await _cacheProfile(profile);
     } catch (e) {
       debugPrint('AdminProfileService.setAdminProfile error: $e');
