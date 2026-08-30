@@ -12,6 +12,8 @@ import '../../social/models/post_interaction_model.dart';
 import '../services/reaction_service.dart';
 import '../../../widgets/reaction_bar.dart';
 import 'stories_carousel.dart';
+import '../../../services/post_service.dart';
+import 'package:flutter/services.dart';
 
 /// Social feed page. Shows posts from 'posts' collection and allows simple
 /// interactions (add reaction, add comment, delete by author).
@@ -27,10 +29,27 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   final StorageService _storage = PlatformStorageService();
   bool _onlyCloseFriends = false;
 
+  // pagination
+  static const int _pageSize = 20;
+  int _limit = _pageSize;
+
   String? get _currentUid => context.read<AuthService>().currentUser?.uid;
 
   // Keys for cached posts
   String _postsCacheKey() => 'social:posts_cache_v1';
+
+  Future<void> _refresh() async {
+    setState(() {
+      _limit = _pageSize;
+    });
+    await Future.delayed(const Duration(milliseconds: 200));
+  }
+
+  void _loadMore() {
+    setState(() {
+      _limit += _pageSize;
+    });
+  }
 
   Future<void> _persistPostsCache(List<QueryDocumentSnapshot> docs) async {
     try {
@@ -105,7 +124,6 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     return PostInteraction(postId: id, comments: comments, reactions: reactions);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,114 +141,133 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('posts').orderBy('createdAt', descending: true).snapshots().map((snap) {
-          // persist fresh snapshot into local cache for fast fallback
-          _persistPostsCache(snap.docs);
-          return snap;
-        }),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          // If remote stream has error or no data, fall back to cached posts
-          if (snapshot.hasError || snapshot.data == null) {
-            return FutureBuilder<List<Map<String, dynamic>>>(
-              future: _readCachedPosts(),
-              builder: (context, cacheSnap) {
-                if (cacheSnap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final cached = cacheSnap.data ?? <Map<String, dynamic>>[];
-                if (cached.isEmpty) {
-                  if (snapshot.hasError) return Center(child: Text('Erro ao carregar feed: ${snapshot.error}'));
-                  return const Center(child: Text('Nenhuma postagem encontrada'));
-                }
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('posts')
+              .orderBy('isPinned', descending: true)
+              .orderBy('createdAt', descending: true)
+              .limit(_limit)
+              .snapshots()
+              .map((snap) {
+            // persist fresh snapshot into local cache for fast fallback
+            _persistPostsCache(snap.docs);
+            return snap;
+          }),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            // If remote stream has error or no data, fall back to cached posts
+            if (snapshot.hasError || snapshot.data == null) {
+              return FutureBuilder<List<Map<String, dynamic>>>(
+                future: _readCachedPosts(),
+                builder: (context, cacheSnap) {
+                  if (cacheSnap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final cached = cacheSnap.data ?? <Map<String, dynamic>>[];
+                  if (cached.isEmpty) {
+                    if (snapshot.hasError) return Center(child: Text('Erro ao carregar feed: ${snapshot.error}'));
+                    return const Center(child: Text('Nenhuma postagem encontrada'));
+                  }
 
-                return FutureBuilder<List<String>>(
-                  future: _fetchCloseFriends(),
-                  builder: (context, cfSnap) {
-                    final closeFriends = cfSnap.data ?? <String>[];
-                    final entries = cached
-                        .map<MapEntry<Map<String, dynamic>, PostInteraction>>(
-                            (e) => MapEntry<Map<String, dynamic>, PostInteraction>(
-                                Map<String, dynamic>.from(e), _mapToInteractionFromCache(e)))
-                        .toList();
-                    final filtered = entries.where((entry) {
-                      if (!_onlyCloseFriends) return true;
-                      final data = entry.key['data'] as Map<String, dynamic>?;
-                      final author = data != null ? data['authorId'] as String? : null;
-                      return author != null && closeFriends.contains(author);
-                    }).toList();
+                  return FutureBuilder<List<String>>(
+                    future: _fetchCloseFriends(),
+                    builder: (context, cfSnap) {
+                      final closeFriends = cfSnap.data ?? <String>[];
+                      final entries = cached
+                          .map<MapEntry<Map<String, dynamic>, PostInteraction>>((e) =>
+                              MapEntry<Map<String, dynamic>, PostInteraction>(
+                                  Map<String, dynamic>.from(e), _mapToInteractionFromCache(e)))
+                          .toList();
+                      final filtered = entries.where((entry) {
+                        if (!_onlyCloseFriends) return true;
+                        final data = entry.key['data'] as Map<String, dynamic>?;
+                        final author = data != null ? data['authorId'] as String? : null;
+                        return author != null && closeFriends.contains(author);
+                      }).toList();
 
-                    if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
+                      if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
 
-                    // Include Stories carousel above the posts list
-                    return SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          StoriesCarousel(),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: filtered.length,
-                            itemBuilder: (context, index) {
-                              final entry = filtered[index].key;
-                              final post = filtered[index].value;
-                              final docId = entry['id'] as String;
-                              return _buildPostCard(post, docId);
-                            },
-                          ),
-                        ],
+                      // Include Stories carousel above the posts list
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            StoriesCarousel(),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: filtered.length + (filtered.length >= _limit ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index == filtered.length) {
+                                  return Center(
+                                    child: TextButton(onPressed: _loadMore, child: const Text('Carregar mais')),
+                                  );
+                                }
+                                final entry = filtered[index].key;
+                                final post = filtered[index].value;
+                                final docId = entry['id'] as String;
+                                return _buildPostCard(post, docId);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            }
+
+            final docs = snapshot.data?.docs ?? [];
+
+            return FutureBuilder<List<String>>(
+              future: _fetchCloseFriends(),
+              builder: (context, cfSnap) {
+                final closeFriends = cfSnap.data ?? <String>[];
+
+                final entries = docs.map((d) => MapEntry(d, _docToInteraction(d))).toList();
+
+                final filtered = entries.where((entry) {
+                  if (!_onlyCloseFriends) return true;
+                  final d = entry.key;
+                  final author = (d.data() as Map<String, dynamic>?)?['authorId'] as String?;
+                  return author != null && closeFriends.contains(author);
+                }).toList();
+
+                if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
+
+                // Include Stories carousel above the posts list
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      StoriesCarousel(),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: filtered.length + (filtered.length >= _limit ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == filtered.length) {
+                            return Center(
+                              child: TextButton(onPressed: _loadMore, child: const Text('Carregar mais')),
+                            );
+                          }
+                          final doc = filtered[index].key;
+                          final post = filtered[index].value;
+                          return _buildPostCard(post, doc.id);
+                        },
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 );
               },
             );
-          }
-
-          final docs = snapshot.data?.docs ?? [];
-
-          return FutureBuilder<List<String>>(
-            future: _fetchCloseFriends(),
-            builder: (context, cfSnap) {
-              final closeFriends = cfSnap.data ?? <String>[];
-
-              final entries = docs.map((d) => MapEntry(d, _docToInteraction(d))).toList();
-
-              final filtered = entries.where((entry) {
-                if (!_onlyCloseFriends) return true;
-                final d = entry.key;
-                final author = (d.data() as Map<String, dynamic>?)?['authorId'] as String?;
-                return author != null && closeFriends.contains(author);
-              }).toList();
-
-              if (filtered.isEmpty) return const Center(child: Text('Nenhuma postagem encontrada'));
-
-              // Include Stories carousel above the posts list
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    StoriesCarousel(),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final doc = filtered[index].key;
-                        final post = filtered[index].value;
-                        return _buildPostCard(post, doc.id);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -310,7 +347,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Post: ${post.postId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('${post.activeCommentsCount} comentários', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text('${post.activeCommentsCount} comentários',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
             const SizedBox(height: 8),
@@ -338,57 +376,80 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                 ),
                 const Spacer(),
                 PopupMenuButton<String>(
-                  onSelected: (v) {
-                    if (v == 'refresh') setState(() {});
+                  onSelected: (v) async {
+                    if (v == 'refresh')
+                      setState(() {});
+                    else if (v == 'edit')
+                      await _editPost(docId);
+                    else if (v == 'delete')
+                      await _deletePost(docId);
+                    else if (v == 'save')
+                      await _savePost(docId);
+                    else if (v == 'hide')
+                      await _hidePost(docId);
+                    else if (v == 'report')
+                      await _reportPost(docId);
+                    else if (v == 'share') await _sharePost(docId);
                   },
-                  itemBuilder: (c) => const [PopupMenuItem(value: 'refresh', child: Text('Atualizar'))],
+                  itemBuilder: (c) => [
+                    const PopupMenuItem(value: 'refresh', child: Text('Atualizar')),
+                    const PopupMenuItem(value: 'edit', child: Text('Editar')),
+                    const PopupMenuItem(value: 'delete', child: Text('Excluir')),
+                    const PopupMenuItem(value: 'save', child: Text('Salvar')),
+                    const PopupMenuItem(value: 'hide', child: Text('Ocultar')),
+                    const PopupMenuItem(value: 'report', child: Text('Denunciar')),
+                    const PopupMenuItem(value: 'share', child: Text('Compartilhar')),
+                  ],
                 ),
               ],
             ),
             const Divider(),
             // Show a couple of recent comments
             ...post.comments.where((c) => !c.deleted).take(3).map((c) {
-                              return Column(
-                                children: [
-                                  ListTile(
-                                    dense: true,
-                                    title: Text(c.text),
-                                    subtitle: Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
-                                    trailing: _canDeleteComment(c, post)
-                                        ? IconButton(
-                                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                            onPressed: () => _deleteComment(docId, c),
-                                          )
-                                        : null,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 72.0, right: 8.0, bottom: 8.0),
-                                    child: StreamBuilder<Map<String, int>>(
-                                      stream: ReactionService().reactionsCountStreamForComment(docId, c.id),
-                                      builder: (context, rsnap) {
-                                        final counts = rsnap.data ?? <String, int>{};
-                                        return ReactionBar(
-                                          initialCounts: counts,
-                                          onChanged: (emoji, added) async {
-                                            final uid = _currentUid;
-                                            if (uid == null) {
-                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
-                                              return;
-                                            }
-                                            try {
-                                              await ReactionService().toggleReactionOnComment(postId: docId, commentId: c.id, userId: uid, emoji: emoji);
-                                            } catch (e) {
-                                              debugPrint('Comment reaction failed: $e');
-                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao reagir no comentário')));
-                                            }
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+              return Column(
+                children: [
+                  ListTile(
+                    dense: true,
+                    title: Text(c.text),
+                    subtitle: Text('por ${c.authorId} - ${c.createdAt.toLocal()}'),
+                    trailing: _canDeleteComment(c, post)
+                        ? IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => _deleteComment(docId, c),
+                          )
+                        : null,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 72.0, right: 8.0, bottom: 8.0),
+                    child: StreamBuilder<Map<String, int>>(
+                      stream: ReactionService().reactionsCountStreamForComment(docId, c.id),
+                      builder: (context, rsnap) {
+                        final counts = rsnap.data ?? <String, int>{};
+                        return ReactionBar(
+                          initialCounts: counts,
+                          onChanged: (emoji, added) async {
+                            final uid = _currentUid;
+                            if (uid == null) {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(content: Text('Faça login para reagir.')));
+                              return;
+                            }
+                            try {
+                              await ReactionService()
+                                  .toggleReactionOnComment(postId: docId, commentId: c.id, userId: uid, emoji: emoji);
+                            } catch (e) {
+                              debugPrint('Comment reaction failed: $e');
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(content: Text('Falha ao reagir no comentário')));
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
           ],
         ),
       ),
@@ -400,6 +461,140 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     if (uid == null) return false;
     // author of comment or author of post (post.postId used as identifier here)
     return c.authorId == uid || post.postId == uid;
+  }
+
+  // --- Post actions: edit/delete/save/hide/report/share
+  Future<void> _editPost(String postId) async {
+    final uid = _currentUid;
+    try {
+      final doc = await _firestore.collection('posts').doc(postId).get();
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return;
+      if (uid != data['userId']) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem permissão para editar')));
+        return;
+      }
+      final current = data['content'] as String? ?? '';
+      final controller = TextEditingController(text: current);
+      final save = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Editar postagem'),
+          content: TextField(controller: controller, maxLines: 5),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Salvar')),
+          ],
+        ),
+      );
+      if (save != true) return;
+      final newContent = controller.text.trim();
+      await _firestore.collection('posts').doc(postId).update({'content': newContent});
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post atualizado')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao editar post')));
+    }
+  }
+
+  Future<void> _deletePost(String postId) async {
+    final uid = _currentUid;
+    try {
+      final doc = await _firestore.collection('posts').doc(postId).get();
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data == null) return;
+      if (uid != data['userId']) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem permissão para excluir')));
+        return;
+      }
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Excluir postagem'),
+          content: const Text('Tem certeza que deseja excluir esta postagem?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Excluir')),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+      await PostService().deletePost(postId);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post excluído')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao excluir post')));
+    }
+  }
+
+  Future<void> _savePost(String postId) async {
+    final uid = _currentUid;
+    if (uid == null) return;
+    try {
+      final meRef = _firestore.collection('users').doc(uid);
+      await meRef.update({
+        'savedPosts': FieldValue.arrayUnion([postId])
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post salvo')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao salvar post')));
+    }
+  }
+
+  Future<void> _hidePost(String postId) async {
+    final uid = _currentUid;
+    if (uid == null) return;
+    try {
+      final meRef = _firestore.collection('users').doc(uid);
+      await meRef.update({
+        'hiddenPosts': FieldValue.arrayUnion([postId])
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Post ocultado')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao ocultar post')));
+    }
+  }
+
+  Future<void> _reportPost(String postId) async {
+    final uid = _currentUid;
+    try {
+      final doc = await _firestore.collection('posts').doc(postId).get();
+      final data = doc.data() as Map<String, dynamic>?;
+      final content = data?['content'] as String?;
+      final report = {
+        'type': 'post',
+        'postId': postId,
+        'reporterId': uid,
+        'content': content,
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      };
+      await _firestore.collection('reports').add(report);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia enviada')));
+    } catch (e) {
+      try {
+        await OutboxService.instance.enqueue({
+          'type': 'report_post',
+          'payload': {'postId': postId, 'reporterId': _currentUid}
+        });
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Denúncia agendada')));
+      } catch (_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao denunciar')));
+      }
+    }
+  }
+
+  Future<void> _sharePost(String postId) async {
+    try {
+      final doc = await _firestore.collection('posts').doc(postId).get();
+      final data = doc.data() as Map<String, dynamic>?;
+      final content = data?['content'] as String? ?? '';
+      await Clipboard.setData(ClipboardData(text: content));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Conteúdo copiado para área de transferência')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao compartilhar')));
+    }
   }
 
   Future<void> _addReaction(String postId, String type) async {
@@ -417,12 +612,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         await OutboxService.instance.enqueue({
           'id': 'post_reaction_add:${postId}:$id',
           'type': 'post_reaction_add',
-          'payload': {'postId': postId, 'reaction': {'id': id, 'userId': uid, 'type': type, 'createdAt': DateTime.now().toIso8601String()}},
+          'payload': {
+            'postId': postId,
+            'reaction': {'id': id, 'userId': uid, 'type': type, 'createdAt': DateTime.now().toIso8601String()}
+          },
           'createdAt': DateTime.now().toIso8601String(),
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reação enfileirada e será sincronizada quando online')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Reação enfileirada e será sincronizada quando online')));
       } catch (_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível registrar a reação.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Não foi possível registrar a reação.')));
       }
     }
   }
@@ -469,7 +669,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           'payload': {'postId': postId, 'comment': map},
           'createdAt': DateTime.now().toIso8601String(),
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comentário enfileirado e será sincronizado quando online')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Comentário enfileirado e será sincronizado quando online')));
       } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao enviar comentário')));
       }
@@ -513,7 +714,8 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             'payload': {'postId': postId, 'comment': fallbackMap},
             'createdAt': DateTime.now().toIso8601String(),
           });
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Remoção enfileirada e será sincronizada quando online')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Remoção enfileirada e será sincronizada quando online')));
         } catch (_) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao remover comentário')));
         }
