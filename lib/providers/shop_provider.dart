@@ -117,7 +117,13 @@ class ShopProvider with ChangeNotifier {
     while (_lots.any((l) => l.id == id)) {
       id = '${baseId}_${counter++}';
     }
-    _lots.add(TicketLot(id: id, name: name, total: total, sold: 0, price: price, active: active));
+    _lots.add(TicketLot(
+        id: id,
+        name: name,
+        total: total,
+        sold: 0,
+        price: price,
+        active: active));
     notifyListeners();
     await _saveLots();
   }

@@ -6,8 +6,8 @@ import 'firebase_options.dart';
 
 // Storage service (platform implementations)
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'services/storage_mobile.dart';
-import 'services/storage_web.dart';
+import 'services/storage_mobile.dart'
+    if (dart.library.html) 'services/storage_web.dart';
 
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -26,6 +26,7 @@ import 'providers/client_provider.dart';
 import 'providers/shop_provider.dart';
 import 'providers/google_auth_provider.dart';
 import 'providers/event_config_provider.dart';
+import 'features/social/social.dart';
 
 // Views e Páginas do Aplicativo
 import 'views/landing_page.dart';
@@ -54,8 +55,10 @@ void main() async {
     debugPrint('Erro ao inicializar o Firebase: $e');
     // Report initialization error to Crashlytics/Observability if available
     try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.firebaseInitialize');
-      await ObservabilityService.logEvent('firebase_initialization_failure', parameters: {'error': e.toString()});
+      await ObservabilityService.reportError(e, s,
+          reason: 'Main.firebaseInitialize');
+      await ObservabilityService.logEvent('firebase_initialization_failure',
+          parameters: {'error': e.toString()});
     } catch (_) {}
   }
 
@@ -78,7 +81,8 @@ void main() async {
   } catch (e, s) {
     debugPrint('Observability init failed: $e');
     try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.observabilityInit');
+      await ObservabilityService.reportError(e, s,
+          reason: 'Main.observabilityInit');
     } catch (_) {}
   }
 
@@ -92,7 +96,8 @@ void main() async {
   } catch (e, s) {
     debugPrint('GoogleSignIn initialization failed: $e');
     try {
-      await ObservabilityService.reportError(e, s, reason: 'Main.googleSignInInit');
+      await ObservabilityService.reportError(e, s,
+          reason: 'Main.googleSignInInit');
     } catch (_) {}
   }
 
@@ -115,12 +120,12 @@ void main() async {
   }, (Object error, StackTrace stack) async {
     // Report uncaught errors to Crashlytics as fatal
     try {
-      await ObservabilityService.reportError(error, stack, reason: 'Main.uncaughtError');
+      await ObservabilityService.reportError(error, stack,
+          reason: 'Main.uncaughtError');
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     } catch (_) {}
   });
 }
-
 
 class LaBombaApp extends StatelessWidget {
   // Recebe o repositório criado lá no main()
@@ -137,7 +142,8 @@ class LaBombaApp extends StatelessWidget {
         Provider<AuthService>(create: (_) => AuthService()),
 
         ChangeNotifierProvider(
-          create: (context) => admin_provider.AdminAuthProvider(authService: context.read<AuthService>()),
+          create: (context) => admin_provider.AdminAuthProvider(
+              authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
           // 4. Injeta o repositório pronto para o ClientProvider usar!
@@ -147,10 +153,15 @@ class LaBombaApp extends StatelessWidget {
           create: (_) => ShopProvider(),
         ),
         ChangeNotifierProvider(
-          create: (context) => GoogleAuthProvider(authService: context.read<AuthService>()),
+          create: (context) =>
+              GoogleAuthProvider(authService: context.read<AuthService>()),
         ),
         ChangeNotifierProvider(
-          create: (context) => EventConfigProvider(authService: context.read<AuthService>()),
+          create: (context) =>
+              EventConfigProvider(authService: context.read<AuthService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SocialProvider.withFirebase(),
         ),
       ],
       child: MaterialApp(
@@ -164,6 +175,9 @@ class LaBombaApp extends StatelessWidget {
           '/admin/login': (context) => const AdminLoginPage(),
           '/admin/dashboard': (context) => const AdminDashboardPage(),
           '/admin/clients': (context) => const ClientBasePage(),
+          '/social/feed': (context) => const SocialFeedPage(),
+          '/social/chat': (context) => const SocialChatPage(),
+          '/social/stories': (context) => const SocialStoryPage(),
         },
       ),
     );

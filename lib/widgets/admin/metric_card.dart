@@ -22,7 +22,8 @@ class MetricCard extends StatefulWidget {
   State<MetricCard> createState() => _MetricCardState();
 }
 
-class _MetricCardState extends State<MetricCard> with SingleTickerProviderStateMixin {
+class _MetricCardState extends State<MetricCard>
+    with SingleTickerProviderStateMixin {
   bool _isHovered = false;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -64,22 +65,26 @@ class _MetricCardState extends State<MetricCard> with SingleTickerProviderStateM
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutCubic,
             decoration: BoxDecoration(
-              color: _isHovered 
-                ? widget.color.withValues(alpha: 0.08) 
-                : Colors.white.withValues(alpha: 0.02),
+              color: _isHovered
+                  ? widget.color.withValues(alpha: 0.08)
+                  : Colors.white.withValues(alpha: 0.02),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: _isHovered ? widget.color.withValues(alpha: 0.4) : Colors.white10,
+                color: _isHovered
+                    ? widget.color.withValues(alpha: 0.4)
+                    : Colors.white10,
                 width: 1,
               ),
-              boxShadow: _isHovered ? [
-                BoxShadow(
-                  color: widget.color.withValues(alpha: 0.15),
-                  blurRadius: 15,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
-                )
-              ] : [],
+              boxShadow: _isHovered
+                  ? [
+                      BoxShadow(
+                        color: widget.color.withValues(alpha: 0.15),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  : [],
             ),
             padding: const EdgeInsets.all(24),
             child: Row(

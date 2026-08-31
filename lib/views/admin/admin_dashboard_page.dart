@@ -40,7 +40,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 850;
-        
+
         final sidebar = AdminSidebar(
           selectedIndex: _selectedIndex,
           forceExpanded: !isDesktop,
@@ -53,7 +53,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           onLogout: () async {
             await context.read<AdminAuthProvider>().logout();
             if (mounted) {
-              Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/admin/login', (_) => false);
             }
           },
         );
@@ -82,7 +83,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   onPressed: () async {
                     await context.read<AdminAuthProvider>().logout();
                     if (!mounted) return;
-                    Navigator.pushNamedAndRemoveUntil(context, '/admin/login', (_) => false);
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/admin/login', (_) => false);
                   },
                 ),
             ],
@@ -119,7 +121,8 @@ class _DashboardOverviewTab extends StatelessWidget {
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 760;
           return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(compact ? 16 : 32, 12, compact ? 16 : 32, 32),
+            padding: EdgeInsets.fromLTRB(
+                compact ? 16 : 32, 12, compact ? 16 : 32, 32),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1180),
@@ -131,7 +134,8 @@ class _DashboardOverviewTab extends StatelessWidget {
                           style: Theme.of(context)
                               .textTheme
                               .labelMedium
-                              ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
+                              ?.copyWith(
+                                  color: Colors.white54, letterSpacing: 1.2)),
                       const SizedBox(height: 8),
                       Text('Bom dia, equipe.',
                           style: Theme.of(context)
@@ -156,8 +160,7 @@ class _DashboardOverviewTab extends StatelessWidget {
                                     .titleLarge
                                     ?.copyWith(fontWeight: FontWeight.w800)),
                             Text('${shop.totalCapacity} abadás no total',
-                                style:
-                                    const TextStyle(color: Colors.white54)),
+                                style: const TextStyle(color: Colors.white54)),
                           ]),
                       const SizedBox(height: 14),
                       _LotGrid(shop: shop),

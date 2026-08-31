@@ -1,0 +1,331 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function hasFollowRelation(sourceId, targetId) {
+      return exists(/databases/$(database)/documents/relations/$( 'follow:' + sourceId + ':' + targetId ));
+    }
+
+    function hasBlockRelation(sourceId, targetId) {
+      return exists(/databases/$(database)/documents/relations/$( 'block:' + sourceId + ':' + targetId ));
+    }
+
+    function hasAnyBlockBetween(userA, userB) {
+      return isSignedIn()
+        && (
+          hasBlockRelation(userA, userB)
+          || hasBlockRelation(userB, userA)
+        );
+    }
+
+    function hasProtectedUpdate(protectedKeys) {
+      return resource == null
+        ? request.resource.data.keys().hasAny(protectedKeys)
+        : request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedKeys);
+    }
+
+    function canReadOwnedOrPublic(ownerId, visibility) {
+      return isSignedIn()
+        && !hasAnyBlockBetween(request.auth.uid, ownerId)
+        && (
+          request.auth.uid == ownerId
+          || visibility == 'public'
+          || (
+            visibility == 'followersOnly'
+            && hasFollowRelation(request.auth.uid, ownerId)
+          )
+        );
+    }
+
+    function canReadProfile(profileOwnerId, profileData) {
+      return isSignedIn()
+        && !hasAnyBlockBetween(request.auth.uid, profileOwnerId)
+        && (
+          request.auth.uid == profileOwnerId
+          || !profileData.isPrivate
+        );
+    }
+
+    function isConversationParticipant(conversationId) {
+      return isSignedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+    }
+
+    function isConversationOpen(conversationId) {
+      return !get(/databases/$(database)/documents/conversations/$(conversationId)).data.blocked;
+    }
+
+    function isConversationAllowedForViewer(conversationData) {
+      return isSignedIn()
+        && request.auth.uid in conversationData.participantIds
+        && !hasAnyBlockBetween(request.auth.uid, conversationData.participantIds[0])
+        && (
+          conversationData.participantIds.size() <= 1
+          || !hasAnyBlockBetween(request.auth.uid, conversationData.participantIds[1])
+        );
+    }
+
+    function canReadStory(story) {
+      return isSignedIn()
+        && !hasAnyBlockBetween(request.auth.uid, story.ownerId)
+        && (
+          request.auth.uid == story.ownerId
+          || story.visibility == 'public'
+          || (
+            story.visibility == 'followersOnly'
+            && hasFollowRelation(request.auth.uid, story.ownerId)
+          )
+        );
+    }
+
+    function getGroup(groupId) {
+      return get(/databases/$(database)/documents/groups/$(groupId));
+    }
+
+    function isGroupMember(groupId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && getGroup(groupId).data.memberRoles[request.auth.uid] is string;
+    }
+
+    function isGroupRole(groupId, expectedRole) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && getGroup(groupId).data.memberRoles[request.auth.uid] == expectedRole;
+    }
+
+    function isGroupAdminOrOwner(groupId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && getGroup(groupId).data.memberRoles[request.auth.uid] in ['owner', 'admin', 'moderator'];
+    }
+
+    function isGroupBanned(groupId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && request.auth.uid in getGroup(groupId).data.bannedUserIds;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isSignedIn()
+        && !hasAnyBlockBetween(request.auth.uid, resource.data.ownerId)
+        && (
+          !resource.data.isPrivate
+          || request.auth.uid == resource.data.ownerId
+          || resource.data.memberRoles[request.auth.uid] is string
+        );
+      allow create: if isSignedIn()
+        && request.resource.data.id == groupId
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.isPrivate is bool
+        && request.resource.data.memberRoles[request.auth.uid] == 'owner'
+        && request.resource.data.bannedUserIds is list;
+      allow update: if isSignedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.id == resource.data.id
+        && !hasProtectedUpdate(['ownerId','role']);
+      allow delete: if false;
+    }
+
+    match /groups/{groupId}/members/{memberId} {
+      allow read: if isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && (
+          !getGroup(groupId).data.isPrivate
+          || request.auth.uid == getGroup(groupId).data.ownerId
+          || getGroup(groupId).data.memberRoles[request.auth.uid] is string
+        );
+      allow create: if isSignedIn()
+        && request.resource.data.groupId == groupId
+        && request.resource.data.userId == memberId
+        && request.resource.data.role in ['owner', 'admin', 'moderator', 'member']
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && !hasProtectedUpdate(['ownerId','role'])
+        && (
+          request.auth.uid == resource.data.userId
+          || (
+            getGroup(groupId).data.memberRoles[request.auth.uid] is string
+            && getGroup(groupId).data.memberRoles[request.auth.uid] in ['owner', 'admin', 'moderator']
+            && request.resource.data.userId == resource.data.userId
+          )
+        );
+      allow delete: if isSignedIn()
+        && (
+          request.auth.uid == resource.data.userId
+          || isGroupAdminOrOwner(groupId)
+        );
+    }
+
+    match /groups/{groupId}/messages/{messageId} {
+      allow read: if isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && getGroup(groupId).data.memberRoles[request.auth.uid] is string
+        && !(request.auth.uid in getGroup(groupId).data.bannedUserIds)
+        && !hasAnyBlockBetween(request.auth.uid, getGroup(groupId).data.ownerId);
+      allow create: if isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && getGroup(groupId).data.memberRoles[request.auth.uid] is string
+        && !(request.auth.uid in getGroup(groupId).data.bannedUserIds)
+        && request.resource.data.groupId == groupId
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.createdAt == request.resource.data.updatedAt;
+      allow update, delete: if false;
+    }
+
+    match /profiles/{uid} {
+      allow read: if canReadProfile(uid, resource.data);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.id == uid
+        && !hasProtectedUpdate(['ownerId','role']);
+      allow delete: if false;
+    }
+
+    match /posts/{postId} {
+      allow read: if canReadOwnedOrPublic(resource.data.authorId, resource.data.visibility);
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.authorId == request.auth.uid
+        && !hasProtectedUpdate(['ownerId','role','authorId']);
+    }
+
+    match /posts/{postId}/comments/{commentId} {
+      allow read: if canReadOwnedOrPublic(resource.data.authorId, 'public');
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.authorId == request.auth.uid
+        && !hasProtectedUpdate(['ownerId','role','authorId']);
+    }
+
+    match /posts/{postId}/reactions/{reactionId} {
+      allow read: if canReadOwnedOrPublic(resource.data.userId, 'public');
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && !hasProtectedUpdate(['ownerId','role','userId']);
+    }
+
+    match /relations/{relationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.sourceId == request.auth.uid
+        && !hasAnyBlockBetween(request.auth.uid, request.resource.data.targetId);
+      allow delete: if isSignedIn()
+        && resource.data.sourceId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.sourceId == request.auth.uid
+        && request.resource.data.sourceId == request.auth.uid
+        && !hasProtectedUpdate(['ownerId','role','sourceId']);
+    }
+
+    match /users/{uid}/notifications/{notificationId} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.recipientId == uid
+        && request.resource.data.id == notificationId
+        && request.resource.data.actorId is string
+        && request.resource.data.entityId is string
+        && request.resource.data.type in ['reaction', 'comment', 'follow'];
+      allow update: if isSignedIn()
+        && request.auth.uid == uid
+        && resource.data.recipientId == uid
+        && request.resource.data.recipientId == uid
+        && request.resource.data.id == notificationId
+        && request.resource.data.actorId == resource.data.actorId
+        && request.resource.data.entityId == resource.data.entityId
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
+      allow delete: if false;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isSignedIn()
+        && isConversationAllowedForViewer(resource.data);
+      allow create: if isSignedIn()
+        && request.resource.data.id == conversationId
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.participantIds is list
+        && request.resource.data.participantIds.size() == 2
+        && request.auth.uid in request.resource.data.participantIds
+        && !hasAnyBlockBetween(request.resource.data.participantIds[0], request.resource.data.participantIds[1])
+        && request.resource.data.blocked is bool;
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participantIds
+        && request.resource.data.participantIds == resource.data.participantIds
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.blocked is bool
+        && !hasProtectedUpdate(['ownerId','role','createdBy','participantIds']);
+      allow delete: if false;
+    }
+
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read: if isConversationParticipant(conversationId);
+      allow create: if isConversationParticipant(conversationId)
+        && isConversationOpen(conversationId)
+        && request.resource.data.id == messageId
+        && request.resource.data.conversationId == conversationId
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.updatedAt == request.resource.data.createdAt;
+      allow update, delete: if false;
+    }
+
+    match /stories/{storyId} {
+      allow read: if isSignedIn() && canReadStory(resource.data);
+      allow create: if isSignedIn()
+        && request.resource.data.storyId == storyId
+        && request.resource.data.ownerId == request.auth.uid
+        && (request.resource.data.createdAt is timestamp || request.resource.data.createdAt is string)
+        && (request.resource.data.expiresAt is timestamp || request.resource.data.expiresAt is string)
+        && request.resource.data.visibility in ['public', 'followersOnly', 'private']
+        && request.resource.data.status in ['created', 'active', 'expired', 'deleted']
+        && request.resource.data.isDeleted is bool
+        && request.resource.data.contentType in ['text', 'image', 'video']
+        && (!('text' in request.resource.data) || request.resource.data.text is string)
+        && (!('mediaUrl' in request.resource.data) || request.resource.data.mediaUrl is string)
+        && (!('storagePath' in request.resource.data) || request.resource.data.storagePath is string)
+        && (!('mimeType' in request.resource.data) || request.resource.data.mimeType is string)
+        && (!('sizeBytes' in request.resource.data) || request.resource.data.sizeBytes is int)
+        && (!('sizeBytes' in request.resource.data) || request.resource.data.sizeBytes <= 15000000);
+      allow update: if isSignedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.storyId == storyId;
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /media/{mediaId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.id == mediaId;
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}

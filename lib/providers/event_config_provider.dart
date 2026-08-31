@@ -26,7 +26,8 @@ class EventConfigProvider with ChangeNotifier {
   bool _loading = false;
 
   // Optional stream to allow fine-grained subscriptions
-  final StreamController<Map<String, String>> _onChange = StreamController.broadcast();
+  final StreamController<Map<String, String>> _onChange =
+      StreamController.broadcast();
 
   Stream<Map<String, String>> get onChange => _onChange.stream;
 
@@ -62,8 +63,10 @@ class EventConfigProvider with ChangeNotifier {
       _onChange.add({'title': _title, 'date': _date, 'location': _location});
       await ObservabilityService.logEvent('EventConfigProvider.fetch_success');
     } catch (e, s) {
-      await ObservabilityService.reportError(e, s, reason: 'EventConfigProvider.fetch');
-      await ObservabilityService.logEvent('EventConfigProvider.fetch_failure', parameters: {'error': e.toString()});
+      await ObservabilityService.reportError(e, s,
+          reason: 'EventConfigProvider.fetch');
+      await ObservabilityService.logEvent('EventConfigProvider.fetch_failure',
+          parameters: {'error': e.toString()});
     } finally {
       _loading = false;
       notifyListeners();

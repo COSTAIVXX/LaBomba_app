@@ -98,7 +98,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           width: 36,
           height: 36,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
         ),
       ),
       destinations: const [
@@ -138,10 +139,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     width: 32,
                     height: 32,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: Colors.white, size: 32),
+                    errorBuilder: (_, __, ___) => const Icon(Icons.flash_on,
+                        color: Colors.white, size: 32),
                   ),
                   const SizedBox(height: 10),
-                  const Text('OPERAÇÃO LABOMBA', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                  const Text('OPERAÇÃO LABOMBA',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900, color: Colors.white)),
                 ],
               ),
             ),
@@ -189,7 +193,8 @@ class _DashboardOverviewTab extends StatelessWidget {
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 760;
           return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(compact ? 16 : 32, 12, compact ? 16 : 32, 32),
+            padding: EdgeInsets.fromLTRB(
+                compact ? 16 : 32, 12, compact ? 16 : 32, 32),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1180),
@@ -204,7 +209,8 @@ class _DashboardOverviewTab extends StatelessWidget {
                             style: Theme.of(context)
                                 .textTheme
                                 .labelMedium
-                                ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
+                                ?.copyWith(
+                                    color: Colors.white54, letterSpacing: 1.2)),
                         const SizedBox(height: 8),
                         Text('Bom dia, equipe.',
                             style: Theme.of(context)
@@ -290,8 +296,7 @@ class _CriticalMetric extends StatelessWidget {
                   backgroundColor: Colors.white12,
                   color: AppTheme.accent)),
           const SizedBox(height: 8),
-          Text(
-              '$sold abadás vendidos  •  $available disponíveis',
+          Text('$sold abadás vendidos  •  $available disponíveis',
               style: const TextStyle(color: Colors.white60)),
         ]),
       ),

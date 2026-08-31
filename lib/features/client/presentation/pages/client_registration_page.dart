@@ -23,9 +23,18 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   bool _acceptedTerms = false;
   bool _hasOpenedTerms = false;
 
-  final _dateMask = MaskTextInputFormatter(mask: '##/##/####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
-  final _cpfMask = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
-  final _phoneMask = MaskTextInputFormatter(mask: '(##) #####-####', filter: {"#": RegExp(r'[0-9]')}, type: MaskAutoCompletionType.lazy);
+  final _dateMask = MaskTextInputFormatter(
+      mask: '##/##/####',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
+  final _cpfMask = MaskTextInputFormatter(
+      mask: '###.###.###-##',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
+  final _phoneMask = MaskTextInputFormatter(
+      mask: '(##) #####-####',
+      filter: {"#": RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.lazy);
 
   @override
   void dispose() {
@@ -99,7 +108,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
       setState(() {
         _nameController.text = googleData.displayName ?? '';
       });
-      _showMessage('Conta Google vinculada com sucesso. Complete os dados restantes.');
+      _showMessage(
+          'Conta Google vinculada com sucesso. Complete os dados restantes.');
     } catch (e) {
       if (!mounted) return;
       _showMessage('Erro ao acessar o Google. Tente novamente.');
@@ -226,7 +236,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                       Expanded(child: Divider(color: Colors.white24)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OU', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+                        child: Text('OU',
+                            style: TextStyle(
+                                color: Colors.white54,
+                                fontWeight: FontWeight.bold)),
                       ),
                       Expanded(child: Divider(color: Colors.white24)),
                     ],

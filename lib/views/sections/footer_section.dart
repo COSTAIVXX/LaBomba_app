@@ -20,7 +20,9 @@ class FooterSection extends StatelessWidget {
       children: [
         const Divider(color: Colors.white10),
         const SizedBox(height: 32),
-        const Text('Dúvidas? Fale com a nossa equipe.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 16)),
+        const Text('Dúvidas? Fale com a nossa equipe.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white54, fontSize: 16)),
         const SizedBox(height: 16),
         TextButton.icon(
           onPressed: () => _openSupport(context),
@@ -29,7 +31,9 @@ class FooterSection extends StatelessWidget {
           label: const Text('Suporte e Informações'),
         ),
         const SizedBox(height: 48),
-        Text('© $currentYear Bloco LaBomba. Todos os direitos reservados.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+        Text('© $currentYear Bloco LaBomba. Todos os direitos reservados.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white24, fontSize: 12)),
       ],
     );
   }
