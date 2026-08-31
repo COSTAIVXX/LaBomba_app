@@ -150,7 +150,8 @@ class _MemorySocialPanelState extends State<MemorySocialPanel> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(
-              child: Text('Não foi possível carregar comentários.'));
+            child: Text('Não foi possível carregar comentários.'),
+          );
         }
         final comments = snapshot.data ?? const <MemoryComment>[];
         if (comments.isEmpty) {
@@ -183,11 +184,12 @@ class _CommentTile extends StatelessWidget {
   final double leftPadding;
   final VoidCallback onReply;
 
-  const _CommentTile(
-      {super.key,
-      required this.comment,
-      required this.leftPadding,
-      required this.onReply});
+  const _CommentTile({
+    super.key,
+    required this.comment,
+    required this.leftPadding,
+    required this.onReply,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -197,8 +199,10 @@ class _CommentTile extends StatelessWidget {
         dense: true,
         title: Text(comment.authorName),
         subtitle: Text(comment.text),
-        trailing:
-            TextButton(onPressed: onReply, child: const Text('Responder')),
+        trailing: TextButton(
+          onPressed: onReply,
+          child: const Text('Responder'),
+        ),
       ),
     );
   }

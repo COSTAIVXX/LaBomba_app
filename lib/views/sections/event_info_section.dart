@@ -1,6 +1,8 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/event_config_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -28,8 +30,11 @@ class _InfoCard extends StatelessWidget {
   final String title;
   final String value;
 
-  const _InfoCard(
-      {required this.icon, required this.title, required this.value});
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +68,10 @@ class _InfoCard extends StatelessWidget {
                 value,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.white),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),

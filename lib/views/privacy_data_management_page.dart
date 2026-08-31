@@ -119,8 +119,9 @@ class _PrivacyDataManagementPageState extends State<PrivacyDataManagementPage> {
                       ListTile(
                         leading: const Icon(Icons.storage_outlined),
                         title: const Text('Dados armazenados'),
-                        subtitle:
-                            Text('$_storedBytes bytes de memórias offline'),
+                        subtitle: Text(
+                          '$_storedBytes bytes de memórias offline',
+                        ),
                       ),
                       ListTile(
                         leading: const Icon(Icons.photo_library_outlined),

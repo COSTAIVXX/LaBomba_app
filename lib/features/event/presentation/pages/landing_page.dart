@@ -17,8 +17,9 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final ValueNotifier<Offset> _pointerPositionNotifier =
-      ValueNotifier<Offset>(Offset.zero);
+  final ValueNotifier<Offset> _pointerPositionNotifier = ValueNotifier<Offset>(
+    Offset.zero,
+  );
 
   @override
   void dispose() {
@@ -44,9 +45,7 @@ class _LandingPageState extends State<LandingPage> {
                 letterSpacing: isCompact ? 2 : 4,
               ),
             ),
-            actions: [
-              const SizedBox(width: 8),
-            ],
+            actions: [const SizedBox(width: 8)],
           ),
           body: Listener(
             onPointerHover: (event) {
@@ -67,9 +66,7 @@ class _LandingPageState extends State<LandingPage> {
                 physics: const BouncingScrollPhysics(),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: contentMaxWidth,
-                    ),
+                    constraints: BoxConstraints(maxWidth: contentMaxWidth),
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
                         isCompact ? 16 : 20,

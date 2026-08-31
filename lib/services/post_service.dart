@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/post.dart';
 
 class PostService {
@@ -32,7 +33,8 @@ class PostService {
         .map((snapshot) {
       return snapshot.docs
           .map(
-              (doc) => Post.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+            (doc) => Post.fromMap(doc.data() as Map<String, dynamic>, doc.id),
+          )
           .toList();
     });
   }

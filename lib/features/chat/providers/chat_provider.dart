@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 import '../../../services/storage_platform.dart';
@@ -24,14 +26,17 @@ class ChatProvider with ChangeNotifier {
 
   void connect() {
     _sub?.cancel();
-    _sub = _service.messagesStream().listen((list) {
-      _messages = list;
-      _isConnected = true;
-      notifyListeners();
-    }, onError: (_) {
-      _isConnected = false;
-      notifyListeners();
-    });
+    _sub = _service.messagesStream().listen(
+      (list) {
+        _messages = list;
+        _isConnected = true;
+        notifyListeners();
+      },
+      onError: (_) {
+        _isConnected = false;
+        notifyListeners();
+      },
+    );
   }
 
   void switchRoom(String roomId) {
@@ -42,12 +47,13 @@ class ChatProvider with ChangeNotifier {
     connect();
   }
 
-  Future<void> sendMessage(
-      {required String senderId,
-      required String senderName,
-      String? text,
-      String? stickerUrl,
-      Map<String, dynamic>? meta}) async {
+  Future<void> sendMessage({
+    required String senderId,
+    required String senderName,
+    String? text,
+    String? stickerUrl,
+    Map<String, dynamic>? meta,
+  }) async {
     // Rate limiting per user per room (client-side guard)
     try {
       final key = 'chat_last_sent_${_service.roomId}_$senderId';
@@ -57,7 +63,8 @@ class ChatProvider with ChangeNotifier {
         final diff = DateTime.now().difference(last);
         if (diff < _chatCooldown) {
           throw StateError(
-              'Você está enviando mensagens muito rapidamente. Aguarde ${_chatCooldown.inSeconds - diff.inSeconds} segundos.');
+            'Você está enviando mensagens muito rapidamente. Aguarde ${_chatCooldown.inSeconds - diff.inSeconds} segundos.',
+          );
         }
       }
     } catch (e) {
@@ -65,16 +72,19 @@ class ChatProvider with ChangeNotifier {
     }
 
     await _service.sendMessage(
-        senderId: senderId,
-        senderName: senderName,
-        text: text,
-        stickerUrl: stickerUrl);
+      senderId: senderId,
+      senderName: senderName,
+      text: text,
+      stickerUrl: stickerUrl,
+    );
 
     // Persist timestamp
     try {
       final key = 'chat_last_sent_${_service.roomId}_$senderId';
       await _storage.write(
-          key: key, value: DateTime.now().millisecondsSinceEpoch.toString());
+        key: key,
+        value: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
     } catch (_) {}
   }
 

@@ -18,7 +18,8 @@ class BadgeGeneratorPage extends StatelessWidget {
     } else if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Nenhum app de compartilhamento disponível.')),
+          content: Text('Nenhum app de compartilhamento disponível.'),
+        ),
       );
     }
   }
@@ -56,7 +57,7 @@ class BadgeGeneratorPage extends StatelessWidget {
                     colors: [
                       Color(0xFFFF6A00),
                       Color(0xFFEC4899),
-                      Color(0xFF7C1AFF)
+                      Color(0xFF7C1AFF),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -64,9 +65,10 @@ class BadgeGeneratorPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: const [
                     BoxShadow(
-                        color: Colors.black45,
-                        blurRadius: 18,
-                        offset: Offset(0, 8)),
+                      color: Colors.black45,
+                      blurRadius: 18,
+                      offset: Offset(0, 8),
+                    ),
                   ],
                 ),
                 child: Container(
@@ -78,16 +80,22 @@ class BadgeGeneratorPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('LA BOMBA',
-                          style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 3)),
+                      const Text(
+                        'LA BOMBA',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 3,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      const Text('CARNAVAL 2027',
-                          style: TextStyle(
-                              color: Colors.orangeAccent,
-                              fontWeight: FontWeight.w700)),
+                      const Text(
+                        'CARNAVAL 2027',
+                        style: TextStyle(
+                          color: Colors.orangeAccent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const Spacer(),
                       CircleAvatar(
                         radius: 70,
@@ -96,24 +104,36 @@ class BadgeGeneratorPage extends StatelessWidget {
                             : null,
                         child: photoUrl?.isNotEmpty == true
                             ? null
-                            : Text(name[0].toUpperCase(),
-                                style: const TextStyle(fontSize: 48)),
+                            : Text(
+                                name[0].toUpperCase(),
+                                style: const TextStyle(fontSize: 48),
+                              ),
                       ),
                       const SizedBox(height: 20),
-                      Text(name,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.w800)),
+                      Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       const Chip(
-                        avatar: Icon(Icons.local_fire_department,
-                            color: Colors.orange),
+                        avatar: Icon(
+                          Icons.local_fire_department,
+                          color: Colors.orange,
+                        ),
                         label: Text('FOLIÃO RAIZ'),
                       ),
                       const Spacer(),
-                      const Text('PEÇANHA • MG',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                      const Text(
+                        'PEÇANHA • MG',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../theme/app_theme.dart';
 
 class AdminSidebar extends StatefulWidget {
@@ -47,7 +48,7 @@ class _AdminSidebarState extends State<AdminSidebar> {
                 color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(5, 0),
-              )
+              ),
           ],
         ),
         child: Column(
@@ -178,7 +179,9 @@ class _SidebarItemState extends State<_SidebarItem> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           padding: EdgeInsets.symmetric(
-              vertical: 12, horizontal: widget.isExpanded ? 16 : 0),
+            vertical: 12,
+            horizontal: widget.isExpanded ? 16 : 0,
+          ),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12),

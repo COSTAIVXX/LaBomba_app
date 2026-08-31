@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/broadcast.dart';
 
 class BroadcastService {
@@ -12,9 +13,14 @@ class BroadcastService {
         .collection('broadcasts')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => BroadcastMessage.fromDoc(
-                d as DocumentSnapshot<Map<String, dynamic>>))
-            .toList());
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) => BroadcastMessage.fromDoc(
+                  d as DocumentSnapshot<Map<String, dynamic>>,
+                ),
+              )
+              .toList(),
+        );
   }
 }

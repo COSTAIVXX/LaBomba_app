@@ -68,11 +68,11 @@ class SettingsHubPage extends StatelessWidget {
           final section = sections[index];
           return Card(
             child: ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              leading: CircleAvatar(
-                child: Icon(section.icon),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 8,
               ),
+              leading: CircleAvatar(child: Icon(section.icon)),
               title: Text(section.title),
               subtitle: Text(section.subtitle),
               trailing: const Icon(Icons.chevron_right),

@@ -17,15 +17,7 @@ class AppIcons {
   static const camera = Icons.camera_alt_outlined;
   static const celebration = Icons.celebration_outlined;
 
-  static Icon themed(
-    IconData icon, {
-    Color? color,
-    double? size,
-  }) {
-    return Icon(
-      icon,
-      color: color ?? AppTheme.primary,
-      size: size,
-    );
+  static Icon themed(IconData icon, {Color? color, double? size}) {
+    return Icon(icon, color: color ?? AppTheme.primary, size: size);
   }
 }

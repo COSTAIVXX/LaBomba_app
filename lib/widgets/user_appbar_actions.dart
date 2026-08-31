@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/google_auth_provider.dart';
 import '../services/auth_service.dart';
 import '../theme/app_icons.dart';
@@ -62,9 +63,11 @@ class UserAppBarActions extends StatelessWidget {
                 CircleAvatar(radius: 16, backgroundImage: NetworkImage(photo))
               else
                 CircleAvatar(
-                    radius: 16,
-                    child: Text(
-                        display.isNotEmpty ? display[0].toUpperCase() : 'U')),
+                  radius: 16,
+                  child: Text(
+                    display.isNotEmpty ? display[0].toUpperCase() : 'U',
+                  ),
+                ),
               const SizedBox(width: 8),
               Text(display, style: const TextStyle(fontSize: 14)),
             ],
@@ -99,13 +102,19 @@ class UserAppBarActions extends StatelessWidget {
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
-                value: 'settings', child: Text('Configurações')),
+              value: 'settings',
+              child: Text('Configurações'),
+            ),
             const PopupMenuItem(value: 'profile', child: Text('Meu perfil')),
             const PopupMenuItem(
-                value: 'notifications', child: Text('Notificações')),
+              value: 'notifications',
+              child: Text('Notificações'),
+            ),
             const PopupMenuItem(value: 'moderation', child: Text('Moderação')),
             const PopupMenuItem(
-                value: 'badge', child: Text('Meu crachá Folião Raiz')),
+              value: 'badge',
+              child: Text('Meu crachá Folião Raiz'),
+            ),
             const PopupMenuItem(value: 'foliaos', child: Text('Foliões')),
             const PopupMenuItem(value: 'signout', child: Text('Sair')),
           ],
@@ -128,10 +137,6 @@ class _QuickNavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      icon: Icon(icon),
-      onPressed: onPressed,
-    );
+    return IconButton(tooltip: tooltip, icon: Icon(icon), onPressed: onPressed);
   }
 }

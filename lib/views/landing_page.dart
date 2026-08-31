@@ -39,7 +39,9 @@ class LandingPage extends StatelessWidget {
                       child: const Text(
                         'Entrar',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),

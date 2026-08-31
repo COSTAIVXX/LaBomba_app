@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../config/event_config.dart';
 import '../models/ticket.dart';
 
@@ -11,7 +14,12 @@ class ShopProvider with ChangeNotifier {
 
   final List<TicketLot> _lots = [
     TicketLot(
-        id: 'VIP', name: 'Pré-venda VIP', total: 50, sold: 12, price: 129),
+      id: 'VIP',
+      name: 'Pré-venda VIP',
+      total: 50,
+      sold: 12,
+      price: 129,
+    ),
     TicketLot(id: 'FIRST', name: '1º Lote', total: 100, sold: 34, price: 159),
     TicketLot(id: 'SECOND', name: '2º Lote', total: 150, sold: 0, price: 189),
   ];
@@ -53,9 +61,12 @@ class ShopProvider with ChangeNotifier {
       final decoded = jsonDecode(saved) as List<dynamic>;
       _lots
         ..clear()
-        ..addAll(decoded.map((item) => TicketLot.fromJson(
-              Map<String, dynamic>.from(item as Map),
-            )));
+        ..addAll(
+          decoded.map(
+            (item) =>
+                TicketLot.fromJson(Map<String, dynamic>.from(item as Map)),
+          ),
+        );
       notifyListeners();
     } catch (_) {
       // Keep the built-in defaults when local data is invalid.
@@ -117,13 +128,16 @@ class ShopProvider with ChangeNotifier {
     while (_lots.any((l) => l.id == id)) {
       id = '${baseId}_${counter++}';
     }
-    _lots.add(TicketLot(
+    _lots.add(
+      TicketLot(
         id: id,
         name: name,
         total: total,
         sold: 0,
         price: price,
-        active: active));
+        active: active,
+      ),
+    );
     notifyListeners();
     await _saveLots();
   }
@@ -138,9 +152,7 @@ class ShopProvider with ChangeNotifier {
     await _saveLots();
   }
 
-  Future<bool> launchWhatsApp({
-    String? message,
-  }) async {
+  Future<bool> launchWhatsApp({String? message}) async {
     final encodedMessage = Uri.encodeComponent(
       message ?? EventConfig.whatsappPurchaseMessage,
     );
@@ -151,10 +163,7 @@ class ShopProvider with ChangeNotifier {
 
     try {
       if (await canLaunchUrl(url)) {
-        return await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
+        return await launchUrl(url, mode: LaunchMode.externalApplication);
       }
       return false;
     } catch (_) {

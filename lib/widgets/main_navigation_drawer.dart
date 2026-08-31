@@ -45,11 +45,7 @@ class MainNavigationDrawer extends StatelessWidget {
         label: 'Galeria do bloco',
         route: '/gallery',
       ),
-      _NavigationItem(
-        icon: AppIcons.chat,
-        label: 'Chat',
-        route: '/chat',
-      ),
+      _NavigationItem(icon: AppIcons.chat, label: 'Chat', route: '/chat'),
       _NavigationItem(
         icon: Icons.rss_feed,
         label: 'Feed Social',
@@ -84,10 +80,7 @@ class MainNavigationDrawer extends StatelessWidget {
 
     return Drawer(
       child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: items,
-        ),
+        child: ListView(padding: EdgeInsets.zero, children: items),
       ),
     );
   }

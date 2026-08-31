@@ -16,9 +16,7 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int _selectedIndex = 0;
 
-  final List<String> _sectionTitles = [
-    'Base de Clientes',
-  ];
+  final List<String> _sectionTitles = ['Base de Clientes'];
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +46,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             await context.read<AdminAuthProvider>().logout();
             if (mounted) {
               Navigator.pushNamedAndRemoveUntil(
-                  context, '/login', (_) => false);
+                context,
+                '/login',
+                (_) => false,
+              );
             }
           },
         );
@@ -63,10 +64,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 TextButton.icon(
                   onPressed: () {
                     final authService = context.read<AuthService>();
-                    final isAllowed = authService.isMasterUser &&
-                        (authService.currentUser == null ||
-                            authService.currentUser!.email?.toLowerCase() ==
-                                AuthService.masterEmail.toLowerCase());
+                    final isAllowed = authService.isMasterUser;
 
                     if (!isAllowed) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,9 +84,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           body: Row(
             children: [
               if (isDesktop) sidebar,
-              const Expanded(
-                child: ClientBasePage(embedded: true),
-              ),
+              const Expanded(child: ClientBasePage(embedded: true)),
             ],
           ),
         );

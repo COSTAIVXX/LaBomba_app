@@ -24,7 +24,10 @@ void main() {
 
       // add
       await service.toggleReactionOnPost(
-          postId: postId, userId: userId, emoji: emoji);
+        postId: postId,
+        userId: userId,
+        emoji: emoji,
+      );
       snap = await col.get();
       expect(snap.docs.length, 1);
       expect(snap.docs.first.data()['userId'], userId);
@@ -32,7 +35,10 @@ void main() {
 
       // remove
       await service.toggleReactionOnPost(
-          postId: postId, userId: userId, emoji: emoji);
+        postId: postId,
+        userId: userId,
+        emoji: emoji,
+      );
       snap = await col.get();
       expect(snap.docs, isEmpty);
     });
@@ -50,10 +56,16 @@ void main() {
 
       // add two different reactions
       await service.toggleReactionOnPost(
-          postId: postId, userId: userA, emoji: heart);
+        postId: postId,
+        userId: userA,
+        emoji: heart,
+      );
       await Future.delayed(const Duration(milliseconds: 10));
       await service.toggleReactionOnPost(
-          postId: postId, userId: userB, emoji: fire);
+        postId: postId,
+        userId: userB,
+        emoji: fire,
+      );
       await Future.delayed(const Duration(milliseconds: 50));
 
       // we expect at least one event with both counts present (order of arrival may vary)

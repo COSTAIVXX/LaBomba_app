@@ -66,10 +66,11 @@ class GoogleAuthProvider extends ChangeNotifier {
     final u = _authService.currentUser;
     if (u == null) return null;
     return GoogleAuthData(
-        uid: u.uid,
-        displayName: u.displayName,
-        email: u.email,
-        photoUrl: u.photoURL);
+      uid: u.uid,
+      displayName: u.displayName,
+      email: u.email,
+      photoUrl: u.photoURL,
+    );
   }
 
   Future<void> signOut() async {

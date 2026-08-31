@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:labomba_app/features/memories/services/storage_memory_service.dart';
+
 import 'test_helpers/fake_storage.dart';
+
 import 'package:labomba_app/features/memories/models/memory.dart';
 
 void main() {
@@ -18,11 +20,12 @@ void main() {
       expect(list0, isEmpty);
 
       final m = Memory(
-          id: '1',
-          title: 'Olá',
-          description: 'desc',
-          imageUrls: [],
-          createdAt: DateTime.now());
+        id: '1',
+        title: 'Olá',
+        description: 'desc',
+        imageUrls: [],
+        createdAt: DateTime.now(),
+      );
       await svc.saveMemory(m);
 
       final fetched = await svc.fetchMemories();

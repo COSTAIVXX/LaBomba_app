@@ -28,8 +28,11 @@ class MemoryProvider with ChangeNotifier {
       _error = e.toString();
       // Report to observability for debugging/telemetry
       try {
-        await ObservabilityService.reportError(e, s,
-            reason: 'MemoryProvider.load');
+        await ObservabilityService.reportError(
+          e,
+          s,
+          reason: 'MemoryProvider.load',
+        );
       } catch (_) {}
       // Keep the last valid snapshot available while storage/network recovers.
     } finally {
@@ -44,8 +47,11 @@ class MemoryProvider with ChangeNotifier {
       await load();
     } catch (e, s) {
       try {
-        await ObservabilityService.reportError(e, s,
-            reason: 'MemoryProvider.addOrUpdate');
+        await ObservabilityService.reportError(
+          e,
+          s,
+          reason: 'MemoryProvider.addOrUpdate',
+        );
       } catch (_) {}
       rethrow;
     }
@@ -58,8 +64,11 @@ class MemoryProvider with ChangeNotifier {
       notifyListeners();
     } catch (e, s) {
       try {
-        await ObservabilityService.reportError(e, s,
-            reason: 'MemoryProvider.remove');
+        await ObservabilityService.reportError(
+          e,
+          s,
+          reason: 'MemoryProvider.remove',
+        );
       } catch (_) {}
       rethrow;
     }

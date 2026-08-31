@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/event_config_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -38,8 +40,10 @@ class _CountdownSectionState extends State<CountdownSection> {
   void initState() {
     super.initState();
     _updateCountdown();
-    _timer =
-        Timer.periodic(const Duration(seconds: 1), (_) => _updateCountdown());
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _updateCountdown(),
+    );
   }
 
   void _updateCountdown() {
@@ -98,13 +102,21 @@ class _CountdownSectionState extends State<CountdownSection> {
                 alignment: WrapAlignment.center,
                 children: [
                   _TimeBlock(
-                      value: days.toString().padLeft(2, '0'), label: 'D'),
+                    value: days.toString().padLeft(2, '0'),
+                    label: 'D',
+                  ),
                   _TimeBlock(
-                      value: hours.toString().padLeft(2, '0'), label: 'H'),
+                    value: hours.toString().padLeft(2, '0'),
+                    label: 'H',
+                  ),
                   _TimeBlock(
-                      value: minutes.toString().padLeft(2, '0'), label: 'M'),
+                    value: minutes.toString().padLeft(2, '0'),
+                    label: 'M',
+                  ),
                   _TimeBlock(
-                      value: seconds.toString().padLeft(2, '0'), label: 'S'),
+                    value: seconds.toString().padLeft(2, '0'),
+                    label: 'S',
+                  ),
                 ],
               ),
             ],
@@ -137,9 +149,10 @@ class _TimeBlock extends StatelessWidget {
             child: Text(
               value,
               style: labombaTextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -147,10 +160,11 @@ class _TimeBlock extends StatelessWidget {
         Text(
           label,
           style: labombaTextStyle(
-              fontSize: 11,
-              color: Colors.white54,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1),
+            fontSize: 11,
+            color: Colors.white54,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
         ),
       ],
     );

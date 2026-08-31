@@ -17,10 +17,8 @@ class MemberAccessService {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
-  MemberAccessService({
-    FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
-  })  : _auth = auth ?? FirebaseAuth.instance,
+  MemberAccessService({FirebaseAuth? auth, FirebaseFirestore? firestore})
+      : _auth = auth ?? FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance;
 
   Future<MemberAccessStatus> checkAccess() async {

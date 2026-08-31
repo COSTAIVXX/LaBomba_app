@@ -88,10 +88,13 @@ class _GroupChannelPageState extends State<GroupChannelPage> {
             child: Row(
               children: [
                 Expanded(
-                    child: TextField(
-                        controller: _ctrl,
-                        decoration: const InputDecoration(
-                            hintText: 'Mensagem para o canal'))),
+                  child: TextField(
+                    controller: _ctrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Mensagem para o canal',
+                    ),
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () async {
@@ -101,18 +104,19 @@ class _GroupChannelPageState extends State<GroupChannelPage> {
                       await _service.sendMessage(gid, {
                         'text': text,
                         'senderId': 'me',
-                        'createdAt': FieldValue.serverTimestamp()
+                        'createdAt': FieldValue.serverTimestamp(),
                       });
                       _ctrl.clear();
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Falha ao enviar')));
+                        const SnackBar(content: Text('Falha ao enviar')),
+                      );
                     }
                   },
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

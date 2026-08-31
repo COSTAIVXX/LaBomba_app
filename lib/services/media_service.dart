@@ -12,8 +12,12 @@ class MediaService {
   /// Compress an image file and return the compressed File.
   /// maxWidth controls the largest dimension (preserving aspect ratio).
   /// quality is 0-100.
-  Future<File> compressImageFile(File input,
-      {int maxWidth = 1200, int quality = 80, String? targetFileName}) async {
+  Future<File> compressImageFile(
+    File input, {
+    int maxWidth = 1200,
+    int quality = 80,
+    String? targetFileName,
+  }) async {
     final inputPath = input.path;
     final outDir = await getTemporaryDirectory();
     final targetName =
@@ -36,17 +40,25 @@ class MediaService {
   }
 
   /// Create a thumbnail (smaller dimensions) and return File.
-  Future<File> createThumbnail(File input,
-      {int maxWidth = 300, int quality = 60}) async {
-    return compressImageFile(input,
-        maxWidth: maxWidth,
-        quality: quality,
-        targetFileName: 'thumb_${DateTime.now().millisecondsSinceEpoch}.jpg');
+  Future<File> createThumbnail(
+    File input, {
+    int maxWidth = 300,
+    int quality = 60,
+  }) async {
+    return compressImageFile(
+      input,
+      maxWidth: maxWidth,
+      quality: quality,
+      targetFileName: 'thumb_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
   }
 
   /// Convenience to compress from bytes and return bytes (useful for in-memory flows).
-  Future<Uint8List?> compressBytes(Uint8List data,
-      {int maxWidth = 1200, int quality = 80}) async {
+  Future<Uint8List?> compressBytes(
+    Uint8List data, {
+    int maxWidth = 1200,
+    int quality = 80,
+  }) async {
     return await FlutterImageCompress.compressWithList(
       data,
       minWidth: maxWidth,

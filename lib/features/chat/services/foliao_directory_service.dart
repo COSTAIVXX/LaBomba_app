@@ -14,7 +14,8 @@ class FoliaoProfile {
   });
 
   factory FoliaoProfile.fromDocument(
-      DocumentSnapshot<Map<String, dynamic>> document) {
+    DocumentSnapshot<Map<String, dynamic>> document,
+  ) {
     final data = document.data() ?? <String, dynamic>{};
     return FoliaoProfile(
       uid: document.id,
@@ -36,9 +37,11 @@ class FoliaoDirectoryService {
         .collection('users')
         .orderBy('displayName')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map(FoliaoProfile.fromDocument)
-            .where((profile) => profile.uid != excludeUid)
-            .toList(growable: false));
+        .map(
+          (snapshot) => snapshot.docs
+              .map(FoliaoProfile.fromDocument)
+              .where((profile) => profile.uid != excludeUid)
+              .toList(growable: false),
+        );
   }
 }

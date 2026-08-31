@@ -31,10 +31,11 @@ class ReactionService {
           .collection('reactions');
 
   /// Toggle reaction for a post by creating/deleting a single reaction doc.
-  Future<void> toggleReactionOnPost(
-      {required String postId,
-      required String userId,
-      required String emoji}) async {
+  Future<void> toggleReactionOnPost({
+    required String postId,
+    required String userId,
+    required String emoji,
+  }) async {
     final id = _docIdFor(userId, emoji);
     final ref = _postReactionsRef(postId).doc(id);
     final snap = await ref.get();
@@ -66,11 +67,12 @@ class ReactionService {
   }
 
   /// Toggle reaction for a comment (stored in a comment-level reactions subcollection).
-  Future<void> toggleReactionOnComment(
-      {required String postId,
-      required String commentId,
-      required String userId,
-      required String emoji}) async {
+  Future<void> toggleReactionOnComment({
+    required String postId,
+    required String commentId,
+    required String userId,
+    required String emoji,
+  }) async {
     final id = _docIdFor(userId, emoji);
     final ref = _commentReactionsRef(postId, commentId).doc(id);
     final snap = await ref.get();
@@ -87,7 +89,9 @@ class ReactionService {
 
   /// Stream aggregated counts per emoji for a comment.
   Stream<Map<String, int>> reactionsCountStreamForComment(
-      String postId, String commentId) {
+    String postId,
+    String commentId,
+  ) {
     final col = _commentReactionsRef(postId, commentId);
     return col.snapshots().map((q) {
       final Map<String, int> counts = <String, int>{};
@@ -112,11 +116,12 @@ class ReactionService {
           .collection('reactions');
 
   /// Toggle reaction for a story (ownerId = story owner's uid)
-  Future<void> toggleReactionOnStory(
-      {required String ownerId,
-      required String storyId,
-      required String userId,
-      required String emoji}) async {
+  Future<void> toggleReactionOnStory({
+    required String ownerId,
+    required String storyId,
+    required String userId,
+    required String emoji,
+  }) async {
     final id = _docIdFor(userId, emoji);
     final ref = _storyReactionsRef(ownerId, storyId).doc(id);
     final snap = await ref.get();
@@ -133,7 +138,9 @@ class ReactionService {
 
   /// Stream aggregated counts per emoji for a story.
   Stream<Map<String, int>> reactionsCountStreamForStory(
-      String ownerId, String storyId) {
+    String ownerId,
+    String storyId,
+  ) {
     final col = _storyReactionsRef(ownerId, storyId);
     return col.snapshots().map((q) {
       final Map<String, int> counts = <String, int>{};
@@ -149,11 +156,12 @@ class ReactionService {
   }
 
   /// Check whether a specific user reacted with a given emoji to a story.
-  Future<bool> userHasReactedToStory(
-      {required String ownerId,
-      required String storyId,
-      required String userId,
-      required String emoji}) async {
+  Future<bool> userHasReactedToStory({
+    required String ownerId,
+    required String storyId,
+    required String userId,
+    required String emoji,
+  }) async {
     final id = _docIdFor(userId, emoji);
     final ref = _storyReactionsRef(ownerId, storyId).doc(id);
     final snap = await ref.get();

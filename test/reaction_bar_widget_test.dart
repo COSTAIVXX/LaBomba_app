@@ -3,22 +3,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:labomba_app/widgets/reaction_bar.dart';
 
 void main() {
-  testWidgets('ReactionBar toggles counts and calls onChanged',
-      (WidgetTester tester) async {
+  testWidgets('ReactionBar toggles counts and calls onChanged', (
+    WidgetTester tester,
+  ) async {
     final events = <MapEntry<String, bool>>[];
 
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: ReactionBar(
-            initialCounts: {'❤️': 2, '🔥': 1},
-            onChanged: (emoji, added) {
-              events.add(MapEntry(emoji, added));
-            },
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: ReactionBar(
+              initialCounts: {'❤️': 2, '🔥': 1},
+              onChanged: (emoji, added) {
+                events.add(MapEntry(emoji, added));
+              },
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.pumpAndSettle();
 

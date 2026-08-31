@@ -32,9 +32,10 @@ class ChatMessage {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     DateTime created;
     try {
-      created = DateTime.parse(data['createdAt'] as String? ??
-              DateTime.now().toUtc().toIso8601String())
-          .toLocal();
+      created = DateTime.parse(
+        data['createdAt'] as String? ??
+            DateTime.now().toUtc().toIso8601String(),
+      ).toLocal();
     } catch (_) {
       created = DateTime.now();
     }

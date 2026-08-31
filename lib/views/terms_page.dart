@@ -37,8 +37,9 @@ class _TermsPageState extends State<TermsPage> {
         return;
       }
 
-      final legacyValue =
-          await widget.storageService.read(key: _legacyStorageKey);
+      final legacyValue = await widget.storageService.read(
+        key: _legacyStorageKey,
+      );
       if (legacyValue == '1') {
         await widget.storageService.write(key: _storageKey, value: '1');
         setState(() => _accepted = true);
@@ -54,9 +55,8 @@ class _TermsPageState extends State<TermsPage> {
       Navigator.pushReplacementNamed(context, '/landing');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar aceite: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erro ao salvar aceite: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -116,25 +116,27 @@ class _TermsPageState extends State<TermsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          Row(children: [
-            Checkbox(
-              activeColor: const Color(0xFF2563EB),
-              value: _accepted,
-              onChanged: _accepted
-                  ? null
-                  : (v) {
-                      if (v == true) {
-                        setState(() => _accepted = true);
-                      }
-                    },
-            ),
-            const Expanded(
-              child: Text(
-                'Eu li e concordo com os Termos de Uso e a Política de Privacidade.',
-                style: TextStyle(color: Color(0xFF111827)),
+          Row(
+            children: [
+              Checkbox(
+                activeColor: const Color(0xFF2563EB),
+                value: _accepted,
+                onChanged: _accepted
+                    ? null
+                    : (v) {
+                        if (v == true) {
+                          setState(() => _accepted = true);
+                        }
+                      },
               ),
-            ),
-          ]),
+              const Expanded(
+                child: Text(
+                  'Eu li e concordo com os Termos de Uso e a Política de Privacidade.',
+                  style: TextStyle(color: Color(0xFF111827)),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -150,7 +152,10 @@ class _TermsPageState extends State<TermsPage> {
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Text('Aceitar e Continuar'),
             ),
           ),
@@ -203,8 +208,9 @@ class _TermsGateState extends State<TermsGate> {
         _checked = true;
       });
       if (_accepted) {
-        final onboarding =
-            await widget.storageService.read(key: _onboardingKey);
+        final onboarding = await widget.storageService.read(
+          key: _onboardingKey,
+        );
         if (mounted) {
           Navigator.pushReplacementNamed(
             context,

@@ -71,9 +71,10 @@ class Client {
         registeredAt: DateTime.parse(json['registeredAt'] as String),
         acceptedTerms: json['acceptedTerms'] as bool? ?? true,
         purchaseHistory: (json['purchaseHistory'] as List<dynamic>? ?? [])
-            .map((item) => ClientPurchase.fromJson(
-                  Map<String, dynamic>.from(item as Map),
-                ))
+            .map(
+              (item) => ClientPurchase.fromJson(
+                  Map<String, dynamic>.from(item as Map)),
+            )
             .toList(),
       );
 }

@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
@@ -77,8 +78,9 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primary
-                          .withValues(alpha: _isHovered ? 0.6 : 0.2),
+                      color: AppTheme.primary.withValues(
+                        alpha: _isHovered ? 0.6 : 0.2,
+                      ),
                       blurRadius: _isHovered ? 50 : 30,
                       spreadRadius: _isHovered ? 5 : 0,
                     ),
@@ -92,7 +94,8 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Center(
                             child: CircularProgressIndicator(
-                                color: AppTheme.primary),
+                              color: AppTheme.primary,
+                            ),
                           ),
                           errorWidget: (context, url, error) =>
                               _buildFallbackBanner(),

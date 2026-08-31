@@ -44,8 +44,9 @@ class _ClientBaseContentState extends State<_ClientBaseContent> {
       child: Consumer<ClientProvider>(
         builder: (context, provider, _) {
           final clients = provider.clients
-              .where((c) =>
-                  c.fullName.toLowerCase().contains(_query.toLowerCase()))
+              .where(
+                (c) => c.fullName.toLowerCase().contains(_query.toLowerCase()),
+              )
               .toList();
           return LayoutBuilder(
             builder: (context, constraints) {
@@ -58,11 +59,15 @@ class _ClientBaseContentState extends State<_ClientBaseContent> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Compradores cadastrados',
-                            style: Theme.of(context).textTheme.headlineSmall),
+                        Text(
+                          'Compradores cadastrados',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 6),
-                        Text('${provider.clients.length} cliente(s) na base',
-                            style: const TextStyle(color: Colors.white60)),
+                        Text(
+                          '${provider.clients.length} cliente(s) na base',
+                          style: const TextStyle(color: Colors.white60),
+                        ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: _searchController,
@@ -118,12 +123,17 @@ class _EmptyClients extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: const [
-          Icon(Icons.people_outline, size: 52, color: Colors.white38),
-          SizedBox(height: 12),
-          Text('Nenhum cliente cadastrado ainda',
-              style: TextStyle(color: Colors.white60)),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.people_outline, size: 52, color: Colors.white38),
+            SizedBox(height: 12),
+            Text(
+              'Nenhum cliente cadastrado ainda',
+              style: TextStyle(color: Colors.white60),
+            ),
+          ],
+        ),
       );
 }
 
@@ -138,11 +148,15 @@ class _ClientRowSimple extends StatelessWidget {
             backgroundColor: AppTheme.primaryLight.withValues(alpha: .2),
             child: Text(client.fullName.substring(0, 1).toUpperCase()),
           ),
-          title: Text(client.fullName,
-              style: const TextStyle(fontWeight: FontWeight.w800)),
-          subtitle: Text(client.purchaseHistory.isEmpty
-              ? client.phone
-              : '${client.phone} • ${client.purchaseHistory.map((p) => p.description).join(', ')}'),
+          title: Text(
+            client.fullName,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          subtitle: Text(
+            client.purchaseHistory.isEmpty
+                ? client.phone
+                : '${client.phone} • ${client.purchaseHistory.map((p) => p.description).join(', ')}',
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -150,11 +164,14 @@ class _ClientRowSimple extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${client.age} anos',
-                      style: const TextStyle(
-                          color: AppTheme.accent,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12)),
+                  Text(
+                    '${client.age} anos',
+                    style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     client.purchaseHistory.isEmpty
@@ -180,8 +197,9 @@ class _ClientRowSimple extends StatelessWidget {
                 tooltip: 'Editar',
                 onPressed: () async {
                   await showDialog<void>(
-                      context: context,
-                      builder: (context) => _EditClientDialog(client: client));
+                    context: context,
+                    builder: (context) => _EditClientDialog(client: client),
+                  );
                 },
                 icon: const Icon(Icons.edit, size: 18),
               ),
@@ -191,21 +209,23 @@ class _ClientRowSimple extends StatelessWidget {
                 tooltip: 'Excluir',
                 onPressed: () async {
                   final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                            title: const Text('Confirmar exclusão'),
-                            content: const Text(
-                                'Deseja realmente excluir este cliente?'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancelar')),
-                              FilledButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Excluir')),
-                            ],
-                          ));
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirmar exclusão'),
+                      content:
+                          const Text('Deseja realmente excluir este cliente?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Excluir'),
+                        ),
+                      ],
+                    ),
+                  );
                   if (confirm == true) {
                     if (!context.mounted) return;
                     await context
@@ -219,8 +239,9 @@ class _ClientRowSimple extends StatelessWidget {
             ],
           ),
           onTap: () => showDialog<void>(
-              context: context,
-              builder: (context) => _ClientDetailsDialog(client: client)),
+            context: context,
+            builder: (context) => _ClientDetailsDialog(client: client),
+          ),
         ),
       );
 }
@@ -239,36 +260,47 @@ class _ClientDetailsDialog extends StatelessWidget {
             children: [
               _DetailLine(label: 'Idade', value: '${client.age} anos'),
               _DetailLine(
-                  label: 'Data de nascimento', value: _date(client.birthDate)),
+                label: 'Data de nascimento',
+                value: _date(client.birthDate),
+              ),
               _DetailLine(label: 'CPF', value: client.cpf),
               _DetailLine(label: 'Telefone', value: client.phone),
               const SizedBox(height: 14),
-              const Text('Informações de Pagamento',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text(
+                'Informações de Pagamento',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               if (client.purchaseHistory.isEmpty)
-                const Text('Nenhuma informação de pagamento registrada.',
-                    style: TextStyle(color: Colors.white60))
+                const Text(
+                  'Nenhuma informação de pagamento registrada.',
+                  style: TextStyle(color: Colors.white60),
+                )
               else
                 for (final purchase in client.purchaseHistory)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(purchase.description),
                     subtitle: Text(
-                        '${purchase.quantity} unidade(s) • ${_date(purchase.purchasedAt)}\nMétodo: ${purchase.paymentMethod}'),
-                    trailing: Text(purchase.paymentStatus,
-                        style: TextStyle(
-                            color: purchase.paymentStatus == 'Confirmado'
-                                ? Colors.greenAccent
-                                : Colors.orangeAccent)),
+                      '${purchase.quantity} unidade(s) • ${_date(purchase.purchasedAt)}\nMétodo: ${purchase.paymentMethod}',
+                    ),
+                    trailing: Text(
+                      purchase.paymentStatus,
+                      style: TextStyle(
+                        color: purchase.paymentStatus == 'Confirmado'
+                            ? Colors.greenAccent
+                            : Colors.orangeAccent,
+                      ),
+                    ),
                   ),
             ],
           ),
         ),
         actions: [
           FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Fechar')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
         ],
       );
 }
@@ -290,8 +322,9 @@ class _EditClientDialogState extends State<_EditClientDialog> {
 
   late final _name = TextEditingController(text: widget.client.fullName);
   late final _birth = TextEditingController(
-      text:
-          '${widget.client.birthDate.day.toString().padLeft(2, '0')}/${widget.client.birthDate.month.toString().padLeft(2, '0')}/${widget.client.birthDate.year}');
+    text:
+        '${widget.client.birthDate.day.toString().padLeft(2, '0')}/${widget.client.birthDate.month.toString().padLeft(2, '0')}/${widget.client.birthDate.year}',
+  );
   late final _cpf = TextEditingController(text: widget.client.cpf);
   late final _phone = TextEditingController(text: widget.client.phone);
 
@@ -317,58 +350,68 @@ class _EditClientDialogState extends State<_EditClientDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
         title: const Text('Editar cliente'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Nome completo')),
-          TextField(
+              decoration: const InputDecoration(labelText: 'Nome completo'),
+            ),
+            TextField(
               controller: _birth,
               readOnly: true,
               decoration: const InputDecoration(
-                  labelText: 'Data de nascimento (DD/MM/AAAA)')),
-          TextField(
+                labelText: 'Data de nascimento (DD/MM/AAAA)',
+              ),
+            ),
+            TextField(
               controller: _cpf,
               readOnly: true,
-              decoration: const InputDecoration(labelText: 'CPF')),
-          TextField(
-            controller: _phone,
-            decoration: const InputDecoration(labelText: 'Telefone'),
-            inputFormatters: [_phoneMask],
-            keyboardType: TextInputType.phone,
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Aceitou o termo'),
-            trailing: Icon(
-              widget.client.acceptedTerms ? Icons.check_circle : Icons.cancel,
-              color: widget.client.acceptedTerms ? Colors.green : Colors.red,
+              decoration: const InputDecoration(labelText: 'CPF'),
             ),
-          ),
-        ]),
+            TextField(
+              controller: _phone,
+              decoration: const InputDecoration(labelText: 'Telefone'),
+              inputFormatters: [_phoneMask],
+              keyboardType: TextInputType.phone,
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Aceitou o termo'),
+              trailing: Icon(
+                widget.client.acceptedTerms ? Icons.check_circle : Icons.cancel,
+                color: widget.client.acceptedTerms ? Colors.green : Colors.red,
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-              onPressed: () async {
-                final birthDate = _parseBirth();
-                if (birthDate == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Data de nascimento inválida')));
-                  return;
-                }
-                await context.read<ClientProvider>().updateClient(
-                      clientId: widget.client.id,
-                      fullName: _name.text,
-                      birthDate: birthDate,
-                      cpf: _cpf.text,
-                      phone: _phone.text,
-                      acceptedTerms: widget.client.acceptedTerms,
-                    );
-                if (!context.mounted) return;
-                Navigator.pop(context);
-              },
-              child: const Text('Salvar')),
+            onPressed: () async {
+              final birthDate = _parseBirth();
+              if (birthDate == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Data de nascimento inválida')),
+                );
+                return;
+              }
+              await context.read<ClientProvider>().updateClient(
+                    clientId: widget.client.id,
+                    fullName: _name.text,
+                    birthDate: birthDate,
+                    cpf: _cpf.text,
+                    phone: _phone.text,
+                    acceptedTerms: widget.client.acceptedTerms,
+                  );
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+            child: const Text('Salvar'),
+          ),
         ],
       );
 }
@@ -382,13 +425,19 @@ class _DetailLine extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: RichText(
-          text: TextSpan(style: DefaultTextStyle.of(context).style, children: [
-            TextSpan(
+          text: TextSpan(
+            style: DefaultTextStyle.of(context).style,
+            children: [
+              TextSpan(
                 text: '$label: ',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-            TextSpan(
-                text: value, style: const TextStyle(color: Colors.white70)),
-          ]),
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              TextSpan(
+                text: value,
+                style: const TextStyle(color: Colors.white70),
+              ),
+            ],
+          ),
         ),
       );
 }

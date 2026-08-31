@@ -21,12 +21,17 @@ class MemoryViewerPage extends StatelessWidget {
             onPressed: () async {
               try {
                 // Prefer sharing the direct URL; Share handles text/URLs gracefully
-                await SharePlus.instance.share(ShareParams(
-                    text: url, subject: 'Confira esta mídia - La Bomba'));
+                await SharePlus.instance.share(
+                  ShareParams(
+                    text: url,
+                    subject: 'Confira esta mídia - La Bomba',
+                  ),
+                );
               } catch (e) {
                 // Fallback: show a simple snackbar on failure
                 ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Erro ao compartilhar')));
+                  const SnackBar(content: Text('Erro ao compartilhar')),
+                );
               }
             },
           ),
@@ -45,8 +50,8 @@ class MemoryViewerPage extends StatelessWidget {
                 child: Container(color: Colors.grey.shade800),
               ),
               errorWidget: (context, _, __) => const Center(
-                  child:
-                      Icon(Icons.broken_image_outlined, color: Colors.white)),
+                child: Icon(Icons.broken_image_outlined, color: Colors.white),
+              ),
             ),
           ),
         ),

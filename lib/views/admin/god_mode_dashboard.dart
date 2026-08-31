@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../services/post_service.dart';
 import 'god_mode_content_page.dart';
 import 'god_mode_users_page.dart';
@@ -44,14 +45,25 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
   final PostService _postService = PostService();
 
   final List<TerminalLog> _terminalHistory = [
-    TerminalLog('LaBomba OS v1.0.0 [God Mode Activated]',
-        type: LogType.warning),
+    TerminalLog(
+      'LaBomba OS v1.0.0 [God Mode Activated]',
+      type: LogType.warning,
+    ),
     TerminalLog('Type /help for a list of commands.', type: LogType.info),
   ];
 
-  bool _isMaster() {
-    return FirebaseAuth.instance.currentUser?.email ==
-        'gustavodionisio15x@gmail.com';
+  Future<bool> _isMaster() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    try {
+      final tokenResult = await user.getIdTokenResult(true);
+      final claims = tokenResult.claims ?? {};
+      return claims['owner'] == true ||
+          claims['isOwner'] == true ||
+          claims['role'] == 'owner';
+    } catch (_) {
+      return false;
+    }
   }
 
   void _addLog(String message, {LogType type = LogType.info}) {
@@ -99,14 +111,22 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
       _addLog('  /clear          - Clear terminal history', type: LogType.info);
       _addLog('  /ping           - Check system latency', type: LogType.info);
       _addLog('  /posts          - List latest 5 posts', type: LogType.warning);
-      _addLog('  /delpost <id>   - Delete a specific post',
-          type: LogType.warning);
-      _addLog('  /broadcast <msg>- Post a pinned global message',
-          type: LogType.warning);
-      _addLog('  /ban <id>       - Toggle ban status for a client ID',
-          type: LogType.warning);
-      _addLog('  /stats          - Show live platform statistics',
-          type: LogType.warning);
+      _addLog(
+        '  /delpost <id>   - Delete a specific post',
+        type: LogType.warning,
+      );
+      _addLog(
+        '  /broadcast <msg>- Post a pinned global message',
+        type: LogType.warning,
+      );
+      _addLog(
+        '  /ban <id>       - Toggle ban status for a client ID',
+        type: LogType.warning,
+      );
+      _addLog(
+        '  /stats          - Show live platform statistics',
+        type: LogType.warning,
+      );
       return;
     }
 
@@ -116,9 +136,11 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
     }
 
     // Validação de segurança suprema
-    if (!_isMaster()) {
-      _addLog('ACCESS DENIED: Command requires MASTER_EMAIL privileges.',
-          type: LogType.error);
+    if (!(await _isMaster())) {
+      _addLog(
+        'ACCESS DENIED: Command requires OWNER-backed tier privileges.',
+        type: LogType.error,
+      );
       return;
     }
 
@@ -137,8 +159,9 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
           for (var doc in snapshot.docs) {
             final data = doc.data();
             _addLog(
-                'ID: ${doc.id} | User: ${data['userName']} | Content: ${data['content']}',
-                type: LogType.success);
+              'ID: ${doc.id} | User: ${data['userName']} | Content: ${data['content']}',
+              type: LogType.success,
+            );
           }
         }
       } else if (lowerCmd == '/delpost') {
@@ -159,18 +182,21 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
         final user = FirebaseAuth.instance.currentUser;
         if (user == null) throw Exception("No user");
 
-        final docRef =
-            await FirebaseFirestore.instance.collection('posts').add({
-          'userId': user.uid,
-          'userName': 'LA BOMBA OFICIAL', // Broadcast oficial
-          'avatarUrl': null,
-          'content': message,
-          'createdAt': Timestamp.now(),
-          'isPinned': true,
-        });
+        final docRef = await FirebaseFirestore.instance.collection('posts').add(
+          {
+            'userId': user.uid,
+            'userName': 'LA BOMBA OFICIAL', // Broadcast oficial
+            'avatarUrl': null,
+            'content': message,
+            'createdAt': Timestamp.now(),
+            'isPinned': true,
+          },
+        );
 
-        _addLog('Broadcast published and pinned. PostID: ${docRef.id}',
-            type: LogType.success);
+        _addLog(
+          'Broadcast published and pinned. PostID: ${docRef.id}',
+          type: LogType.success,
+        );
       } else if (lowerCmd == '/ban') {
         if (parts.length < 2) {
           _addLog('Usage: /ban <id>', type: LogType.error);
@@ -187,10 +213,11 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
         final isBanned = docSnap.data()?['isBanned'] == true;
         await docRef.update({'isBanned': !isBanned});
         _addLog(
-            isBanned
-                ? 'Client $clientId is now UNBANNED.'
-                : 'Client $clientId is now BANNED.',
-            type: LogType.success);
+          isBanned
+              ? 'Client $clientId is now UNBANNED.'
+              : 'Client $clientId is now BANNED.',
+          type: LogType.success,
+        );
       } else if (lowerCmd == '/stats') {
         _addLog('Gathering platform stats...', type: LogType.warning);
 
@@ -202,8 +229,10 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
             await FirebaseFirestore.instance.collection('posts').count().get();
 
         _addLog('--- GOD MODE STATS ---', type: LogType.success);
-        _addLog('Total Registered Clients: ${clientsSnap.count}',
-            type: LogType.success);
+        _addLog(
+          'Total Registered Clients: ${clientsSnap.count}',
+          type: LogType.success,
+        );
         _addLog('Total Feed Posts: ${postsSnap.count}', type: LogType.success);
         _addLog('VIP Tickets: [Data not linked yet]', type: LogType.warning);
       } else {
@@ -228,14 +257,16 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border.all(
-            color: Colors.greenAccent.withValues(alpha: 0.5), width: 1.5),
+          color: Colors.greenAccent.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(
             color: Colors.greenAccent.withValues(alpha: 0.1),
             blurRadius: 10,
             spreadRadius: 2,
-          )
+          ),
         ],
       ),
       child: Column(
@@ -304,8 +335,12 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
     );
   }
 
-  Widget _buildDashboardCard(String title, IconData icon, Color iconColor,
-      {VoidCallback? onTap}) {
+  Widget _buildDashboardCard(
+    String title,
+    IconData icon,
+    Color iconColor, {
+    VoidCallback? onTap,
+  }) {
     return Card(
       color: const Color(0xFF16151E),
       elevation: 4,
@@ -350,22 +385,40 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
         physics: const BouncingScrollPhysics(),
         children: [
           _buildDashboardCard(
-              'Logs de Auditoria', Icons.security, Colors.amber),
+            'Logs de Auditoria',
+            Icons.security,
+            Colors.amber,
+          ),
           _buildDashboardCard(
-              'Radar de Usuários', Icons.radar, Colors.blueAccent, onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GodModeUsersPage()));
-          }),
+            'Radar de Usuários',
+            Icons.radar,
+            Colors.blueAccent,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GodModeUsersPage()),
+              );
+            },
+          ),
           _buildDashboardCard(
-              'Moderação de Feed', Icons.article, Colors.redAccent, onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GodModeContentPage()));
-          }),
+            'Moderação de Feed',
+            Icons.article,
+            Colors.redAccent,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GodModeContentPage()),
+              );
+            },
+          ),
           _buildDashboardCard(
-              'Broadcast System', Icons.podcasts, Colors.purpleAccent,
-              onTap: () {
-            _handleCommand('/broadcast [Aviso da Diretoria] Mensagem Global');
-          }),
+            'Broadcast System',
+            Icons.podcasts,
+            Colors.purpleAccent,
+            onTap: () {
+              _handleCommand('/broadcast [Aviso da Diretoria] Mensagem Global');
+            },
+          ),
         ],
       ),
     );
@@ -392,15 +445,9 @@ class _GodModeDashboardState extends State<GodModeDashboard> {
       body: Column(
         children: [
           // Área 1: The God Terminal (Expande para tomar metade ou o que sobrar)
-          Expanded(
-            flex: 5,
-            child: _buildTerminal(),
-          ),
+          Expanded(flex: 5, child: _buildTerminal()),
           // Área 2: Painel de Módulos
-          Expanded(
-            flex: 5,
-            child: _buildModulesPanel(),
-          ),
+          Expanded(flex: 5, child: _buildModulesPanel()),
         ],
       ),
     );

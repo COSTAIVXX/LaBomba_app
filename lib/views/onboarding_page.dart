@@ -105,8 +105,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     height: 8,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white
-                          .withValues(alpha: index == _page ? 1 : .45),
+                      color: Colors.white.withValues(
+                        alpha: index == _page ? 1 : .45,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),

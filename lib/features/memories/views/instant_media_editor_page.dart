@@ -1,17 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_storage/firebase_storage.dart';
+
 import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import '../../../services/media_compressor.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+
 import '../../../services/storage_platform.dart';
 
 import '../../../providers/google_auth_provider.dart';
@@ -107,14 +110,16 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
               (gif) => InkWell(
                 onTap: () => Navigator.pop(context, gif),
                 child: CachedNetworkImage(
-                    imageUrl: gif,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Shimmer.fromColors(
-                        baseColor: Colors.grey.shade300,
-                        highlightColor: Colors.grey.shade100,
-                        child: Container(color: Colors.grey.shade300)),
-                    errorWidget: (_, __, ___) =>
-                        const Icon(Icons.broken_image_outlined)),
+                  imageUrl: gif,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(color: Colors.grey.shade300),
+                  ),
+                  errorWidget: (_, __, ___) =>
+                      const Icon(Icons.broken_image_outlined),
+                ),
               ),
             )
             .toList(),
@@ -144,9 +149,13 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
         if (diff < _uploadCooldown) {
           final remain = _uploadCooldown - diff;
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
                 content: Text(
-                    'Aguarde ${remain.inSeconds}s antes de enviar outra mídia.')));
+                  'Aguarde ${remain.inSeconds}s antes de enviar outra mídia.',
+                ),
+              ),
+            );
           }
           return;
         }
@@ -160,13 +169,15 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
       try {
         if (widget.isVideo) {
           final File original = File(widget.media.path);
-          final File compressed =
-              await MediaCompressor.compressVideoFile(original);
+          final File compressed = await MediaCompressor.compressVideoFile(
+            original,
+          );
           await ref.putFile(compressed);
         } else {
           final File original = File(widget.media.path);
-          final Uint8List compressed =
-              await MediaCompressor.compressImageFile(original);
+          final Uint8List compressed = await MediaCompressor.compressImageFile(
+            original,
+          );
           await ref.putData(
             compressed,
             SettableMetadata(contentType: 'image/jpeg'),
@@ -192,22 +203,27 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
 
       // Persist last upload time for rate limiting
       await _storageService.write(
-          key: lastKey,
-          value: DateTime.now().millisecondsSinceEpoch.toString());
+        key: lastKey,
+        value: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
 
       if (mounted)
         Navigator.popUntil(context, ModalRoute.withName('/memories'));
     } catch (e) {
       if (mounted)
         await _showErrorRetry(
-            'Falha ao publicar mídia: ${e.toString()}', _publish);
+          'Falha ao publicar mídia: ${e.toString()}',
+          _publish,
+        );
     } finally {
       if (mounted) setState(() => _publishing = false);
     }
   }
 
   Future<void> _showErrorRetry(
-      String message, Future<void> Function() retry) async {
+    String message,
+    Future<void> Function() retry,
+  ) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -283,8 +299,10 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
                 ),
               ),
               const SizedBox(height: 18),
-              const Text('Filtro carnavalesco',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Filtro carnavalesco',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Wrap(
                 spacing: 8,
                 children: List.generate(
@@ -314,8 +332,9 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
                     _validationMessage!,
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               const SizedBox(height: 12),
@@ -323,7 +342,8 @@ class _InstantMediaEditorPageState extends State<InstantMediaEditorPage> {
                 onPressed: _pickGif,
                 icon: const Icon(Icons.gif_box_outlined),
                 label: Text(
-                    _selectedGif == null ? 'Adicionar GIF' : 'GIF adicionado'),
+                  _selectedGif == null ? 'Adicionar GIF' : 'GIF adicionado',
+                ),
               ),
               const SizedBox(height: 18),
               FilledButton.icon(

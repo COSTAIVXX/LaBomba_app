@@ -10,20 +10,34 @@ class StorageUploadService {
       : _storage = storage ?? FirebaseStorage.instance;
 
   /// Upload bytes to a given path and return the download URL.
-  Future<String> uploadBytes(String path, List<int> bytes,
-      {String contentType = 'image/jpeg'}) async {
+  Future<String> uploadBytes(
+    String path,
+    List<int> bytes, {
+    String contentType = 'image/jpeg',
+    String? ownerUid,
+  }) async {
     final ref = _storage.ref().child(path);
-    final meta = SettableMetadata(contentType: contentType);
+    final meta = SettableMetadata(
+      contentType: contentType,
+      customMetadata: {if (ownerUid != null) 'ownerUid': ownerUid},
+    );
     final task = await ref.putData(Uint8List.fromList(bytes), meta);
     final url = await task.ref.getDownloadURL();
     return url;
   }
 
   /// Upload a File to a given path and return download URL.
-  Future<String> uploadFile(String path, File file,
-      {String contentType = 'image/jpeg'}) async {
+  Future<String> uploadFile(
+    String path,
+    File file, {
+    String contentType = 'image/jpeg',
+    String? ownerUid,
+  }) async {
     final ref = _storage.ref().child(path);
-    final meta = SettableMetadata(contentType: contentType);
+    final meta = SettableMetadata(
+      contentType: contentType,
+      customMetadata: {if (ownerUid != null) 'ownerUid': ownerUid},
+    );
     final uploadTask = await ref.putFile(file, meta);
     final url = await uploadTask.ref.getDownloadURL();
     return url;

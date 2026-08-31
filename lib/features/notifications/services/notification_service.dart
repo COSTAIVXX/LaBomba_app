@@ -17,7 +17,8 @@ class AppNotification {
   });
 
   factory AppNotification.fromDocument(
-      DocumentSnapshot<Map<String, dynamic>> document) {
+    DocumentSnapshot<Map<String, dynamic>> document,
+  ) {
     final data = document.data() ?? <String, dynamic>{};
     final timestamp = data['createdAt'];
     return AppNotification(
@@ -34,10 +35,8 @@ class NotificationService {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  NotificationService({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+  NotificationService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
         _auth = auth ?? FirebaseAuth.instance;
 
   Stream<List<AppNotification>> streamForCurrentUser() {
@@ -49,8 +48,10 @@ class NotificationService {
         .collection('notifications')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(AppNotification.fromDocument).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map(AppNotification.fromDocument).toList(),
+        );
   }
 
   Future<void> markAsRead(String notificationId) async {
@@ -63,5 +64,4 @@ class NotificationService {
         .doc(notificationId)
         .set({'read': true}, SetOptions(merge: true));
   }
-
 }

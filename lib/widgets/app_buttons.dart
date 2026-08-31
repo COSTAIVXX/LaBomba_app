@@ -59,8 +59,10 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                   : null,
               onHighlightChanged: (value) => setState(() => _pressed = value),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 14,
+                ),
                 child: _ButtonContent(
                   label: widget.label,
                   icon: widget.icon,

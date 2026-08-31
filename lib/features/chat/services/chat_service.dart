@@ -18,12 +18,13 @@ class ChatService {
         .map((snap) => snap.docs.map((d) => ChatMessage.fromDoc(d)).toList());
   }
 
-  Future<void> sendMessage(
-      {required String senderId,
-      required String senderName,
-      String? text,
-      String? stickerUrl,
-      Map<String, dynamic>? meta}) async {
+  Future<void> sendMessage({
+    required String senderId,
+    required String senderName,
+    String? text,
+    String? stickerUrl,
+    Map<String, dynamic>? meta,
+  }) async {
     final col =
         _firestore.collection('chats').doc(roomId).collection('messages');
     final doc = col.doc();

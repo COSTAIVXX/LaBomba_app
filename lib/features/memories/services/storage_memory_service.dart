@@ -43,7 +43,8 @@ class StorageMemoryService implements MemoryService {
     }
     return decoded
         .map(
-            (entry) => Memory.fromJson(Map<String, dynamic>.from(entry as Map)))
+          (entry) => Memory.fromJson(Map<String, dynamic>.from(entry as Map)),
+        )
         .toList();
   }
 

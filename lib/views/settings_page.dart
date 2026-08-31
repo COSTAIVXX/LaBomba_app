@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/storage_service.dart';
 import '../services/admin_profile_service.dart';
 import '../services/auth_service.dart';
 import '../providers/google_auth_provider.dart';
+
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
+
 import '../models/admin_profile.dart';
 import '../widgets/app_feedback.dart';
 
@@ -54,9 +57,8 @@ class _SettingsPageState extends State<SettingsPage> {
         try {
           final auth = context.read<AuthService>();
           if (auth.currentUser != null) {
-            final profile = await AdminProfileService(
-              storage: _storage,
-            ).getCurrentUserProfile();
+            final profile = await AdminProfileService(storage: _storage)
+                .getCurrentUserProfile();
             if (profile?.displayName != null &&
                 profile!.displayName!.isNotEmpty) {
               dn = profile.displayName;
@@ -101,7 +103,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Configurações'), actions: [UserAppBarActions()]),
+        title: const Text('Configurações'),
+        actions: [UserAppBarActions()],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Center(
@@ -110,14 +114,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    const Text('Perfil',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const Text(
+                      'Perfil',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       decoration: const InputDecoration(
-                          labelText: 'Nome de exibição',
-                          border: OutlineInputBorder()),
+                        labelText: 'Nome de exibição',
+                        border: OutlineInputBorder(),
+                      ),
                       controller: TextEditingController(text: _displayName),
                       onChanged: (v) => _displayName = v,
                       onSubmitted: (v) async =>
@@ -153,9 +162,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Preferências',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const Text(
+                      'Preferências',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     SwitchListTile(
                       title: const Text('Notificações'),
                       value: _notificationsEnabled,
@@ -167,7 +180,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     SwitchListTile(
                       title: const Text('Tema escuro'),
                       subtitle: const Text(
-                          'Alterna a preferência de tema (aplicativo pode precisar reiniciar)'),
+                        'Alterna a preferência de tema (aplicativo pode precisar reiniciar)',
+                      ),
                       value: _darkTheme,
                       onChanged: (v) async {
                         setState(() => _darkTheme = v);
@@ -197,8 +211,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 .updateProfile(
                               displayName: trimmed,
                               bio: _bio.trim(),
-                              socialLinks:
-                                  Map<String, String>.from(_socialLinks),
+                              socialLinks: Map<String, String>.from(
+                                _socialLinks,
+                              ),
                             );
                             // Reload current user in AuthService and notify auth providers so UI reflects new name immediately
                             try {
@@ -211,8 +226,10 @@ class _SettingsPageState extends State<SettingsPage> {
                               } catch (_) {}
                             } catch (_) {}
 
-                            AppFeedback.showSuccess(context,
-                                'Preferências salvas e perfil atualizado');
+                            AppFeedback.showSuccess(
+                              context,
+                              'Preferências salvas e perfil atualizado',
+                            );
                             return;
                           }
                         } catch (e) {
@@ -224,12 +241,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: const Text('Salvar alterações'),
                     ),
                     const SizedBox(height: 24),
-                    const Text('Privacidade',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const Text(
+                      'Privacidade',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     const Text(
-                        'Gerencie suas preferências de privacidade e notificações aqui.'),
+                      'Gerencie suas preferências de privacidade e notificações aqui.',
+                    ),
                   ],
                 ), // ListView
               ), // ConstrainedBox

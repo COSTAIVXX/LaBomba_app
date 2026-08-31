@@ -103,6 +103,14 @@ class UserProfile {
   }
 
   @override
-  int get hashCode => Object.hash(uid, name, email, photoUrl, isCloseFriend,
-      status, Object.hashAll(friends), Object.hashAll(pendingRequests));
+  int get hashCode => Object.hash(
+        uid,
+        name,
+        email,
+        photoUrl,
+        isCloseFriend,
+        status,
+        Object.hashAll(friends),
+        Object.hashAll(pendingRequests),
+      );
 }

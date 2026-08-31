@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
 import 'storage_service.dart';
 import 'storage_platform.dart';
-import 'admin_profile_service.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
@@ -12,73 +14,164 @@ import 'admin_profile_service.dart';
 /// Unified auth status enum exposed by AuthService.authStatus
 enum AuthStatus { unknown, unauthenticated, authenticated, admin }
 
+enum AppRole { owner, admin, moderator, user, unknown }
+
+enum AuthAccountState {
+  unknown,
+  active,
+  emailNotVerified,
+  disabled,
+  blocked,
+  sessionExpired,
+  deleted,
+}
+
 class AuthService {
   /// Last FirebaseAuth error code seen by sign-in attempts. Useful for UI
   /// to render actionable messages without exposing exception details.
   String? lastAuthErrorCode;
-  // Load master credentials from environment to avoid hardcoding secrets.
-  // In CI or development you can pass --dart-define=MASTER_EMAIL=... --dart-define=MASTER_PASSWORD=...
-  static const String masterEmail =
-      String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
-  static const String masterPassword =
-      String.fromEnvironment('MASTER_PASSWORD', defaultValue: '');
 
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final StorageService _storage;
+  StreamSubscription<firebase_auth.User?>? _authStateSubscription;
 
   static const String _adminSessionKey = 'labomba_admin_session';
-  static const String _masterIdentityKey = 'labomba_master_identity';
   static const String _idTokenKey = 'labomba_id_token';
 
-  bool _masterSessionActive = false;
+  AppRole _currentRole = AppRole.unknown;
 
   /// Centralized auth status for the app. Consumers should observe this
   /// ValueNotifier instead of checking FirebaseAuth.instance.currentUser directly.
-  /// Values: unknown -> initial, unauthenticated, authenticated (normal user), admin (master)
   static const AuthStatus initialAuthStatus = AuthStatus.unknown;
-  final ValueNotifier<AuthStatus> authStatus =
-      ValueNotifier<AuthStatus>(initialAuthStatus);
+  final ValueNotifier<AuthStatus> authStatus = ValueNotifier<AuthStatus>(
+    initialAuthStatus,
+  );
 
-  bool get isMasterUser =>
-      (_masterSessionActive) ||
-      (_auth.currentUser?.email?.toLowerCase() == masterEmail.toLowerCase());
+  static AppRole roleFromClaims(Map<String, dynamic>? claims) {
+    if (claims == null || claims.isEmpty) return AppRole.user;
+    final role = claims['role'];
+    if (role == 'owner' ||
+        claims['owner'] == true ||
+        claims['isOwner'] == true) {
+      return AppRole.owner;
+    }
+    if (role == 'admin' ||
+        claims['admin'] == true ||
+        claims['isAdmin'] == true) {
+      return AppRole.admin;
+    }
+    if (role == 'moderator' || claims['moderator'] == true) {
+      return AppRole.moderator;
+    }
+    return AppRole.user;
+  }
+
+  static String friendlyAuthErrorMessage(String code) {
+    switch (code) {
+      case 'user-disabled':
+        return 'Esta conta foi desativada. Entre em contato com o suporte.';
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Credenciais inválidas. Verifique e-mail e senha.';
+      case 'email-already-in-use':
+        return 'Este e-mail já está em uso por outra conta.';
+      case 'weak-password':
+        return 'A senha deve ter pelo menos 6 caracteres e ser mais segura.';
+      case 'invalid-email':
+        return 'Informe um e-mail válido antes de continuar.';
+      case 'requires-recent-login':
+        return 'Esta ação exige uma autenticação recente. Faça login novamente.';
+      case 'too-many-requests':
+        return 'Muitas tentativas foram feitas. Tente novamente mais tarde.';
+      case 'network-request-failed':
+        return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+      case 'user-token-expired':
+      case 'session-expired':
+        return 'Sua sessão expirou. Faça login novamente.';
+      default:
+        return 'Não foi possível completar a autenticação. Tente novamente.';
+    }
+  }
+
+  static String friendlyAccountStateMessage(AuthAccountState state) {
+    switch (state) {
+      case AuthAccountState.active:
+        return 'Conta ativa.';
+      case AuthAccountState.emailNotVerified:
+        return 'Confirme seu e-mail para continuar.';
+      case AuthAccountState.disabled:
+        return 'Esta conta foi desativada. Entre em contato com o suporte.';
+      case AuthAccountState.blocked:
+        return 'Sua conta está bloqueada temporariamente.';
+      case AuthAccountState.sessionExpired:
+        return 'Sua sessão expirou. Faça login novamente.';
+      case AuthAccountState.deleted:
+        return 'Esta conta foi removida ou não está mais disponível.';
+      case AuthAccountState.unknown:
+      default:
+        return 'Estado da conta indisponível no momento.';
+    }
+  }
+
+  bool get isMasterUser => _currentRole == AppRole.owner;
+
+  Future<AppRole> refreshCurrentRole() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      _currentRole = AppRole.unknown;
+      authStatus.value = AuthStatus.unauthenticated;
+      return AppRole.unknown;
+    }
+
+    try {
+      final tokenResult = await user.getIdTokenResult(true);
+      final role = roleFromClaims(tokenResult.claims);
+      _currentRole = role;
+      if (role == AppRole.owner || role == AppRole.admin) {
+        authStatus.value = AuthStatus.admin;
+      } else {
+        authStatus.value = AuthStatus.authenticated;
+      }
+      return role;
+    } catch (_) {
+      _currentRole = AppRole.unknown;
+      authStatus.value = AuthStatus.authenticated;
+      return AppRole.unknown;
+    }
+  }
 
   AuthService({StorageService? storageService})
       : _storage = storageService ?? PlatformStorageService() {
-    // Listen to Firebase Auth state changes and update centralized auth status.
-    _auth.authStateChanges().listen((firebaseUser) async {
+    _authStateSubscription = _auth.authStateChanges().listen((
+      firebaseUser,
+    ) async {
       try {
         if (firebaseUser == null) {
-          // If we have an in-memory master session active, prefer ADMIN
-          if (_masterSessionActive) {
-            authStatus.value = AuthStatus.admin;
-          } else {
-            authStatus.value = AuthStatus.unauthenticated;
-          }
+          _currentRole = AppRole.unknown;
+          authStatus.value = AuthStatus.unauthenticated;
+          return;
+        }
+
+        final role = await refreshCurrentRole();
+        if (role == AppRole.owner || role == AppRole.admin) {
+          authStatus.value = AuthStatus.admin;
         } else {
-          // If the Firebase user matches master email (env), treat as admin
-          final email = firebaseUser.email?.toLowerCase() ?? '';
-          if (masterEmail.isNotEmpty && email == masterEmail.toLowerCase()) {
-            authStatus.value = AuthStatus.admin;
-            _masterSessionActive = true;
-          } else {
-            authStatus.value = AuthStatus.authenticated;
-            _masterSessionActive = false;
-          }
+          authStatus.value = AuthStatus.authenticated;
         }
       } catch (_) {
-        // ignore listener errors to avoid crashing app
+        authStatus.value = AuthStatus.authenticated;
       }
     });
   }
 
+  void dispose() {
+    _authStateSubscription?.cancel();
+  }
+
   bool isMasterCredentials({required String email, required String password}) {
-    // Disallow master bypass in release builds for safety.
-    if (kReleaseMode) return false;
-    if (masterEmail.isEmpty || masterPassword.isEmpty) return false;
-    return email.trim().toLowerCase() == masterEmail.toLowerCase() &&
-        password == masterPassword;
+    return false;
   }
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
@@ -109,11 +202,8 @@ class AuthService {
       // Clear last error on success
       lastAuthErrorCode = null;
 
-      // Determine admin status by matching masterEmail or via AdminProfileService later
-      final isAdmin = masterEmail.isNotEmpty &&
-          (user.email?.toLowerCase() == masterEmail.toLowerCase());
-      await setAdminSession(isAdmin);
-      if (isAdmin) _masterSessionActive = true;
+      final role = await refreshCurrentRole();
+      await setAdminSession(role == AppRole.owner || role == AppRole.admin);
 
       final resultMap = {
         'uid': user.uid,
@@ -122,22 +212,50 @@ class AuthService {
         'photoURL': user.photoURL,
       };
 
-      // Debug-only signal: log minimal auth success info (UID and token presence)
-      // This is safe for debug: it does NOT log any credentials or tokens.
-      try {
-        debugPrint('AUTOTEST: signIn success uid=${user.uid}');
-        final token = await user.getIdToken();
-        debugPrint('AUTOTEST: idToken present=${token != null}');
-      } catch (_) {}
-
       return resultMap;
     } on firebase_auth.FirebaseAuthException catch (e) {
-      // Provide diagnostics for common auth failures and expose last error code to UI
-      print('FirebaseAuth signIn failed: ${e.code} ${e.message}');
       lastAuthErrorCode = e.code;
       return null;
     } catch (e) {
-      print('Unexpected error during signInWithEmailAndPassword: $e');
+      lastAuthErrorCode = 'unknown';
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    final normalizedEmail = email.trim();
+    final trimmedDisplayName = displayName?.trim();
+
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+
+      final user = userCredential.user;
+      if (user == null) return null;
+
+      if (trimmedDisplayName != null && trimmedDisplayName.isNotEmpty) {
+        await user.updateDisplayName(trimmedDisplayName);
+      }
+
+      await user.sendEmailVerification();
+      lastAuthErrorCode = null;
+
+      return {
+        'uid': user.uid,
+        'displayName': user.displayName ?? trimmedDisplayName ?? 'Usuário',
+        'email': user.email,
+        'photoURL': user.photoURL,
+      };
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      lastAuthErrorCode = e.code;
+      return null;
+    } catch (_) {
       lastAuthErrorCode = 'unknown';
       return null;
     }
@@ -208,18 +326,119 @@ class AuthService {
       return null;
     } catch (_) {
       throw Exception(
-          'Google Sign-In indisponível no momento. Tente novamente.');
+        'Google Sign-In indisponível no momento. Tente novamente.',
+      );
     }
+  }
+
+  Future<bool> sendPasswordResetEmail({required String email}) async {
+    final normalizedEmail = email.trim();
+    if (normalizedEmail.isEmpty || !normalizedEmail.contains('@')) {
+      return false;
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: normalizedEmail);
+      lastAuthErrorCode = null;
+      return true;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      lastAuthErrorCode = e.code;
+      return false;
+    } catch (_) {
+      lastAuthErrorCode = 'unknown';
+      return false;
+    }
+  }
+
+  Future<bool> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      await user.sendEmailVerification();
+      return true;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      lastAuthErrorCode = e.code;
+      return false;
+    } catch (_) {
+      lastAuthErrorCode = 'unknown';
+      return false;
+    }
+  }
+
+  Future<bool> reauthenticateWithPassword({required String password}) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null || user.email!.isEmpty) {
+      return false;
+    }
+
+    try {
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+      lastAuthErrorCode = null;
+      return true;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      lastAuthErrorCode = e.code;
+      return false;
+    } catch (_) {
+      lastAuthErrorCode = 'unknown';
+      return false;
+    }
+  }
+
+  Future<bool> deleteCurrentUserWithPassword({required String password}) async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final reauthenticated = await reauthenticateWithPassword(
+      password: password,
+    );
+    if (!reauthenticated) return false;
+
+    try {
+      await user.delete();
+      return true;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      lastAuthErrorCode = e.code;
+      return false;
+    } catch (_) {
+      lastAuthErrorCode = 'unknown';
+      return false;
+    }
+  }
+
+  Future<AuthAccountState> evaluateCurrentUserState() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return AuthAccountState.sessionExpired;
+    }
+
+    try {
+      await user.reload();
+    } catch (_) {
+      return AuthAccountState.sessionExpired;
+    }
+
+    final refreshedUser = _auth.currentUser;
+    if (refreshedUser == null) {
+      return AuthAccountState.deleted;
+    }
+
+    if (refreshedUser.email != null && !refreshedUser.emailVerified) {
+      return AuthAccountState.emailNotVerified;
+    }
+
+    return AuthAccountState.active;
   }
 
   /// Signs out from Firebase and Google and clears stored tokens/sessions.
   Future<void> signOut() async {
-    _masterSessionActive = false;
+    _currentRole = AppRole.unknown;
     try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
     } catch (_) {}
     try {
       await _storage.delete(key: _idTokenKey);
@@ -227,46 +446,34 @@ class AuthService {
     try {
       await _storage.delete(key: _adminSessionKey);
     } catch (_) {}
-    try {
-      await _storage.delete(key: _masterIdentityKey);
-    } catch (_) {}
   }
 
-  /// Admin session persistence (uses secure storage instead of SharedPreferences)
+  /// Admin session persistence (uses secure storage only as a UX cache; it is not
+  /// authoritative authorization. Real authorization must come from Firebase custom claims.)
   Future<void> setAdminSession(bool value) async {
     try {
       if (value) {
         await _storage.write(key: _adminSessionKey, value: '1');
       } else {
-        _masterSessionActive = false;
         await _storage.delete(key: _adminSessionKey);
-        await _storage.delete(key: _masterIdentityKey);
       }
     } catch (_) {}
   }
 
   Future<bool> isAdminAuthenticated() async {
     try {
-      // Prefer authoritative check against Firestore admin_profiles if a Firebase user is present
       final user = _auth.currentUser;
-      if (user != null) {
-        try {
-          final adminSvc = AdminProfileService();
-          final isAdmin = await adminSvc.isCurrentUserAdmin();
-          if (isAdmin) {
-            // persist local admin session for faster restores
-            try {
-              await _storage.write(key: _adminSessionKey, value: '1');
-            } catch (_) {}
-            return true;
-          }
-        } catch (_) {
-          // ignore and fall back to stored flag
-        }
-      }
+      if (user == null) return false;
 
-      final v = await _storage.read(key: _adminSessionKey);
-      return v == '1';
+      final tokenResult = await user.getIdTokenResult(true);
+      final role = roleFromClaims(tokenResult.claims);
+      final isAdmin = role == AppRole.owner || role == AppRole.admin;
+      if (isAdmin) {
+        await setAdminSession(true);
+      } else {
+        await setAdminSession(false);
+      }
+      return isAdmin;
     } catch (_) {
       return false;
     }

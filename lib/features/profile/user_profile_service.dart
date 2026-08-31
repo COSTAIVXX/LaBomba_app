@@ -63,8 +63,9 @@ class UserProfileService {
     final docRef = _firestore.collection('users').doc(uid);
     return docRef.snapshots().map((snap) {
       if (!snap.exists) return null;
-      final map =
-          Map<String, dynamic>.from(snap.data() as Map<String, dynamic>);
+      final map = Map<String, dynamic>.from(
+        snap.data() as Map<String, dynamic>,
+      );
       map['id'] = snap.id;
       final profile = UserProfile.fromMap(map);
       // update cache + storage
@@ -100,7 +101,9 @@ class UserProfileService {
     final updated = profile.copyWith(displayName: safeName, bio: safeBio);
     _cache[profile.id] = updated;
     await _storage.write(
-        key: _storageKey(profile.id), value: jsonEncode(updated.toMap()));
+      key: _storageKey(profile.id),
+      value: jsonEncode(updated.toMap()),
+    );
   }
 
   /// Clear in-memory and persistent cache for a user

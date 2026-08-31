@@ -46,7 +46,8 @@ class _ChatPageState extends State<ChatPage> {
                     return ListTile(
                       title: Text(data['text'] as String? ?? ''),
                       subtitle: Text(
-                          '${data['senderId'] as String? ?? ''}${deliveredAt != null ? ' • entregue' : ''}'),
+                        '${data['senderId'] as String? ?? ''}${deliveredAt != null ? ' • entregue' : ''}',
+                      ),
                       trailing: isRead
                           ? const Icon(Icons.done_all, color: Colors.blue)
                           : (deliveredAt != null
@@ -64,8 +65,9 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Expanded(
                   child: TextField(
-                      controller: _ctrl,
-                      decoration: const InputDecoration(hintText: 'Mensagem')),
+                    controller: _ctrl,
+                    decoration: const InputDecoration(hintText: 'Mensagem'),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
@@ -75,14 +77,14 @@ class _ChatPageState extends State<ChatPage> {
                     await _service.sendMessage(widget.chatId, {
                       'text': text,
                       'createdAt': FieldValue.serverTimestamp(),
-                      'senderId': 'me'
+                      'senderId': 'me',
                     });
                     _ctrl.clear();
                   },
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

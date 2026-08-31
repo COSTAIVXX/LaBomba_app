@@ -10,7 +10,8 @@ class GroupService {
   }
 
   Future<DocumentReference<Map<String, dynamic>>> createGroup(
-      Map<String, dynamic> payload) async {
+    Map<String, dynamic> payload,
+  ) async {
     final ref = await _firestore.collection('groups').add(payload);
     return ref;
   }

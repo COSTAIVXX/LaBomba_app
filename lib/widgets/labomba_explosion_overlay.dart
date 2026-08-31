@@ -113,7 +113,9 @@ class _LaBombaExplosionOverlayState extends State<LaBombaExplosionOverlay>
                       angle: (1 - progress) * .25,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 30, vertical: 20),
+                          horizontal: 30,
+                          vertical: 20,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFFFF6A00), Color(0xFFEC4899)],

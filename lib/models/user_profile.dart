@@ -17,7 +17,8 @@ class UserProfile {
     Map<String, int>? stats,
   })  : createdAt = createdAt ?? DateTime.now(),
         stats = Map<String, int>.from(
-            stats ?? {'posts': 0, 'followers': 0, 'following': 0});
+          stats ?? {'posts': 0, 'followers': 0, 'following': 0},
+        );
 
   UserProfile copyWith({
     String? displayName,
@@ -57,8 +58,9 @@ class UserProfile {
       createdAt = DateTime.now();
     }
 
-    final rawStats =
-        Map<String, dynamic>.from(map['stats'] as Map<String, dynamic>? ?? {});
+    final rawStats = Map<String, dynamic>.from(
+      map['stats'] as Map<String, dynamic>? ?? {},
+    );
     final stats = <String, int>{
       'posts': (rawStats['posts'] as int?) ?? 0,
       'followers': (rawStats['followers'] as int?) ?? 0,
@@ -66,8 +68,10 @@ class UserProfile {
     };
 
     // enforce size limits to avoid Firestore document bloat
-    final bio = (map['bio'] as String?)
-        ?.substring(0, (map['bio'] as String?)?.length.clamp(0, 1000) ?? 0);
+    final bio = (map['bio'] as String?)?.substring(
+      0,
+      (map['bio'] as String?)?.length.clamp(0, 1000) ?? 0,
+    );
     final displayName = (map['displayName'] as String?) ?? '';
 
     return UserProfile(

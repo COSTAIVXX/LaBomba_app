@@ -62,8 +62,10 @@ class OutboxService {
     } catch (_) {}
   }
 
-  Future<void> _appendDeadLetter(Map<String, dynamic> item,
-      {String? reason}) async {
+  Future<void> _appendDeadLetter(
+    Map<String, dynamic> item, {
+    String? reason,
+  }) async {
     try {
       final raw = await _storage.read(key: _deadLetterKey);
       final list = raw == null || raw.isEmpty
@@ -168,13 +170,14 @@ class OutboxService {
             } else {
               await likeDoc.set({
                 'userId': userId,
-                'createdAt': FieldValue.serverTimestamp()
+                'createdAt': FieldValue.serverTimestamp(),
               });
             }
           } else if (type == 'mem_comment_add') {
             final memoryId = payload['memoryId'] as String;
             final map = Map<String, dynamic>.from(
-                payload['comment'] as Map<String, dynamic>);
+              payload['comment'] as Map<String, dynamic>,
+            );
             await _firestore
                 .collection('memories')
                 .doc(memoryId)
@@ -220,23 +223,48 @@ class OutboxService {
                   .delete();
             } catch (_) {}
           } else if (type == 'follow') {
-            // Handle follow: increment follower/following counters for public accounts
+            // Idempotent follow relationship stored in subcollections while keeping legacy
+            // array fields for backward compatibility during migration.
             final from = payload['from'] as String;
             final to = payload['to'] as String;
             try {
               final toRef = _firestore.collection('users').doc(to);
-              final toSnap = await toRef.get();
-              final isPrivate = (toSnap.data()?['private'] as bool?) ?? false;
+              final fromRef = _firestore.collection('users').doc(from);
+              final targetFollowerRef = toRef.collection('followers').doc(from);
+              final sourceFollowingRef =
+                  fromRef.collection('following').doc(to);
+              final isPrivate =
+                  ((await toRef.get()).data()?['private'] as bool?) ?? false;
+
               if (!isPrivate) {
-                final fromRef = _firestore.collection('users').doc(from);
                 await _firestore.runTransaction((tx) async {
-                  tx.update(
-                      toRef, {'stats.followers': FieldValue.increment(1)});
-                  tx.update(
-                      fromRef, {'stats.following': FieldValue.increment(1)});
+                  final followerSnap = await tx.get(targetFollowerRef);
+                  final followingSnap = await tx.get(sourceFollowingRef);
+
+                  if (!followerSnap.exists) {
+                    tx.set(targetFollowerRef, {
+                      'userId': to,
+                      'followerId': from,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+                    tx.update(toRef, {
+                      'followers': FieldValue.arrayUnion([from]),
+                      'stats.followers': FieldValue.increment(1),
+                    });
+                  }
+
+                  if (!followingSnap.exists) {
+                    tx.set(sourceFollowingRef, {
+                      'userId': from,
+                      'followingId': to,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+                    tx.update(fromRef, {
+                      'following': FieldValue.arrayUnion([to]),
+                      'stats.following': FieldValue.increment(1),
+                    });
+                  }
                 });
-              } else {
-                // private account: follower should have created an outgoingFollowRequests entry on their own user doc
               }
             } catch (_) {}
           } else if (type == 'unfollow') {
@@ -245,10 +273,29 @@ class OutboxService {
             try {
               final toRef = _firestore.collection('users').doc(to);
               final fromRef = _firestore.collection('users').doc(from);
+              final targetFollowerRef = toRef.collection('followers').doc(from);
+              final sourceFollowingRef =
+                  fromRef.collection('following').doc(to);
+
               await _firestore.runTransaction((tx) async {
-                tx.update(toRef, {'stats.followers': FieldValue.increment(-1)});
-                tx.update(
-                    fromRef, {'stats.following': FieldValue.increment(-1)});
+                final followerSnap = await tx.get(targetFollowerRef);
+                final followingSnap = await tx.get(sourceFollowingRef);
+
+                if (followerSnap.exists) {
+                  tx.delete(targetFollowerRef);
+                  tx.update(toRef, {
+                    'followers': FieldValue.arrayRemove([from]),
+                    'stats.followers': FieldValue.increment(-1),
+                  });
+                }
+
+                if (followingSnap.exists) {
+                  tx.delete(sourceFollowingRef);
+                  tx.update(fromRef, {
+                    'following': FieldValue.arrayRemove([to]),
+                    'stats.following': FieldValue.increment(-1),
+                  });
+                }
               });
             } catch (_) {}
           } else if (type == 'mem_comment_delete') {
@@ -263,36 +310,69 @@ class OutboxService {
           } else if (type == 'post_comment_add') {
             final postId = payload['postId'] as String;
             final map = Map<String, dynamic>.from(
-                payload['comment'] as Map<String, dynamic>);
+              payload['comment'] as Map<String, dynamic>,
+            );
+            final commentId = (map['id'] as String?) ??
+                'comment_${DateTime.now().microsecondsSinceEpoch}';
+            final commentsRef = _firestore
+                .collection('posts')
+                .doc(postId)
+                .collection('comments')
+                .doc(commentId);
+            await commentsRef.set({
+              ...map,
+              'id': commentId,
+              'createdAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
             await _firestore.collection('posts').doc(postId).update({
-              'comments': FieldValue.arrayUnion([map])
+              'commentCount': FieldValue.increment(1),
             });
           } else if (type == 'post_reaction_add') {
             final postId = payload['postId'] as String;
             final map = Map<String, dynamic>.from(
-                payload['reaction'] as Map<String, dynamic>);
+              payload['reaction'] as Map<String, dynamic>,
+            );
+            final userId =
+                map['userId'] as String? ?? payload['userId'] as String?;
+            if (userId == null) {
+              throw StateError('post_reaction_add requires userId');
+            }
+            final reactionRef = _firestore
+                .collection('posts')
+                .doc(postId)
+                .collection('reactions')
+                .doc(userId);
+            await reactionRef.set({
+              ...map,
+              'userId': userId,
+              'createdAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
             await _firestore.collection('posts').doc(postId).update({
-              'reactions': FieldValue.arrayUnion([map])
+              'reactionCount': FieldValue.increment(1),
             });
           } else if (type == 'post_comment_delete') {
             final postId = payload['postId'] as String;
             final map = Map<String, dynamic>.from(
-                payload['comment'] as Map<String, dynamic>);
-            // try arrayRemove; if fails, mark deleted id
-            try {
-              await _firestore.collection('posts').doc(postId).update({
-                'comments': FieldValue.arrayRemove([map])
-              });
-            } catch (_) {
-              await _firestore.collection('posts').doc(postId).update({
-                'deletedCommentIds':
-                    FieldValue.arrayUnion([map['id'] as String])
-              });
+              payload['comment'] as Map<String, dynamic>,
+            );
+            final commentId = map['id'] as String?;
+            if (commentId != null) {
+              await _firestore
+                  .collection('posts')
+                  .doc(postId)
+                  .collection('comments')
+                  .doc(commentId)
+                  .delete();
             }
+            await _firestore.collection('posts').doc(postId).update({
+              'commentCount': FieldValue.increment(-1),
+            });
           } else {
             // Unknown or corrupt item - record in dead-letter and drop
-            await _appendDeadLetter(item,
-                reason: 'unknown type or corrupt payload');
+            await _appendDeadLetter(
+              item,
+              reason: 'unknown type or corrupt payload',
+            );
             continue;
           }
         } catch (e) {

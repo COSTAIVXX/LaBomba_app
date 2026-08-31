@@ -46,7 +46,7 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
     '💜',
     '📸',
     '🎭',
-    '🥁'
+    '🥁',
   ];
 
   @override
@@ -82,7 +82,8 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                         pos >= 0 ? text.replaceRange(pos, pos, e) : text + e;
                     _descController.text = newText;
                     _descController.selection = TextSelection.collapsed(
-                        offset: (pos >= 0 ? pos : newText.length) + e.length);
+                      offset: (pos >= 0 ? pos : newText.length) + e.length,
+                    );
                     Navigator.of(context).pop();
                   },
                   icon: Text(e, style: const TextStyle(fontSize: 24)),
@@ -99,23 +100,27 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
     await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
         return Container(
           height: 320,
           decoration: const BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+            color: Colors.black87,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: Text('Escolha um GIF',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: Colors.white)),
+                child: Text(
+                  'Escolha um GIF',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(color: Colors.white),
+                ),
               ),
               Expanded(
                 child: GridView.count(
@@ -131,11 +136,12 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
-                            imageUrl: g,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => const Center(
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2))),
+                          imageUrl: g,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
                       ),
                     );
                   }).toList(),
@@ -152,14 +158,16 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
     await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (context) {
         return SafeArea(
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+              color: Colors.black87,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
             child: GridView.count(
               crossAxisCount: 4,
               children: _sampleStickers.map((s) {
@@ -171,12 +179,14 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                            imageUrl: s,
-                            placeholder: (_, __) => const Center(
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2)))),
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: s,
+                        placeholder: (_, __) => const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -218,12 +228,14 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
         title: const Text('Nova Memória'),
         actions: [
           IconButton(
-              onPressed: _openEmojiPicker,
-              icon: const Icon(Icons.emoji_emotions)),
+            onPressed: _openEmojiPicker,
+            icon: const Icon(Icons.emoji_emotions),
+          ),
           IconButton(onPressed: _openGifPicker, icon: const Icon(Icons.gif)),
           IconButton(
-              onPressed: _openStickerPicker,
-              icon: const Icon(Icons.sticky_note_2)),
+            onPressed: _openStickerPicker,
+            icon: const Icon(Icons.sticky_note_2),
+          ),
           IconButton(onPressed: _save, icon: const Icon(Icons.check)),
         ],
       ),
@@ -239,8 +251,9 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
             Expanded(
               child: TextField(
                 controller: _descController,
-                decoration:
-                    const InputDecoration(labelText: 'Escreva uma memória...'),
+                decoration: const InputDecoration(
+                  labelText: 'Escreva uma memória...',
+                ),
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
               ),
@@ -254,12 +267,13 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                   itemBuilder: (_, idx) => Stack(
                     children: [
                       CachedNetworkImage(
-                          imageUrl: _attachments[idx],
-                          width: 120,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => const Center(
-                              child:
-                                  CircularProgressIndicator(strokeWidth: 2))),
+                        imageUrl: _attachments[idx],
+                        width: 120,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
                       Positioned(
                         right: 4,
                         top: 4,
@@ -275,14 +289,14 @@ class _MemoryEditorPageState extends State<MemoryEditorPage> {
                             icon: const Icon(Icons.close),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemCount: _attachments.length,
                 ),
-              )
-            ]
+              ),
+            ],
           ],
         ),
       ),

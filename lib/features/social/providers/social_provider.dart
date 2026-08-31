@@ -72,14 +72,18 @@ class SocialProvider extends ChangeNotifier {
       final requests = await _readRequests(toUid);
       requests.add(fromUid);
       await _storage.write(
-          key: _requestsKey(toUid), value: jsonEncode(requests));
+        key: _requestsKey(toUid),
+        value: jsonEncode(requests),
+      );
     }
     notifyListeners();
   }
 
   /// Accept a friend request: add both users to each other's friend lists
   Future<void> acceptFriendRequest(
-      String currentUid, String requesterUid) async {
+    String currentUid,
+    String requesterUid,
+  ) async {
     try {
       // Mark request as accepted in Firestore (if present)
       final q = await _firestore
@@ -91,8 +95,10 @@ class SocialProvider extends ChangeNotifier {
           .get();
 
       for (final doc in q.docs) {
-        await doc.reference.update(
-            {'status': 'accepted', 'acceptedAt': FieldValue.serverTimestamp()});
+        await doc.reference.update({
+          'status': 'accepted',
+          'acceptedAt': FieldValue.serverTimestamp(),
+        });
       }
 
       // Update users' friend lists atomically
@@ -100,10 +106,10 @@ class SocialProvider extends ChangeNotifier {
       final u1 = _firestore.collection('users').doc(currentUid);
       final u2 = _firestore.collection('users').doc(requesterUid);
       batch.update(u1, {
-        'friends': FieldValue.arrayUnion([requesterUid])
+        'friends': FieldValue.arrayUnion([requesterUid]),
       });
       batch.update(u2, {
-        'friends': FieldValue.arrayUnion([currentUid])
+        'friends': FieldValue.arrayUnion([currentUid]),
       });
       await batch.commit();
     } catch (e) {
@@ -115,31 +121,40 @@ class SocialProvider extends ChangeNotifier {
       if (!requesterFriends.contains(currentUid))
         requesterFriends.add(currentUid);
       await _storage.write(
-          key: _friendsKey(currentUid), value: jsonEncode(currentFriends));
+        key: _friendsKey(currentUid),
+        value: jsonEncode(currentFriends),
+      );
       await _storage.write(
-          key: _friendsKey(requesterUid), value: jsonEncode(requesterFriends));
+        key: _friendsKey(requesterUid),
+        value: jsonEncode(requesterFriends),
+      );
 
       // remove pending request locally
       final pending = await _readRequests(currentUid);
       pending.remove(requesterUid);
       await _storage.write(
-          key: _requestsKey(currentUid), value: jsonEncode(pending));
+        key: _requestsKey(currentUid),
+        value: jsonEncode(pending),
+      );
     }
     notifyListeners();
   }
 
   /// Toggle Close Friend status for [currentUid] regarding [friendUid]
   Future<void> toggleCloseFriend(
-      String currentUid, String friendUid, bool isClose) async {
+    String currentUid,
+    String friendUid,
+    bool isClose,
+  ) async {
     try {
       final userDoc = _firestore.collection('users').doc(currentUid);
       if (isClose) {
         await userDoc.update({
-          'closeFriends': FieldValue.arrayUnion([friendUid])
+          'closeFriends': FieldValue.arrayUnion([friendUid]),
         });
       } else {
         await userDoc.update({
-          'closeFriends': FieldValue.arrayRemove([friendUid])
+          'closeFriends': FieldValue.arrayRemove([friendUid]),
         });
       }
     } catch (e) {
@@ -151,8 +166,9 @@ class SocialProvider extends ChangeNotifier {
         currentClose.remove(friendUid);
       }
       await _storage.write(
-          key: 'social:close_friends:$currentUid',
-          value: jsonEncode(currentClose));
+        key: 'social:close_friends:$currentUid',
+        value: jsonEncode(currentClose),
+      );
     }
     notifyListeners();
   }

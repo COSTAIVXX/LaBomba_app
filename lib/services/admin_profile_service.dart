@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 import '../models/admin_profile.dart';
 import 'storage_platform.dart';
@@ -39,181 +38,76 @@ class AdminProfileService {
     );
   }
 
-  /// Reads admin profile for the current user from Firestore collection 'admin_profiles'.
-  /// Returns null if no user is signed in or profile not found.
+  /// Only trusted backend-issued custom claims can authorize admin access.
+  /// A client-side admin profile document is not treated as the security source.
   Future<AdminProfile?> getCurrentUserProfile() async {
     final user = _auth.currentUser;
     if (user == null) return null;
 
-    // First consult whitelists / master email so we can return quickly when
-    // the current user is explicitly allowed as admin (avoids Firestore calls
-    // when running offline or during dev shortcuts).
-    final bool whitelistedAdmin = _isEmailWhitelisted(user.email);
-    if (whitelistedAdmin) {
-      final profile = AdminProfile(
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        isAdmin: true,
-      );
-      // Try to persist the admin flag to Firestore if possible, but don't fail
-      // the whole flow if Firestore is unreachable.
-      try {
-        final docRef = _firestore.collection('admin_profiles').doc(user.uid);
-        await docRef.set(profile.toMap(), SetOptions(merge: true));
-      } catch (e) {
-        debugPrint(
-            'Failed to persist whitelisted admin profile (non-fatal): $e');
-      }
-      try {
-        await _cacheProfile(profile);
-      } catch (e) {
-        debugPrint('Failed to cache whitelisted admin profile: $e');
-      }
-      return profile;
-    }
-
-    // Not whitelisted: read from Firestore (with cache fallback on error)
     try {
-      final docRef = _firestore.collection('admin_profiles').doc(user.uid);
-      final doc = await docRef.get();
+      final tokenResult = await user.getIdTokenResult(true);
+      final claims = tokenResult.claims ?? <String, dynamic>{};
+      final isPrivileged = claims['owner'] == true ||
+          claims['admin'] == true ||
+          claims['isOwner'] == true ||
+          claims['isAdmin'] == true ||
+          claims['role'] == 'owner' ||
+          claims['role'] == 'admin';
 
-      final profile = !doc.exists
-          ? AdminProfile(
+      if (!isPrivileged) {
+        return null;
+      }
+
+      final doc =
+          await _firestore.collection('admin_profiles').doc(user.uid).get();
+      final profile = doc.exists
+          ? AdminProfile.fromMap(user.uid, doc.data() ?? <String, dynamic>{})
+          : AdminProfile(
               uid: user.uid,
               email: user.email,
               displayName: user.displayName,
-              isAdmin: false,
-            )
-          : AdminProfile.fromMap(user.uid, doc.data());
-
-      // If doc didn't exist but we have a non-whitelisted default profile, cache it
-      if (!doc.exists) {
-        try {
-          await docRef.set(profile.toMap(), SetOptions(merge: true));
-        } catch (_) {}
-      }
+              isAdmin: true,
+            );
 
       await _cacheProfile(profile);
       return profile;
-    } catch (e) {
-      debugPrint('AdminProfileService.getCurrentUserProfile error: $e');
+    } catch (_) {
       try {
         return await _readCachedProfile(user.uid);
-      } catch (cacheError) {
-        debugPrint('AdminProfileService cache read error: $cacheError');
+      } catch (_) {
         return null;
       }
     }
   }
 
-  /// Returns true when the provided email is present in the admin whitelist.
-  /// The whitelist can be provided at build/runtime via the Dart define
-  /// `--dart-define=ADMIN_WHITELIST=example@domain.com,other@domain.com`.
-  /// Use lowercase, comma-separated emails. This check avoids hardcoding any
-  /// specific email in source control.
-  bool _isEmailWhitelisted(String? email) {
-    if (email == null || email.isEmpty) return false;
-
-    // 1) Explicit master email provided at build/run time via --dart-define=MASTER_EMAIL
-    const masterEmail =
-        String.fromEnvironment('MASTER_EMAIL', defaultValue: '');
-    if (masterEmail.isNotEmpty) {
-      if (email.toLowerCase() == masterEmail.toLowerCase()) {
-        debugPrint(
-            'AdminProfileService: matched MASTER_EMAIL dart-define for superadmin');
-        return true;
-      }
-    }
-
-    // 2) Compile-time / build-time whitelist via ADMIN_WHITELIST (comma-separated)
-    const envList = String.fromEnvironment('ADMIN_WHITELIST', defaultValue: '');
-    if (envList.isNotEmpty) {
-      final entries =
-          envList.split(',').map((e) => e.trim().toLowerCase()).toSet();
-      if (entries.contains(email.toLowerCase())) {
-        debugPrint(
-            'AdminProfileService: matched ADMIN_WHITELIST entry for $email');
-        return true;
-      }
-    }
-
-    // No matches found; no whitelist present
-    return false;
-  }
-
-  /// Helper to grant admin using a locally-stored whitelist entry (development only).
-  /// This reads a storage key 'admin_whitelist' containing comma-separated emails
-  /// and returns true if the current user matches and the profile was updated.
-  Future<bool> ensureAdminByLocalStorage() async {
+  Future<bool> isCurrentUserAdmin() async {
     final user = _auth.currentUser;
     if (user == null) return false;
     try {
-      final raw = await _storage.read(key: 'admin_whitelist');
-      if (raw == null || raw.isEmpty) return false;
-      final entries = raw.split(',').map((e) => e.trim().toLowerCase()).toSet();
-      if (!entries.contains(user.email?.toLowerCase())) return false;
-
-      final profile = AdminProfile(
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        isAdmin: true,
-      );
-      await setAdminProfile(profile);
-
-      // Persist a secure session flag so other services can read it quickly
-      await _storage.write(key: 'admin_session_${user.uid}', value: '1');
-      return true;
-    } catch (e) {
-      debugPrint('ensureAdminByLocalStorage error: $e');
+      final tokenResult = await user.getIdTokenResult(true);
+      final claims = tokenResult.claims ?? <String, dynamic>{};
+      return claims['owner'] == true ||
+          claims['admin'] == true ||
+          claims['isOwner'] == true ||
+          claims['isAdmin'] == true ||
+          claims['role'] == 'owner' ||
+          claims['role'] == 'admin';
+    } catch (_) {
       return false;
     }
   }
 
-  /// Shortcut to check if the current user is marked as admin in Firestore
-  Future<bool> isCurrentUserAdmin() async {
-    final p = await getCurrentUserProfile();
-    return p?.isAdmin ?? false;
-  }
-
-  /// Update or create the admin profile for the given uid
   Future<void> setAdminProfile(AdminProfile profile) async {
-    try {
-      await _firestore
-          .collection('admin_profiles')
-          .doc(profile.uid)
-          .set(profile.toMap(), SetOptions(merge: true));
-      await _cacheProfile(profile);
-    } catch (e) {
-      debugPrint('AdminProfileService.setAdminProfile error: $e');
-      rethrow;
-    }
+    throw UnsupportedError(
+      'Role assignment is backend-authoritative and cannot be set by the client.',
+    );
   }
 
-  /// Update the Firebase Auth user's displayName and mirror to Firestore admin_profiles
   Future<void> updateDisplayName(String displayName) async {
     final user = _auth.currentUser;
     if (user == null) return;
-    try {
-      await user.updateDisplayName(displayName);
-      await user.reload();
-      // update Firestore profile as well (merge)
-      await _firestore.collection('admin_profiles').doc(user.uid).set({
-        'displayName': displayName,
-        'email': user.email,
-      }, SetOptions(merge: true));
-      final cached = await _readCachedProfile(user.uid);
-      await _cacheProfile(AdminProfile(
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName,
-        isAdmin: cached?.isAdmin ?? false,
-      ));
-    } catch (e) {
-      debugPrint('AdminProfileService.updateDisplayName error: $e');
-      rethrow;
-    }
+    await user.updateDisplayName(displayName);
+    await user.reload();
   }
 
   Future<void> updateProfile({
@@ -234,10 +128,6 @@ class AdminProfileService {
       socialLinks: socialLinks,
       isAdmin: cached?.isAdmin ?? false,
     );
-    await _firestore.collection('admin_profiles').doc(user.uid).set(
-          profile.toMap(),
-          SetOptions(merge: true),
-        );
     await _cacheProfile(profile);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../services/post_service.dart';
 
 class CreatePostModal extends StatefulWidget {
@@ -37,7 +38,8 @@ class _CreatePostModalState extends State<CreatePostModal> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Você precisa estar logado para postar.')),
+            content: Text('Você precisa estar logado para postar.'),
+          ),
         );
       }
     } catch (e) {

@@ -20,9 +20,7 @@ class _CommunityPageState extends State<CommunityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Comunidade'),
-      ),
+      appBar: AppBar(title: const Text('Comunidade')),
       body: Container(
         color: const Color(0xFFF8F9FA),
         child: Column(
@@ -67,9 +65,11 @@ class _CommunityPageState extends State<CommunityPage> {
                                       ? CachedNetworkImageProvider(avatar)
                                       : null,
                                   child: avatar == null
-                                      ? Text(name.isNotEmpty
-                                          ? name[0].toUpperCase()
-                                          : '?')
+                                      ? Text(
+                                          name.isNotEmpty
+                                              ? name[0].toUpperCase()
+                                              : '?',
+                                        )
                                       : null,
                                 ),
                                 Positioned(
@@ -79,22 +79,27 @@ class _CommunityPageState extends State<CommunityPage> {
                                     width: 14,
                                     height: 14,
                                     decoration: BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: Colors.white, width: 2)),
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                    ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             SizedBox(
-                                width: 64,
-                                child: Text(name,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall)),
+                              width: 64,
+                              child: Text(
+                                name,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -126,20 +131,28 @@ class _CommunityPageState extends State<CommunityPage> {
                     color: Colors.white,
                     elevation: 2,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: ListTile(
-                      title: Text(title,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A1A1A))),
-                      subtitle: Text(bodyText,
-                          maxLines: 3, overflow: TextOverflow.ellipsis),
+                      title: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      subtitle: Text(
+                        bodyText,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.emoji_emotions_outlined),
                         onPressed: () {
                           // quick reaction placeholder — could open reaction sheet
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Reagir ao aviso')));
+                            const SnackBar(content: Text('Reagir ao aviso')),
+                          );
                         },
                       ),
                     ),
@@ -178,8 +191,9 @@ class _CommunityPageState extends State<CommunityPage> {
                         filled: true,
                         fillColor: Theme.of(context).cardTheme.color,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       onChanged: (v) => setState(() => _query = v.trim()),
                     ),
@@ -201,16 +215,16 @@ class _CommunityPageState extends State<CommunityPage> {
                                 spacing: 8,
                                 children: [
                                   ChoiceChip(
-                                      label: const Text('Todos'),
-                                      selected: _selectedTag == null,
-                                      onSelected: (_) =>
-                                          Navigator.pop(ctx, null)),
+                                    label: const Text('Todos'),
+                                    selected: _selectedTag == null,
+                                    onSelected: (_) => Navigator.pop(ctx, null),
+                                  ),
                                   for (final t in tags)
                                     ChoiceChip(
-                                        label: Text(t),
-                                        selected: _selectedTag == t,
-                                        onSelected: (_) =>
-                                            Navigator.pop(ctx, t)),
+                                      label: Text(t),
+                                      selected: _selectedTag == t,
+                                      onSelected: (_) => Navigator.pop(ctx, t),
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: 12),
@@ -220,7 +234,7 @@ class _CommunityPageState extends State<CommunityPage> {
                       );
                       setState(() => _selectedTag = sel);
                     },
-                  )
+                  ),
                 ],
               ),
             ),
@@ -236,7 +250,8 @@ class _CommunityPageState extends State<CommunityPage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasError)
                     return const Center(
-                        child: Text('Erro ao carregar comunidade'));
+                      child: Text('Erro ao carregar comunidade'),
+                    );
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
                   final docs = snapshot.data!.docs;
@@ -257,7 +272,8 @@ class _CommunityPageState extends State<CommunityPage> {
 
                   if (filtered.isEmpty)
                     return const Center(
-                        child: Text('Nenhum membro encontrado.'));
+                      child: Text('Nenhum membro encontrado.'),
+                    );
 
                   return GridView.builder(
                     padding: const EdgeInsets.all(16),
@@ -322,7 +338,8 @@ class _CommunityPageState extends State<CommunityPage> {
 
                   if (docs.isEmpty)
                     return const Center(
-                        child: Text('Nenhuma publicação encontrada.'));
+                      child: Text('Nenhuma publicação encontrada.'),
+                    );
 
                   return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -338,7 +355,8 @@ class _CommunityPageState extends State<CommunityPage> {
                       return Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         elevation: 2,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -348,53 +366,67 @@ class _CommunityPageState extends State<CommunityPage> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                      radius: 20,
-                                      backgroundImage: avatar != null
-                                          ? CachedNetworkImageProvider(avatar)
-                                          : null,
-                                      child: avatar == null
-                                          ? Text(author.isNotEmpty
-                                              ? author[0]
-                                              : '?')
-                                          : null),
+                                    radius: 20,
+                                    backgroundImage: avatar != null
+                                        ? CachedNetworkImageProvider(avatar)
+                                        : null,
+                                    child: avatar == null
+                                        ? Text(
+                                            author.isNotEmpty ? author[0] : '?',
+                                          )
+                                        : null,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
-                                      child: Text(author,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1A1A1A)))),
+                                    child: Text(
+                                      author,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
+                                    ),
+                                  ),
                                   if (ts != null)
-                                    Text(_formatTimestamp(ts),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall),
+                                    Text(
+                                      _formatTimestamp(ts),
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                    ),
                                 ],
                               ),
                               if (text.isNotEmpty) ...[
                                 const SizedBox(height: 8),
-                                Text(text,
-                                    style: const TextStyle(
-                                        color: Color(0xFF1A1A1A))),
+                                Text(
+                                  text,
+                                  style: const TextStyle(
+                                    color: Color(0xFF1A1A1A),
+                                  ),
+                                ),
                               ],
                               if (image != null) ...[
                                 const SizedBox(height: 8),
                                 ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: CachedNetworkImage(
-                                        imageUrl: image, fit: BoxFit.cover)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: CachedNetworkImage(
+                                    imageUrl: image,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ],
                               const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   IconButton(
-                                      onPressed: () {},
-                                      icon: const Icon(Icons.thumb_up_off_alt)),
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.thumb_up_off_alt),
+                                  ),
                                   IconButton(
-                                      onPressed: () {},
-                                      icon: const Icon(Icons.comment_outlined)),
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.comment_outlined),
+                                  ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -473,14 +505,15 @@ class MemberCard extends StatelessWidget {
   final bool vip;
   final String bio;
 
-  const MemberCard(
-      {super.key,
-      required this.userId,
-      required this.name,
-      this.avatarUrl,
-      required this.presence,
-      this.vip = false,
-      this.bio = ''});
+  const MemberCard({
+    super.key,
+    required this.userId,
+    required this.name,
+    this.avatarUrl,
+    required this.presence,
+    this.vip = false,
+    this.bio = '',
+  });
 
   Color _presenceColor(BuildContext context, String p) {
     switch (p.toLowerCase()) {
@@ -512,8 +545,9 @@ class MemberCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.04),
+                    backgroundColor: theme.colorScheme.onSurface.withValues(
+                      alpha: 0.04,
+                    ),
                     backgroundImage: avatarUrl != null
                         ? CachedNetworkImageProvider(avatarUrl!)
                         : null,
@@ -527,26 +561,36 @@ class MemberCard extends StatelessWidget {
                       bottom: -2,
                       child: Container(
                         decoration: BoxDecoration(
-                            color: Colors.amber, shape: BoxShape.circle),
+                          color: Colors.amber,
+                          shape: BoxShape.circle,
+                        ),
                         padding: const EdgeInsets.all(4),
-                        child: const Icon(Icons.star,
-                            size: 14, color: Colors.white),
+                        child: const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(name,
-                  key: Key('member_name_' + userId),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.textTheme.bodyMedium?.color)),
+              Text(
+                name,
+                key: Key('member_name_' + userId),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
+              ),
               const SizedBox(height: 6),
-              Text(bio,
-                  style: theme.textTheme.bodySmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center),
+              Text(
+                bio,
+                style: theme.textTheme.bodySmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -554,27 +598,37 @@ class MemberCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                              color: _presenceColor(context, presence),
-                              shape: BoxShape.circle)),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: _presenceColor(context, presence),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Text(presence,
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey[600])),
+                      Text(
+                        presence,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
                     ],
                   ),
                   IconButton(
                     key: Key('member_chat_' + userId),
                     tooltip: 'Abrir chat',
-                    onPressed: () => Navigator.pushNamed(context, '/chat',
-                        arguments: userId),
-                    icon: Icon(Icons.chat_bubble_outline,
-                        color: theme.colorScheme.primary),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: userId,
+                    ),
+                    icon: Icon(
+                      Icons.chat_bubble_outline,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),

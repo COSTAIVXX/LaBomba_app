@@ -1,7 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../services/storage_service.dart';
 import '../services/storage_mobile.dart';
+
 import 'package:uuid/uuid.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
 
@@ -85,7 +88,8 @@ class ClientProvider with ChangeNotifier {
   }) async {
     if (!acceptedTerms) {
       throw const ClientRegistrationException(
-          'É obrigatório aceitar o termo de responsabilidade.');
+        'É obrigatório aceitar o termo de responsabilidade.',
+      );
     }
 
     // 5. Validação de Dados (CPF)
@@ -106,7 +110,8 @@ class ClientProvider with ChangeNotifier {
 
     if (newClient.age < 18) {
       throw const ClientRegistrationException(
-          'O evento é restrito para maiores de 18 anos.');
+        'O evento é restrito para maiores de 18 anos.',
+      );
     }
 
     _clients = [..._clients, newClient];

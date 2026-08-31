@@ -21,7 +21,10 @@ class NotificationsPage extends StatelessWidget {
           title: const Text('Notificações'),
           actions: [UserAppBarActions()],
           bottom: const TabBar(
-            tabs: [Tab(text: 'Avisos do Bloco'), Tab(text: 'Interações')],
+            tabs: [
+              Tab(text: 'Avisos do Bloco'),
+              Tab(text: 'Interações'),
+            ],
             indicatorColor: Colors.deepOrange,
             labelColor: Colors.black,
           ),
@@ -47,17 +50,24 @@ class NotificationsPage extends StatelessWidget {
                     final b = items[index];
                     return Card(
                       child: ListTile(
-                        title: Text(b.title,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          b.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(b.body),
-                        trailing: Text(_shortDate(b.createdAt),
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12)),
+                        trailing: Text(
+                          _shortDate(b.createdAt),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
                         onTap: () async {
                           if (context.mounted)
-                            await LaBombaExplosionOverlay.show(context,
-                                message: b.title);
+                            await LaBombaExplosionOverlay.show(
+                              context,
+                              message: b.title,
+                            );
                         },
                       ),
                     );
@@ -72,7 +82,8 @@ class NotificationsPage extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Center(
-                      child: Text('Não foi possível carregar notificações.'));
+                    child: Text('Não foi possível carregar notificações.'),
+                  );
                 }
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -80,7 +91,8 @@ class NotificationsPage extends StatelessWidget {
                 final notifications = snapshot.data!;
                 if (notifications.isEmpty) {
                   return const Center(
-                      child: Text('Você não tem notificações novas.'));
+                    child: Text('Você não tem notificações novas.'),
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -105,8 +117,10 @@ class NotificationsPage extends StatelessWidget {
                             await service.markAsRead(notification.id);
                           }
                           if (context.mounted) {
-                            await LaBombaExplosionOverlay.show(context,
-                                message: notification.title);
+                            await LaBombaExplosionOverlay.show(
+                              context,
+                              message: notification.title,
+                            );
                           }
                         },
                       ),

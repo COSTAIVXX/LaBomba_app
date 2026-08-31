@@ -66,8 +66,10 @@ class _GallerySectionState extends State<GallerySection> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text('Arraste para relembrar',
-            style: TextStyle(color: Colors.white54, fontSize: 14)),
+        const Text(
+          'Arraste para relembrar',
+          style: TextStyle(color: Colors.white54, fontSize: 14),
+        ),
         const SizedBox(height: 32),
         SizedBox(
           height: isMobile ? 300 : 350,
@@ -125,8 +127,11 @@ class _GalleryItem extends StatelessWidget {
   final String imagePath;
   final String year;
 
-  const _GalleryItem(
-      {required this.index, required this.imagePath, required this.year});
+  const _GalleryItem({
+    required this.index,
+    required this.imagePath,
+    required this.year,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -144,14 +149,16 @@ class _GalleryItem extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
-            colors: gradient,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight),
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         boxShadow: [
           BoxShadow(
-              color: gradient[0].withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10)),
+            color: gradient[0].withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: ClipRRect(
@@ -167,18 +174,22 @@ class _GalleryItem extends StatelessWidget {
                       child: CircularProgressIndicator(color: AppTheme.primary),
                     ),
                     errorWidget: (context, url, error) => Center(
-                      child: Icon(Icons.camera_alt,
-                          size: 64,
-                          color: Colors.white.withValues(alpha: 0.25)),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 64,
+                        color: Colors.white.withValues(alpha: 0.25),
+                      ),
                     ),
                   )
                 : Image.asset(
                     imagePath,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Center(
-                      child: Icon(Icons.camera_alt,
-                          size: 64,
-                          color: Colors.white.withValues(alpha: 0.25)),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 64,
+                        color: Colors.white.withValues(alpha: 0.25),
+                      ),
                     ),
                   )),
             DecoratedBox(
@@ -188,7 +199,7 @@ class _GalleryItem extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.75)
+                    Colors.black.withValues(alpha: 0.75),
                   ],
                 ),
               ),

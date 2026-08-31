@@ -49,7 +49,9 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
     await Clipboard.setData(ClipboardData(text: url));
     if (mounted) {
       AppFeedback.showSuccess(
-          context, 'Link da mídia copiado para compartilhar.');
+        context,
+        'Link da mídia copiado para compartilhar.',
+      );
     }
   }
 
@@ -59,7 +61,9 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
         !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         AppFeedback.showError(
-            context, 'Não foi possível abrir a mídia em alta resolução.');
+          context,
+          'Não foi possível abrir a mídia em alta resolução.',
+        );
       }
     }
   }
@@ -88,18 +92,27 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
                 child: Row(
                   children: [
                     Expanded(
-                        child: _filter(
-                            'Data',
-                            _dateFilter,
-                            ['Todas', 'Hoje', 'Últimos 7 dias'],
-                            (value) => setState(() => _dateFilter = value))),
+                      child: _filter(
+                          'Data',
+                          _dateFilter,
+                          [
+                            'Todas',
+                            'Hoje',
+                            'Últimos 7 dias',
+                          ],
+                          (value) => setState(() => _dateFilter = value)),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _filter(
-                            'Autor',
-                            _authorFilter,
-                            ['Todos', ...authors],
-                            (value) => setState(() => _authorFilter = value))),
+                      child: _filter(
+                          'Autor',
+                          _authorFilter,
+                          [
+                            'Todos',
+                            ...authors,
+                          ],
+                          (value) => setState(() => _authorFilter = value)),
+                    ),
                   ],
                 ),
               ),
@@ -107,7 +120,9 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
                 child: filtered.isEmpty
                     ? const Center(
                         child: Text(
-                            'Nenhuma mídia encontrada para estes filtros.'))
+                          'Nenhuma mídia encontrada para estes filtros.',
+                        ),
+                      )
                     : LayoutBuilder(
                         builder: (context, constraints) {
                           final width = constraints.maxWidth;
@@ -128,10 +143,11 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
                               onShare: _share,
                               onDownload: _download,
                               onView: (url) => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          MemoryViewerPage(url: url))),
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MemoryViewerPage(url: url),
+                                ),
+                              ),
                             ),
                           );
                         },
@@ -153,12 +169,17 @@ class _BlockGalleryPageState extends State<BlockGalleryPage> {
     return DropdownButtonFormField<String>(
       initialValue: value,
       isExpanded: true,
-      decoration:
-          InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
       items: options
-          .map((option) => DropdownMenuItem(
+          .map(
+            (option) => DropdownMenuItem(
               value: option,
-              child: Text(option, overflow: TextOverflow.ellipsis)))
+              child: Text(option, overflow: TextOverflow.ellipsis),
+            ),
+          )
           .toList(),
       onChanged: (next) {
         if (next != null) onChanged(next);
@@ -197,8 +218,11 @@ class _GalleryTile extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 8, 4, 4),
-            child: Text(memory.title,
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              memory.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -210,8 +234,10 @@ class _GalleryTile extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Abrir mídia em alta resolução',
-                icon: const Icon(Icons.download_outlined,
-                    color: AppTheme.primary),
+                icon: const Icon(
+                  Icons.download_outlined,
+                  color: AppTheme.primary,
+                ),
                 onPressed: () => onDownload(url),
               ),
             ],

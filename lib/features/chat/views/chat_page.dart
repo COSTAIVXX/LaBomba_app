@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../providers/chat_provider.dart';
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 import '../../../services/auth_service.dart';
+
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
+
 import '../../../services/screen_protection_service.dart';
 
 class ChatPage extends StatefulWidget {
@@ -53,9 +56,10 @@ class _ChatPageState extends State<ChatPage> {
     final user = auth.currentUser;
     try {
       await _provider.sendMessage(
-          senderId: user?.uid ?? 'anon',
-          senderName: user?.displayName ?? 'Anon',
-          text: text);
+        senderId: user?.uid ?? 'anon',
+        senderName: user?.displayName ?? 'Anon',
+        text: text,
+      );
       _controller.clear();
     } catch (e) {
       final msg = e is StateError
@@ -69,195 +73,218 @@ class _ChatPageState extends State<ChatPage> {
 
   void _openEmojiPicker() async {
     final emoji = await showModalBottomSheet<String>(
-        context: context,
-        builder: (_) {
-          final emojis = [
-            '😀',
-            '🎉',
-            '❤️',
-            '🔥',
-            '🥳',
-            '💃',
-            '🕺',
-            '🎭',
-            '🎶',
-            '📸'
-          ];
-          return GridView.count(
-            crossAxisCount: 5,
-            padding: const EdgeInsets.all(12),
-            children: emojis
-                .map((e) => GestureDetector(
-                    onTap: () => Navigator.pop(context, e),
-                    child: Center(
-                        child: Text(e, style: const TextStyle(fontSize: 24)))))
-                .toList(),
-          );
-        });
+      context: context,
+      builder: (_) {
+        final emojis = [
+          '😀',
+          '🎉',
+          '❤️',
+          '🔥',
+          '🥳',
+          '💃',
+          '🕺',
+          '🎭',
+          '🎶',
+          '📸',
+        ];
+        return GridView.count(
+          crossAxisCount: 5,
+          padding: const EdgeInsets.all(12),
+          children: emojis
+              .map(
+                (e) => GestureDetector(
+                  onTap: () => Navigator.pop(context, e),
+                  child: Center(
+                    child: Text(e, style: const TextStyle(fontSize: 24)),
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
     if (emoji != null) {
       final newText = _controller.text + emoji;
       _controller.text = newText;
       _controller.selection = TextSelection.fromPosition(
-          TextPosition(offset: _controller.text.length));
+        TextPosition(offset: _controller.text.length),
+      );
     }
   }
 
   void _openStickers() async {
     final sticker = await showModalBottomSheet<String>(
-        context: context,
-        builder: (_) {
-          final stickers = [
-            'https://via.placeholder.com/150/FF6A00/ffffff?text=ST1',
-            'https://via.placeholder.com/150/7C1AFF/ffffff?text=ST2',
-            'https://via.placeholder.com/150/00C2FF/ffffff?text=ST3',
-          ];
-          return GridView.count(
-            crossAxisCount: 3,
-            padding: const EdgeInsets.all(12),
-            children: stickers
-                .map((s) => GestureDetector(
-                    onTap: () => Navigator.pop(context, s),
-                    child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: CachedNetworkImage(
-                            imageUrl: s,
-                            placeholder: (_, __) => const Center(
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2))))))
-                .toList(),
-          );
-        });
+      context: context,
+      builder: (_) {
+        final stickers = [
+          'https://via.placeholder.com/150/FF6A00/ffffff?text=ST1',
+          'https://via.placeholder.com/150/7C1AFF/ffffff?text=ST2',
+          'https://via.placeholder.com/150/00C2FF/ffffff?text=ST3',
+        ];
+        return GridView.count(
+          crossAxisCount: 3,
+          padding: const EdgeInsets.all(12),
+          children: stickers
+              .map(
+                (s) => GestureDetector(
+                  onTap: () => Navigator.pop(context, s),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: CachedNetworkImage(
+                      imageUrl: s,
+                      placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
     if (sticker != null) {
       final auth = context.read<AuthService>();
       final user = auth.currentUser;
       await _provider.sendMessage(
-          senderId: user?.uid ?? 'anon',
-          senderName: user?.displayName ?? 'Anon',
-          stickerUrl: sticker);
+        senderId: user?.uid ?? 'anon',
+        senderName: user?.displayName ?? 'Anon',
+        stickerUrl: sticker,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ChatProvider>(builder: (context, chat, _) {
-      final messages = chat.messages;
-      return SecureScreen(
-        child: Scaffold(
-          appBar: AppBar(
+    return Consumer<ChatProvider>(
+      builder: (context, chat, _) {
+        final messages = chat.messages;
+        return SecureScreen(
+          child: Scaffold(
+            appBar: AppBar(
               title: const Text('La Bomba • Chat'),
               backgroundColor: const Color(0xFF7C1AFF),
-              actions: [UserAppBarActions()]),
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                child: Row(
-                  children: [
-                    DropdownButton<String>(
-                      value: chat.roomId == 'general' ? 'general' : 'private',
-                      items: const [
-                        DropdownMenuItem(
-                            value: 'general', child: Text('Grupo geral')),
-                        DropdownMenuItem(
-                            value: 'private', child: Text('Chat privado')),
-                      ],
-                      onChanged: (value) async {
-                        if (value == 'general') {
-                          _provider.switchRoom('general');
-                        } else {
-                          final userId = await _requestPrivateUser();
-                          if (userId != null && userId.isNotEmpty) {
-                            final current =
-                                context.read<AuthService>().currentUser?.uid ??
-                                    'anon';
-                            _provider.switchRoom(
-                                ChatService.privateRoomId(current, userId));
-                          }
-                        }
-                      },
-                    ),
-                    if (chat.roomId != 'general')
-                      const Padding(
-                        padding: EdgeInsets.only(left: 8),
-                        child: Text('conversa privada'),
-                      ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  reverse: true,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
-                  itemCount: messages.length,
-                  itemBuilder: (context, idx) {
-                    final m = messages[messages.length - 1 - idx];
-                    final isMe = m.senderId ==
-                        (context.read<AuthService>().currentUser?.uid ?? '');
-                    return _ChatBubble(message: m, isMe: isMe);
-                  },
-                ),
-              ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              actions: [UserAppBarActions()],
+            ),
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                   child: Row(
                     children: [
-                      IconButton(
-                        tooltip: 'Emoji',
-                        icon: const Icon(Icons.emoji_emotions_outlined),
-                        onPressed: _openEmojiPicker,
-                      ),
-                      IconButton(
-                        tooltip: 'Sticker',
-                        icon: const Icon(Icons.sticky_note_2_outlined),
-                        onPressed: _openStickers,
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          textCapitalization: TextCapitalization.sentences,
-                          decoration: InputDecoration(
-                            hintText: 'Digite uma mensagem...',
-                            filled: true,
-                            fillColor: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withValues(alpha: .7),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide.none,
-                            ),
+                      DropdownButton<String>(
+                        value: chat.roomId == 'general' ? 'general' : 'private',
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'general',
+                            child: Text('Grupo geral'),
                           ),
-                          onSubmitted: (_) => _sendText(),
-                        ),
+                          DropdownMenuItem(
+                            value: 'private',
+                            child: Text('Chat privado'),
+                          ),
+                        ],
+                        onChanged: (value) async {
+                          if (value == 'general') {
+                            _provider.switchRoom('general');
+                          } else {
+                            final userId = await _requestPrivateUser();
+                            if (userId != null && userId.isNotEmpty) {
+                              final current = context
+                                      .read<AuthService>()
+                                      .currentUser
+                                      ?.uid ??
+                                  'anon';
+                              _provider.switchRoom(
+                                ChatService.privateRoomId(current, userId),
+                              );
+                            }
+                          }
+                        },
                       ),
-                      const SizedBox(width: 6),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF6A00),
-                          borderRadius: BorderRadius.circular(22),
+                      if (chat.roomId != 'general')
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Text('conversa privada'),
                         ),
-                        child: IconButton(
-                          tooltip: 'Enviar',
-                          color: Colors.white,
-                          icon: const Icon(Icons.send_rounded),
-                          onPressed: _sendText,
-                        ),
-                      ),
                     ],
                   ),
                 ),
-              )
-            ],
+                Expanded(
+                  child: ListView.builder(
+                    reverse: true,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+                    itemCount: messages.length,
+                    itemBuilder: (context, idx) {
+                      final m = messages[messages.length - 1 - idx];
+                      final isMe = m.senderId ==
+                          (context.read<AuthService>().currentUser?.uid ?? '');
+                      return _ChatBubble(message: m, isMe: isMe);
+                    },
+                  ),
+                ),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Emoji',
+                          icon: const Icon(Icons.emoji_emotions_outlined),
+                          onPressed: _openEmojiPicker,
+                        ),
+                        IconButton(
+                          tooltip: 'Sticker',
+                          icon: const Icon(Icons.sticky_note_2_outlined),
+                          onPressed: _openStickers,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            textCapitalization: TextCapitalization.sentences,
+                            decoration: InputDecoration(
+                              hintText: 'Digite uma mensagem...',
+                              filled: true,
+                              fillColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: .7),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onSubmitted: (_) => _sendText(),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF6A00),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: IconButton(
+                            tooltip: 'Enviar',
+                            color: Colors.white,
+                            icon: const Icon(Icons.send_rounded),
+                            onPressed: _sendText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   Future<String?> _requestPrivateUser() {
@@ -272,8 +299,9 @@ class _ChatPageState extends State<ChatPage> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () =>
                 Navigator.pop(context, _privateUserController.text.trim()),
@@ -339,10 +367,12 @@ class _ChatBubble extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: CachedNetworkImage(
-                      imageUrl: message.stickerUrl!,
-                      width: 170,
-                      placeholder: (_, __) => const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2))),
+                    imageUrl: message.stickerUrl!,
+                    width: 170,
+                    placeholder: (_, __) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
                 ),
               ),
             if (message.text != null)

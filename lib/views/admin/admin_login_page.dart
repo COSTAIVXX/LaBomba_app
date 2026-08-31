@@ -37,26 +37,33 @@ class _AdminLoginPageState extends State<AdminLoginPage>
     );
 
     // Root fade for the whole card
-    _fadeAnimation =
-        CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
 
     // Slide from slightly below
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
     );
 
     // Staggered icon scale for a lively entrance
     _iconScaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
-          parent: _animationController,
-          curve: const Interval(0.0, 0.4, curve: Curves.elasticOut)),
+        parent: _animationController,
+        curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
+      ),
     );
 
     // Delayed content fade (title, subtitle and form elements)
     _contentFade = CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.35, 1.0, curve: Curves.easeInOut));
+      parent: _animationController,
+      curve: const Interval(0.35, 1.0, curve: Curves.easeInOut),
+    );
 
     _animationController.forward();
   }
@@ -120,15 +127,19 @@ class _AdminLoginPageState extends State<AdminLoginPage>
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: const InputDecoration(
-              labelText: 'E-mail', hintText: 'seu@email.com'),
+            labelText: 'E-mail',
+            hintText: 'seu@email.com',
+          ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Enviar')),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Enviar'),
+          ),
         ],
       ),
     );
@@ -138,8 +149,11 @@ class _AdminLoginPageState extends State<AdminLoginPage>
     final email = emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Informe um e-mail válido para recuperação.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe um e-mail válido para recuperação.'),
+        ),
+      );
       return;
     }
 
@@ -148,15 +162,20 @@ class _AdminLoginPageState extends State<AdminLoginPage>
       await fb_auth.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('E-mail de recuperação enviado para $email')));
+        SnackBar(content: Text('E-mail de recuperação enviado para $email')),
+      );
     } on fb_auth.FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(e.message ?? 'Erro ao enviar e-mail de recuperação.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Erro ao enviar e-mail de recuperação.'),
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao processar recuperação.')));
+        const SnackBar(content: Text('Erro ao processar recuperação.')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -189,7 +208,8 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                       color: Colors.white.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08)),
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color.fromRGBO(0, 0, 0, 0.35),
@@ -252,21 +272,27 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                               decoration: BoxDecoration(
                                 color: Colors.redAccent.withValues(alpha: 0.1),
                                 border: Border.all(
-                                    color: Colors.redAccent
-                                        .withValues(alpha: 0.5)),
+                                  color: Colors.redAccent.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.error_outline,
-                                      color: Colors.redAccent, size: 20),
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.redAccent,
+                                    size: 20,
+                                  ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       _errorMessage!,
                                       style: const TextStyle(
-                                          color: Colors.redAccent,
-                                          fontSize: 13),
+                                        color: Colors.redAccent,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -279,14 +305,19 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Usuário',
-                              labelStyle:
-                                  const TextStyle(color: Colors.white70),
-                              prefixIcon: const Icon(Icons.person_outline,
-                                  color: Colors.white54),
+                              labelStyle: const TextStyle(
+                                color: Colors.white70,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person_outline,
+                                color: Colors.white54,
+                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.05),
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.white10),
@@ -294,7 +325,9 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                    color: Colors.white24, width: 1.5),
+                                  color: Colors.white24,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                             validator: (value) {
@@ -314,14 +347,19 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Senha',
-                              labelStyle:
-                                  const TextStyle(color: Colors.white70),
-                              prefixIcon: const Icon(Icons.lock_outline,
-                                  color: Colors.white54),
+                              labelStyle: const TextStyle(
+                                color: Colors.white70,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                color: Colors.white54,
+                              ),
                               filled: true,
                               fillColor: Colors.white.withValues(alpha: 0.05),
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 16),
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.white10),
@@ -329,7 +367,9 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                    color: Colors.white24, width: 1.5),
+                                  color: Colors.white24,
+                                  width: 1.5,
+                                ),
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -339,8 +379,9 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                                   color: Colors.white70,
                                 ),
                                 onPressed: () {
-                                  setState(() =>
-                                      _obscurePassword = !_obscurePassword);
+                                  setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  );
                                 },
                               ),
                             ),
@@ -359,19 +400,23 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               backgroundColor: AppTheme.primary,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: _isLoading
                                 ? const SizedBox.square(
                                     dimension: 20,
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Text(
                                     'ACESSAR SISTEMA',
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2),
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
                                   ),
                           ),
                           const SizedBox(height: 12),
@@ -381,8 +426,10 @@ class _AdminLoginPageState extends State<AdminLoginPage>
                             child: TextButton(
                               onPressed:
                                   _isLoading ? null : _handleForgotPassword,
-                              child: const Text('Esqueci minha senha',
-                                  style: TextStyle(color: Colors.white70)),
+                              child: const Text(
+                                'Esqueci minha senha',
+                                style: TextStyle(color: Colors.white70),
+                              ),
                             ),
                           ),
                         ],

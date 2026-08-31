@@ -32,9 +32,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _loadProfile() async {
-    final profile = await AdminProfileService(
-      storage: PlatformStorageService(),
-    ).getCurrentUserProfile();
+    final profile = await AdminProfileService(storage: PlatformStorageService())
+        .getCurrentUserProfile();
     if (mounted) setState(() => _profile = profile);
   }
 
@@ -79,16 +78,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           : null,
                       child: user.photoUrl?.isNotEmpty == true
                           ? null
-                          : Text(displayName[0].toUpperCase(),
-                              style: const TextStyle(fontSize: 30)),
+                          : Text(
+                              displayName[0].toUpperCase(),
+                              style: const TextStyle(fontSize: 30),
+                            ),
                     ),
                     const SizedBox(height: 12),
-                    Text(displayName,
-                        style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      displayName,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     if (user.email != null) ...[
                       const SizedBox(height: 4),
-                      Text(user.email!,
-                          style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        user.email!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                     if ((_profile?.bio ?? '').isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -102,10 +107,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             .where((entry) => entry.value.isNotEmpty)
                             .map(
                               (entry) => ActionChip(
-                                avatar: Icon(
-                                  _socialIcon(entry.key),
-                                  size: 18,
-                                ),
+                                avatar: Icon(_socialIcon(entry.key), size: 18),
                                 label: Text(entry.key),
                                 onPressed: () => launchUrl(
                                   Uri.parse(entry.value),
@@ -181,17 +183,21 @@ class _MemoryTile extends StatelessWidget {
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Text(memory.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    memory.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
             : CachedNetworkImage(
                 imageUrl: memory.imageUrls.first,
                 fit: BoxFit.cover,
                 placeholder: (_, __) => const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2))),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
       ),
     );
   }
@@ -208,8 +214,10 @@ class _MemoryTile extends StatelessWidget {
               onTap: () => Navigator.pop(context, 'view'),
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.delete_outline, color: Colors.redAccent),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: Colors.redAccent,
+              ),
               title: const Text('Excluir memória'),
               onTap: () => Navigator.pop(context, 'delete'),
             ),

@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:labomba_app/services/street_mode_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
+
 import 'memory_editor_page.dart';
+
 import 'package:labomba_app/theme/app_theme.dart';
 import 'package:labomba_app/widgets/main_navigation_drawer.dart';
 import 'package:labomba_app/features/memories/providers/memory_provider.dart';
@@ -53,141 +55,168 @@ class MemoriesListPage extends StatelessWidget {
                 colors: [_bgGradientStart, _bgGradientEnd],
               ),
             ),
-            child: Builder(builder: (context) {
-              if (provider.isLoading) {
-                return const Center(
-                    child: CircularProgressIndicator(color: Colors.white));
-              }
+            child: Builder(
+              builder: (context) {
+                if (provider.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
 
-              if (provider.error != null) {
-                return Center(
-                    child: Text('Erro: ${provider.error}',
-                        style: const TextStyle(color: Colors.white)));
-              }
-
-              // Sort memories chronologically (newest first)
-              final List<Memory> items = List.from(provider.memories)
-                ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-              if (items.isEmpty) {
-                return const Center(
-                    child: Text('Nenhuma memória encontrada',
-                        style: TextStyle(color: Colors.white70)));
-              }
-
-              return Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1000),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
+                if (provider.error != null) {
+                  return Center(
+                    child: Text(
+                      'Erro: ${provider.error}',
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    itemCount:
-                        items.length + 1, // +1 for the stories carousel header
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return _FameWallCarousel(
-                            memories: items, accentColor: AppTheme.primary);
-                      }
+                  );
+                }
 
-                      final m = items[index - 1];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => MemoryDetailPage(memory: m),
-                          ));
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(_cardRadius),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.14),
-                                borderRadius:
-                                    BorderRadius.circular(_cardRadius),
-                                border: Border.all(
-                                  color: AppTheme.primaryLight
-                                      .withValues(alpha: 0.55),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.primary
-                                        .withValues(alpha: 0.28),
-                                    blurRadius: 18,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
+                // Sort memories chronologically (newest first)
+                final List<Memory> items = List.from(provider.memories)
+                  ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                if (items.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Nenhuma memória encontrada',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  );
+                }
+
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      itemCount: items.length +
+                          1, // +1 for the stories carousel header
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return _FameWallCarousel(
+                            memories: items,
+                            accentColor: AppTheme.primary,
+                          );
+                        }
+
+                        final m = items[index - 1];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => MemoryDetailPage(memory: m),
                               ),
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
-                                children: [
-                                  if (m.imageUrls.isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: _MemoryMediaPreview(
-                                        url: m.imageUrls.first,
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(_cardRadius),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(
+                                    _cardRadius,
+                                  ),
+                                  border: Border.all(
+                                    color: AppTheme.primaryLight.withValues(
+                                      alpha: 0.55,
+                                    ),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primary.withValues(
+                                        alpha: 0.28,
+                                      ),
+                                      blurRadius: 18,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
+                                  children: [
+                                    if (m.imageUrls.isNotEmpty)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: _MemoryMediaPreview(
+                                          url: m.imageUrls.first,
+                                          width: 84,
+                                          height: 84,
+                                        ),
+                                      )
+                                    else
+                                      Container(
                                         width: 84,
                                         height: 84,
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      width: 84,
-                                      height: 84,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white12,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(Icons.photo,
-                                          color: Colors.white30),
-                                    ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(m.title,
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700)),
-                                        const SizedBox(height: 6),
-                                        if (m.description != null)
-                                          Text(
-                                            m.description!,
-                                            style: const TextStyle(
-                                                color: Colors.white70),
-                                            maxLines: 3,
-                                            overflow: TextOverflow.ellipsis,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white12,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          '${m.createdAt.toLocal()}',
-                                          style: const TextStyle(
-                                              color: Colors.white38,
-                                              fontSize: 12),
                                         ),
-                                      ],
+                                        child: const Icon(
+                                          Icons.photo,
+                                          color: Colors.white30,
+                                        ),
+                                      ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            m.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          if (m.description != null)
+                                            Text(
+                                              m.description!,
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            '${m.createdAt.toLocal()}',
+                                            style: const TextStyle(
+                                              color: Colors.white38,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  MemorySocialPanel(
-                                      memoryId: m.id, compact: true),
-                                ],
+                                    MemorySocialPanel(
+                                      memoryId: m.id,
+                                      compact: true,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              },
+            ),
           ),
           const OfficialHornListener(),
         ],
@@ -202,9 +231,9 @@ class MemoriesListPage extends StatelessWidget {
             backgroundColor: AppTheme.primary,
             tooltip: 'Criar nova memória',
             child: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MemoryEditorPage()),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const MemoryEditorPage())),
           ),
         ],
       ),
@@ -220,9 +249,10 @@ class MemoryDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(memory.title),
-          backgroundColor: const Color(0xFF7C1AFF),
-          actions: [UserAppBarActions()]),
+        title: Text(memory.title),
+        backgroundColor: const Color(0xFF7C1AFF),
+        actions: [UserAppBarActions()],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -245,12 +275,18 @@ class MemoryDetailPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(memory.description ?? '',
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 16)),
+                        Text(
+                          memory.description ?? '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        Text('Data: ${memory.date.toLocal()}',
-                            style: const TextStyle(color: Colors.white70)),
+                        Text(
+                          'Data: ${memory.date.toLocal()}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
                       ],
                     ),
                   ),
@@ -278,8 +314,8 @@ class MemoryDetailPage extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemCount: memory.imageUrls.length,
                 ),
-              )
-            ]
+              ),
+            ],
           ],
         ),
       ),
@@ -393,10 +429,7 @@ class _FameWallCarousel extends StatefulWidget {
   final List<Memory> memories;
   final Color accentColor;
 
-  const _FameWallCarousel({
-    required this.memories,
-    required this.accentColor,
-  });
+  const _FameWallCarousel({required this.memories, required this.accentColor});
 
   @override
   State<_FameWallCarousel> createState() => _FameWallCarouselState();
@@ -429,10 +462,12 @@ class _FameWallCarouselState extends State<_FameWallCarousel> {
           created.day == today.day &&
           memory.imageUrls.isNotEmpty;
     }).take(20);
-    final scored = await Future.wait(candidates.map((memory) async {
-      final score = await _socialService.engagementCount(memory.id);
-      return _EngagedMemory(memory: memory, score: score);
-    }));
+    final scored = await Future.wait(
+      candidates.map((memory) async {
+        final score = await _socialService.engagementCount(memory.id);
+        return _EngagedMemory(memory: memory, score: score);
+      }),
+    );
     scored.sort((a, b) => b.score.compareTo(a.score));
     return scored.take(8).toList(growable: false);
   }
@@ -446,8 +481,9 @@ class _FameWallCarouselState extends State<_FameWallCarousel> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 190,
-            child:
-                Center(child: CircularProgressIndicator(color: Colors.white)),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
           );
         }
         if (highlights.isEmpty) return const SizedBox.shrink();
@@ -501,10 +537,7 @@ class _FameWallCard extends StatelessWidget {
   final _EngagedMemory highlight;
   final Color accentColor;
 
-  const _FameWallCard({
-    required this.highlight,
-    required this.accentColor,
-  });
+  const _FameWallCard({required this.highlight, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
@@ -518,8 +551,10 @@ class _FameWallCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: Colors.white.withValues(alpha: 0.16),
-          border:
-              Border.all(color: accentColor.withValues(alpha: 0.9), width: 2),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.9),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
               color: accentColor.withValues(alpha: 0.35),
@@ -533,7 +568,10 @@ class _FameWallCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             _MemoryMediaPreview(
-                url: memory.imageUrls.first, width: 142, height: 154),
+              url: memory.imageUrls.first,
+              width: 142,
+              height: 154,
+            ),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -541,7 +579,7 @@ class _FameWallCard extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.82)
+                    Colors.black.withValues(alpha: 0.82),
                   ],
                 ),
               ),
@@ -558,7 +596,9 @@ class _FameWallCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(

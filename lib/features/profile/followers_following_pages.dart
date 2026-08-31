@@ -13,10 +13,11 @@ class _SimpleUserTile extends StatelessWidget {
     final avatar = data['avatarUrl'] as String? ?? data['photoURL'] as String?;
     return ListTile(
       leading: CircleAvatar(
-          backgroundImage: avatar != null ? NetworkImage(avatar) : null,
-          child: avatar == null
-              ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?')
-              : null),
+        backgroundImage: avatar != null ? NetworkImage(avatar) : null,
+        child: avatar == null
+            ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?')
+            : null,
+      ),
       title: Text(name),
       subtitle: Text(data['bio'] as String? ?? ''),
       onTap: () {},
@@ -52,10 +53,12 @@ class FollowersListPage extends StatelessWidget {
                 final batch =
                     <Future<DocumentSnapshot<Map<String, dynamic>>>>[];
                 for (final uid in followers) {
-                  batch.add(FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(uid)
-                      .get());
+                  batch.add(
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .get(),
+                  );
                 }
                 final snaps = await Future.wait(batch);
                 return snaps

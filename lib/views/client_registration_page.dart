@@ -1,4 +1,5 @@
 import 'dart:ui' as dart_ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../providers/client_provider.dart';
 import '../providers/google_auth_provider.dart';
 import '../theme/app_theme.dart';
+
 import 'package:labomba_app/widgets/user_appbar_actions.dart';
 
 class ClientRegistrationPage extends StatefulWidget {
@@ -28,17 +30,20 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
   bool _hasOpenedTerms = false;
 
   final _dateMask = MaskTextInputFormatter(
-      mask: '##/##/####',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '##/##/####',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
   final _cpfMask = MaskTextInputFormatter(
-      mask: '###.###.###-##',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
   final _phoneMask = MaskTextInputFormatter(
-      mask: '(##) #####-####',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -51,11 +56,16 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation =
-        CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
     );
     _animationController.forward();
   }
@@ -142,7 +152,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
         _nameController.text = googleData.displayName ?? '';
       });
       _showMessage(
-          'Conta Google vinculada com sucesso. Complete os dados restantes.');
+        'Conta Google vinculada com sucesso. Complete os dados restantes.',
+      );
     } catch (e) {
       if (!mounted) return;
       _showMessage('Erro ao acessar o Google. Tente novamente.');
@@ -152,8 +163,11 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
   Future<void> _showAdultRestrictionDialog() => showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded,
-              color: AppTheme.accent, size: 36),
+          icon: const Icon(
+            Icons.warning_amber_rounded,
+            color: AppTheme.accent,
+            size: 36,
+          ),
           title: const Text('Cadastro não permitido'),
           content: const Text(
             'O evento é restrito para maiores de 18 anos. '
@@ -196,9 +210,13 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Cadastro do Comprador',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+        title: const Text(
+          'Cadastro do Comprador',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F172A),
+          ),
+        ),
         backgroundColor: Colors.transparent,
         foregroundColor: const Color(0xFF0F172A),
         elevation: 0,
@@ -209,17 +227,17 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFEAF3FF),
-              Color(0xFFF8FAFF),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFFEAF3FF), Color(0xFFF8FAFF), Color(0xFFFFFFFF)],
           ),
         ),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(
-                top: 100, bottom: 24, left: 24, right: 24),
+              top: 100,
+              bottom: 24,
+              left: 24,
+              right: 24,
+            ),
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -232,7 +250,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: AppTheme.primary.withValues(alpha: 0.18)),
+                        color: AppTheme.primary.withValues(alpha: 0.18),
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppTheme.primary.withValues(alpha: 0.15),
@@ -254,20 +273,24 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                               gradient: const LinearGradient(
                                 colors: [
                                   AppTheme.primary,
-                                  AppTheme.primaryLight
+                                  AppTheme.primaryLight,
                                 ],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppTheme.primary.withValues(alpha: 0.22),
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.22,
+                                  ),
                                   blurRadius: 18,
                                   offset: const Offset(0, 10),
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.person_add_alt_1,
-                                color: Colors.white, size: 36),
+                            child: const Icon(
+                              Icons.person_add_alt_1,
+                              color: Colors.white,
+                              size: 36,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -291,34 +314,47 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                           const SizedBox(height: 32),
                           OutlinedButton.icon(
                             onPressed: _saving ? null : _handleGoogleSignIn,
-                            icon: const Icon(Icons.g_mobiledata,
-                                size: 28, color: AppTheme.primary),
-                            label: const Text('Continuar com o Google',
-                                style: TextStyle(color: Color(0xFF0F172A))),
+                            icon: const Icon(
+                              Icons.g_mobiledata,
+                              size: 28,
+                              color: AppTheme.primary,
+                            ),
+                            label: const Text(
+                              'Continuar com o Google',
+                              style: TextStyle(color: Color(0xFF0F172A)),
+                            ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               side: const BorderSide(
-                                  color: AppTheme.primary, width: 1.4),
+                                color: AppTheme.primary,
+                                width: 1.4,
+                              ),
                               backgroundColor: const Color(0xFFF8FBFF),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
                           const Row(
                             children: [
                               Expanded(
-                                  child: Divider(color: Color(0xFFBFDBFE))),
+                                child: Divider(color: Color(0xFFBFDBFE)),
+                              ),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text('OU PREENCHA',
-                                    style: TextStyle(
-                                        color: Color(0xFF1D4ED8),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12)),
+                                child: Text(
+                                  'OU PREENCHA',
+                                  style: TextStyle(
+                                    color: Color(0xFF1D4ED8),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ),
                               Expanded(
-                                  child: Divider(color: Color(0xFFBFDBFE))),
+                                child: Divider(color: Color(0xFFBFDBFE)),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -387,10 +423,12 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                   value: _acceptedTerms,
                                   activeColor: AppTheme.primary,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4)),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                   onChanged: _hasOpenedTerms
                                       ? (v) => setState(
-                                          () => _acceptedTerms = v ?? false)
+                                            () => _acceptedTerms = v ?? false,
+                                          )
                                       : null,
                                 ),
                                 Expanded(
@@ -398,9 +436,12 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                                     crossAxisAlignment:
                                         WrapCrossAlignment.center,
                                     children: [
-                                      const Text('Li e aceito os ',
-                                          style: TextStyle(
-                                              color: Color(0xFF475569))),
+                                      const Text(
+                                        'Li e aceito os ',
+                                        style: TextStyle(
+                                          color: Color(0xFF475569),
+                                        ),
+                                      ),
                                       GestureDetector(
                                         onTap: _showTermsDialog,
                                         child: const Text(
@@ -425,9 +466,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                               child: Text(
                                 'Por favor, leia os termos antes de aceitar.',
                                 style: TextStyle(
-                                    color: Color(0xFFB45309),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold),
+                                  color: Color(0xFFB45309),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           const SizedBox(height: 32),
@@ -439,19 +481,23 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
                               backgroundColor: AppTheme.primary,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: _saving
                                 ? const SizedBox.square(
                                     dimension: 20,
                                     child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Text(
                                     'CONTINUAR PARA A COMPRA',
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2),
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
                                   ),
                           ),
                         ],
@@ -492,13 +538,15 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage>
         fillColor: const Color(0xFFF8FBFF),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
+          borderSide: BorderSide(
+            color: AppTheme.primary.withValues(alpha: 0.2),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
+          borderSide: BorderSide(
+            color: AppTheme.primary.withValues(alpha: 0.2),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -607,13 +655,15 @@ class _TermsDialogState extends State<_TermsDialog> {
             color: Colors.white.withValues(alpha: 0.97),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: AppTheme.primary.withValues(alpha: 0.25), width: 1.5),
+              color: AppTheme.primary.withValues(alpha: 0.25),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppTheme.primary.withValues(alpha: 0.18),
                 blurRadius: 32,
                 offset: const Offset(0, 20),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -624,8 +674,11 @@ class _TermsDialogState extends State<_TermsDialog> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.description_outlined,
-                          color: AppTheme.primary, size: 28),
+                      Icon(
+                        Icons.description_outlined,
+                        color: AppTheme.primary,
+                        size: 28,
+                      ),
                       SizedBox(width: 12),
                       Text(
                         'TERMOS DE USO',
@@ -680,7 +733,10 @@ class _TermsDialogState extends State<_TermsDialog> {
                     '6.1. O direito de arrependimento (Art. 49 do CDC) é garantido pelo prazo de até 7 (sete) dias corridos após a compra, desde que formalizado até 48 horas antes do primeiro dia do evento.\n'
                     '6.2. Ausências ("No-show"), expulsões por infração às regras ou desistências posteriores não dão direito a qualquer tipo de reembolso.',
                     style: TextStyle(
-                        fontSize: 14, height: 1.5, color: Colors.white70),
+                      fontSize: 14,
+                      height: 1.5,
+                      color: Colors.white70,
+                    ),
                   ),
                 ),
               ),
@@ -690,12 +746,16 @@ class _TermsDialogState extends State<_TermsDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.arrow_downward,
-                          color: Colors.white54, size: 16),
+                      Icon(
+                        Icons.arrow_downward,
+                        color: Colors.white54,
+                        size: 16,
+                      ),
                       SizedBox(width: 8),
-                      Text('Role até o fim para aceitar',
-                          style:
-                              TextStyle(color: Colors.white54, fontSize: 12)),
+                      Text(
+                        'Role até o fim para aceitar',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
@@ -709,12 +769,17 @@ class _TermsDialogState extends State<_TermsDialog> {
                   foregroundColor: _isAtBottom ? Colors.white : Colors.white38,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   disabledBackgroundColor: Colors.grey.shade900,
                 ),
-                child: const Text('LI E CONCORDO',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                child: const Text(
+                  'LI E CONCORDO',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
               ),
             ],
           ),

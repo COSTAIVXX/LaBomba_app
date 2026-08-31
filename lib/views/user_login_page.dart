@@ -44,7 +44,8 @@ class _UserLoginPageState extends State<UserLoginPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                  'Método de login desabilitado no servidor. Contate o administrador.'),
+                'Método de login desabilitado no servidor. Contate o administrador.',
+              ),
             ),
           );
           return;
@@ -59,7 +60,10 @@ class _UserLoginPageState extends State<UserLoginPage> {
       // Sincronização de rota limpa e segura pós-autenticação bem-sucedida
       debugPrint('NAV: user login success, navigating to /dashboard');
       Navigator.pushNamedAndRemoveUntil(
-          context, '/dashboard', (route) => false);
+        context,
+        '/dashboard',
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,13 +88,17 @@ class _UserLoginPageState extends State<UserLoginPage> {
       }
 
       Navigator.pushNamedAndRemoveUntil(
-          context, '/dashboard', (route) => false);
+        context,
+        '/dashboard',
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Google Sign-In indisponível no momento. Tente novamente.'),
+          content: Text(
+            'Google Sign-In indisponível no momento. Tente novamente.',
+          ),
         ),
       );
     } finally {
@@ -107,8 +115,10 @@ class _UserLoginPageState extends State<UserLoginPage> {
     return Scaffold(
       backgroundColor: customDarkBackground,
       appBar: AppBar(
-        title: const Text('Entrar',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Entrar',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -137,7 +147,8 @@ class _UserLoginPageState extends State<UserLoginPage> {
                     color: surfaceCardColor,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.2)),
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.35),
@@ -168,8 +179,11 @@ class _UserLoginPageState extends State<UserLoginPage> {
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.local_fire_department_rounded,
-                              size: 36, color: Colors.white),
+                          child: const Icon(
+                            Icons.local_fire_department_rounded,
+                            size: 36,
+                            color: Colors.white,
+                          ),
                         ),
                         const SizedBox(height: 20),
                         const Text(
@@ -185,8 +199,10 @@ class _UserLoginPageState extends State<UserLoginPage> {
                         const Text(
                           'Acesse sua conta do La Bomba',
                           textAlign: TextAlign.center,
-                          style:
-                              TextStyle(color: Color(0xFF475569), fontSize: 15),
+                          style: TextStyle(
+                            color: Color(0xFF475569),
+                            fontSize: 15,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         TextFormField(
@@ -198,27 +214,32 @@ class _UserLoginPageState extends State<UserLoginPage> {
                             hintText: 'seu@email.com',
                             filled: true,
                             fillColor: const Color(0xFFF8FBFF),
-                            prefixIcon: const Icon(Icons.email_outlined,
-                                color: AppTheme.primary),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: AppTheme.primary,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide(
-                                  color:
-                                      AppTheme.primary.withValues(alpha: 0.2)),
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide(
-                                  color:
-                                      AppTheme.primary.withValues(alpha: 0.2)),
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                  color: AppTheme.primary, width: 1.6),
+                                color: AppTheme.primary,
+                                width: 1.6,
+                              ),
                             ),
-                            labelStyle:
-                                const TextStyle(color: Color(0xFF1E3A8A)),
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF1E3A8A),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -236,11 +257,14 @@ class _UserLoginPageState extends State<UserLoginPage> {
                             labelText: 'Senha',
                             filled: true,
                             fillColor: const Color(0xFFF8FBFF),
-                            prefixIcon: const Icon(Icons.lock_outline,
-                                color: AppTheme.primary),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: AppTheme.primary,
+                            ),
                             suffixIcon: IconButton(
                               onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility
@@ -251,22 +275,25 @@ class _UserLoginPageState extends State<UserLoginPage> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide(
-                                  color:
-                                      AppTheme.primary.withValues(alpha: 0.2)),
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide(
-                                  color:
-                                      AppTheme.primary.withValues(alpha: 0.2)),
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                  color: AppTheme.primary, width: 1.6),
+                                color: AppTheme.primary,
+                                width: 1.6,
+                              ),
                             ),
-                            labelStyle:
-                                const TextStyle(color: Color(0xFF1E3A8A)),
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF1E3A8A),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -279,9 +306,13 @@ class _UserLoginPageState extends State<UserLoginPage> {
                         FilledButton.icon(
                           onPressed: _isSubmitting ? null : _submitEmailLogin,
                           icon: const Icon(Icons.login_rounded),
-                          label: const Text('Entrar com e-mail',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          label: const Text(
+                            'Entrar com e-mail',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: AppTheme.primary,
                             foregroundColor: Colors.white,
@@ -294,16 +325,24 @@ class _UserLoginPageState extends State<UserLoginPage> {
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: _isSubmitting ? null : _submitGoogleLogin,
-                          icon: const Icon(Icons.g_mobiledata_rounded,
-                              color: AppTheme.primary, size: 28),
-                          label: const Text('Continuar com Google',
-                              style: TextStyle(
-                                  color: Color(0xFF0F172A),
-                                  fontWeight: FontWeight.w600)),
+                          icon: const Icon(
+                            Icons.g_mobiledata_rounded,
+                            color: AppTheme.primary,
+                            size: 28,
+                          ),
+                          label: const Text(
+                            'Continuar com Google',
+                            style: TextStyle(
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             side: const BorderSide(
-                                color: AppTheme.primary, width: 1.4),
+                              color: AppTheme.primary,
+                              width: 1.4,
+                            ),
                             backgroundColor: const Color(0xFFF8FBFF),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -316,10 +355,13 @@ class _UserLoginPageState extends State<UserLoginPage> {
                             Expanded(child: Divider(color: Color(0xFFBFDBFE))),
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text('ou',
-                                  style: TextStyle(
-                                      color: Color(0xFF475569),
-                                      fontWeight: FontWeight.w700)),
+                              child: Text(
+                                'ou',
+                                style: TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                             Expanded(child: Divider(color: Color(0xFFBFDBFE))),
                           ],
@@ -331,8 +373,9 @@ class _UserLoginPageState extends State<UserLoginPage> {
                           child: const Text(
                             'Criar conta',
                             style: TextStyle(
-                                color: AppTheme.primary,
-                                fontWeight: FontWeight.w800),
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ],

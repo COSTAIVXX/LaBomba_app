@@ -15,7 +15,9 @@ class ChatService {
   }
 
   Future<DocumentReference<Map<String, dynamic>>> sendMessage(
-      String chatId, Map<String, dynamic> payload) async {
+    String chatId,
+    Map<String, dynamic> payload,
+  ) async {
     final messages =
         _firestore.collection('chats').doc(chatId).collection('messages');
     final enriched = Map<String, dynamic>.from(payload);

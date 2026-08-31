@@ -14,19 +14,19 @@ void main() {
         'displayName': 'Alice',
         'photoURL': null,
         'presence': 'online',
-        'tags': ['samba']
+        'tags': ['samba'],
       });
       await fake.collection('users').doc('u2').set({
         'displayName': 'Bruno',
         'photoURL': null,
         'presence': 'away',
-        'tags': ['samba', 'dance']
+        'tags': ['samba', 'dance'],
       });
       await fake.collection('users').doc('u3').set({
         'displayName': 'Carla',
         'photoURL': null,
         'presence': 'offline',
-        'tags': []
+        'tags': [],
       });
     });
 
@@ -36,7 +36,8 @@ void main() {
         onGenerateRoute: (settings) {
           pushed.add(settings.name ?? '');
           return MaterialPageRoute(
-              builder: (_) => const Scaffold(body: Text('navigated')));
+            builder: (_) => const Scaffold(body: Text('navigated')),
+          );
         },
         home: CommunityPage(firestore: fake),
       );

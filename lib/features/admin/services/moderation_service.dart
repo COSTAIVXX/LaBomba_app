@@ -20,7 +20,8 @@ class ModerationReport {
   });
 
   factory ModerationReport.fromDocument(
-      DocumentSnapshot<Map<String, dynamic>> document) {
+    DocumentSnapshot<Map<String, dynamic>> document,
+  ) {
     final data = document.data() ?? <String, dynamic>{};
     final timestamp = data['createdAt'];
     return ModerationReport(
@@ -47,9 +48,11 @@ class ModerationService {
         .where('status', isEqualTo: 'open')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map(ModerationReport.fromDocument)
-            .toList(growable: false));
+        .map(
+          (snapshot) => snapshot.docs
+              .map(ModerationReport.fromDocument)
+              .toList(growable: false),
+        );
   }
 
   Future<void> reportMemory({
@@ -78,7 +81,10 @@ class ModerationService {
       'hiddenBy': moderatorId,
     }, SetOptions(merge: true));
     await resolveReport(
-        reportId: reportId, moderatorId: moderatorId, resolution: 'hidden');
+      reportId: reportId,
+      moderatorId: moderatorId,
+      resolution: 'hidden',
+    );
   }
 
   Future<void> resolveReport({

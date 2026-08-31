@@ -29,10 +29,10 @@ class ContentService {
   // 2. Salvar/Atualizar as configurações gerais do evento
   Future<void> updateEventConfig(Map<String, dynamic> data) async {
     try {
-      await _firestore.collection('site_config').doc('event_details').set(
-            data,
-            SetOptions(merge: true),
-          );
+      await _firestore
+          .collection('site_config')
+          .doc('event_details')
+          .set(data, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Erro ao salvar configurações: $e');
       rethrow;
@@ -59,7 +59,10 @@ class ContentService {
 
   // 4. Salvar referência da imagem da galeria no Firestore
   Future<void> updateGalleryItem(
-      String year, String imageUrl, String tag) async {
+    String year,
+    String imageUrl,
+    String tag,
+  ) async {
     try {
       await _firestore.collection('gallery').doc(year).set({
         'year': year,

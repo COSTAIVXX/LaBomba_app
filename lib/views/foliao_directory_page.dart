@@ -38,9 +38,11 @@ class _FoliaoDirectoryPageState extends State<FoliaoDirectoryPage> {
           }
 
           final foliaos = snapshot.data!
-              .where((profile) => profile.displayName
-                  .toLowerCase()
-                  .contains(_query.trim().toLowerCase()))
+              .where(
+                (profile) => profile.displayName.toLowerCase().contains(
+                      _query.trim().toLowerCase(),
+                    ),
+              )
               .toList(growable: false);
 
           return Column(

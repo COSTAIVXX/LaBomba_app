@@ -24,17 +24,20 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   bool _hasOpenedTerms = false;
 
   final _dateMask = MaskTextInputFormatter(
-      mask: '##/##/####',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '##/##/####',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
   final _cpfMask = MaskTextInputFormatter(
-      mask: '###.###.###-##',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
   final _phoneMask = MaskTextInputFormatter(
-      mask: '(##) #####-####',
-      filter: {"#": RegExp(r'[0-9]')},
-      type: MaskAutoCompletionType.lazy);
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
 
   @override
   void dispose() {
@@ -109,7 +112,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
         _nameController.text = googleData.displayName ?? '';
       });
       _showMessage(
-          'Conta Google vinculada com sucesso. Complete os dados restantes.');
+        'Conta Google vinculada com sucesso. Complete os dados restantes.',
+      );
     } catch (e) {
       if (!mounted) return;
       _showMessage('Erro ao acessar o Google. Tente novamente.');
@@ -119,8 +123,11 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
   Future<void> _showAdultRestrictionDialog() => showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded,
-              color: AppTheme.accent, size: 36),
+          icon: const Icon(
+            Icons.warning_amber_rounded,
+            color: AppTheme.accent,
+            size: 36,
+          ),
           title: const Text('Cadastro não permitido'),
           content: const Text(
             'O evento é restrito para maiores de 18 anos. '
@@ -207,12 +214,17 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.person_add_alt_1,
-                      color: AppTheme.accent, size: 42),
+                  const Icon(
+                    Icons.person_add_alt_1,
+                    color: AppTheme.accent,
+                    size: 42,
+                  ),
                   const SizedBox(height: 16),
-                  Text('Antes de comprar',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    'Antes de comprar',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 8),
                   const Text(
                     'Preencha seus dados. O cadastro é obrigatório e o evento é exclusivo para maiores de 18 anos.',
@@ -236,10 +248,13 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                       Expanded(child: Divider(color: Colors.white24)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OU',
-                            style: TextStyle(
-                                color: Colors.white54,
-                                fontWeight: FontWeight.bold)),
+                        child: Text(
+                          'OU',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       Expanded(child: Divider(color: Colors.white24)),
                     ],
@@ -249,8 +264,9 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     controller: _nameController,
                     textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
-                        labelText: 'Nome completo',
-                        prefixIcon: Icon(Icons.person_outline)),
+                      labelText: 'Nome completo',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
                     validator: (value) => _required(value, 'seu nome completo'),
                   ),
                   const SizedBox(height: 14),
@@ -259,9 +275,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [_dateMask],
                     decoration: const InputDecoration(
-                        labelText: 'Data de nascimento',
-                        hintText: 'DD/MM/AAAA',
-                        prefixIcon: Icon(Icons.calendar_today_outlined)),
+                      labelText: 'Data de nascimento',
+                      hintText: 'DD/MM/AAAA',
+                      prefixIcon: Icon(Icons.calendar_today_outlined),
+                    ),
                     validator: (value) => _parseBirthDate() == null
                         ? 'Informe uma data válida (DD/MM/AAAA)'
                         : null,
@@ -272,9 +289,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [_cpfMask],
                     decoration: const InputDecoration(
-                        labelText: 'CPF',
-                        hintText: '000.000.000-00',
-                        prefixIcon: Icon(Icons.badge_outlined)),
+                      labelText: 'CPF',
+                      hintText: '000.000.000-00',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
                     validator: (value) =>
                         !_isValidCPF(value) ? 'Informe um CPF válido' : null,
                   ),
@@ -284,9 +302,10 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [_phoneMask],
                     decoration: const InputDecoration(
-                        labelText: 'Telefone',
-                        hintText: '(00) 00000-0000',
-                        prefixIcon: Icon(Icons.phone_outlined)),
+                      labelText: 'Telefone',
+                      hintText: '(00) 00000-0000',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                    ),
                     validator: (value) => _digits(value).length < 10
                         ? 'Informe um telefone válido'
                         : null,
@@ -326,7 +345,9 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                       child: Text(
                         'Você precisa abrir e ler os termos antes de marcar a caixa.',
                         style: TextStyle(
-                            color: Colors.amber.shade400, fontSize: 12),
+                          color: Colors.amber.shade400,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   const SizedBox(height: 16),
@@ -335,7 +356,8 @@ class _ClientRegistrationPageState extends State<ClientRegistrationPage> {
                     icon: _saving
                         ? const SizedBox.square(
                             dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2))
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.arrow_forward),
                     label: const Text('CONTINUAR PARA A COMPRA'),
                   ),

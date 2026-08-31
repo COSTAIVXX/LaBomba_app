@@ -1,15 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../../services/auth_service.dart';
 import '../../../services/outbox_service.dart';
 import '../../../views/admin/content_dashboard_page.dart';
+import '../admin_guard.dart';
 
 /// Master Developer Dashboard (God-Mode)
-/// - Access restricted to a whitelisted email plus a PIN stored in secure storage.
-/// - Provides: user search + ban/delete, interactions audit (posts + comments), and Outbox/Dead-letter inspection + export.
+/// A secure read-only / request-based admin console. All destructive actions must
+/// be submitted to backend-managed `admin_requests`, never executed directly from
+/// the client.
 
 class MasterDeveloperDashboardPage extends StatefulWidget {
   const MasterDeveloperDashboardPage({super.key});
@@ -21,266 +22,100 @@ class MasterDeveloperDashboardPage extends StatefulWidget {
 
 class _MasterDeveloperDashboardPageState
     extends State<MasterDeveloperDashboardPage> {
-  static const String _whitelistedEmail = AuthService.masterEmail;
-  static const String _pinStorageKey = 'godmode_pin';
-
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  bool _allowedByEmail = false;
-  bool _authorized = false;
-  bool _loading = true;
 
   String _search = '';
   final TextEditingController _searchController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _checkEmailPermission();
-  }
-
-  Future<void> _checkEmailPermission() async {
-    setState(() => _loading = true);
-    try {
-      final authService = AuthService();
-      final current = authService.currentUser;
-      final email = current?.email?.toLowerCase();
-      final isMasterSession = authService.isMasterUser;
-      _allowedByEmail = isMasterSession &&
-          (email == null || email == _whitelistedEmail.toLowerCase());
-    } catch (_) {
-      _allowedByEmail = false;
-    }
-    setState(() => _loading = false);
-
-    if (_allowedByEmail) {
-      // prompt for PIN
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _showPinDialogIfNeeded());
-    }
-  }
-
-  Future<void> _showPinDialogIfNeeded() async {
-    if (_authorized) return;
-
-    final stored = await _secureStorage.read(key: _pinStorageKey);
-
-    // If PIN not set yet, allow the whitelisted user to create one
-    if (stored == null) {
-      final set = await showDialog<bool>(
-        context: context,
-        builder: (c) => AlertDialog(
-          title: const Text('Configurar PIN God‑Mode'),
-          content: const Text(
-              'Nenhum PIN foi configurado. Deseja criar um PIN agora?'),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.of(c).pop(false),
-                child: const Text('Não')),
-            ElevatedButton(
-                onPressed: () => Navigator.of(c).pop(true),
-                child: const Text('Sim')),
-          ],
-        ),
-      );
-
-      if (set == true) {
-        await _setPinFlow();
+  Future<void> _submitAdminRequest({
+    required String action,
+    required String resourceType,
+    required String resourceId,
+    required String reason,
+    Map<String, dynamic>? details,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Sessão expirada.')));
       }
       return;
     }
 
-    // Ask for PIN
-    final ok = await _askForPinAndValidate(stored);
-    if (ok) setState(() => _authorized = true);
-  }
+    final requestId =
+        'admin_req_${DateTime.now().toUtc().microsecondsSinceEpoch}_${user.uid}';
+    await _firestore.collection('admin_requests').add({
+      'id': requestId,
+      'requestId': requestId,
+      'type': action,
+      'resourceType': resourceType,
+      'resourceId': resourceId,
+      'createdAt': FieldValue.serverTimestamp(),
+      'createdBy': user.uid,
+      'requestedBy': user.uid,
+      'actorUid': user.uid,
+      'status': 'pending',
+      'result': 'pending',
+      'reason': reason,
+      'details': {
+        'source': 'master_developer_dashboard',
+        ...(details ?? const {}),
+      },
+    });
 
-  Future<void> _setPinFlow() async {
-    final controller = TextEditingController();
-    final confirm = TextEditingController();
-    final set = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Criar PIN God‑Mode'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-                controller: controller,
-                decoration: const InputDecoration(labelText: 'PIN'),
-                obscureText: true),
-            TextField(
-                controller: confirm,
-                decoration: const InputDecoration(labelText: 'Confirmar PIN'),
-                obscureText: true),
-          ],
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ação "$action" enviada para processamento autorizado.',
+          ),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Salvar')),
-        ],
-      ),
-    );
-
-    if (set == true) {
-      final pin = controller.text.trim();
-      final conf = confirm.text.trim();
-      if (pin.isEmpty || pin != conf) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PIN inválido ou não confere')));
-        return;
-      }
-      await _secureStorage.write(key: _pinStorageKey, value: pin);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('PIN salvo com sucesso')));
-      setState(() => _authorized = true);
+      );
     }
-  }
-
-  Future<bool> _askForPinAndValidate(String stored) async {
-    final controller = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (c) => AlertDialog(
-        title: const Text('PIN God‑Mode'),
-        content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'PIN'),
-            obscureText: true),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Entrar')),
-        ],
-      ),
-    );
-
-    if (ok != true) return false;
-    final entered = controller.text.trim();
-    if (entered == stored) return true;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('PIN incorreto')));
-    return false;
   }
 
   // User management actions
   Future<void> _banUser(String userId) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Confirmar banimento'),
-        content: const Text('Deseja marcar este usuário como banido?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Não')),
-          ElevatedButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Sim')),
-        ],
-      ),
+    await _submitAdminRequest(
+      action: 'ban_user',
+      resourceType: 'user',
+      resourceId: userId,
+      reason: 'Solicitação de banimento emitida do painel master.',
     );
-    if (confirm != true) return;
-    try {
-      await _firestore.collection('users').doc(userId).update({'banned': true});
-      await _logAdminAction(
-          action: 'ban_user',
-          targetId: userId,
-          details: {'collection': 'users'});
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Usuário banido')));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falha ao banir usuário')));
-    }
   }
 
   Future<void> _deleteUser(String userId) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Confirmar exclusão'),
-        content: const Text(
-            'Excluir este usuário removerá seus dados do Firestore. Confirma?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Não')),
-          ElevatedButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Sim')),
-        ],
-      ),
+    await _submitAdminRequest(
+      action: 'delete_user',
+      resourceType: 'user',
+      resourceId: userId,
+      reason: 'Solicitação de exclusão de usuário emitida do painel master.',
     );
-    if (confirm != true) return;
-    try {
-      await _firestore.collection('users').doc(userId).delete();
-      await _logAdminAction(
-          action: 'delete_user',
-          targetId: userId,
-          details: {'collection': 'users'});
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Usuário excluído')));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falha ao excluir usuário')));
-    }
   }
 
   Future<void> _exportDeadLetter() async {
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/outbox_deadletter.json';
     await OutboxService.instance.exportDeadLetterToFile(path);
-    await _logAdminAction(
-        action: 'export_deadletter',
-        targetId: path,
-        details: {'exportPath': path});
+    await _submitAdminRequest(
+      action: 'export_deadletter',
+      resourceType: 'system',
+      resourceId: path,
+      reason: 'Exportação de dead-letter solicitada.',
+      details: {'exportPath': path},
+    );
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('Dead-letter exportado: $path')));
   }
 
-  Future<void> _logAdminAction(
-      {required String action,
-      required String targetId,
-      Map<String, dynamic>? details}) async {
-    try {
-      final admin = AuthService().currentUser;
-      final entry = <String, dynamic>{
-        'action': action,
-        'targetId': targetId,
-        'details': details ?? {},
-        'adminUid': admin?.uid,
-        'adminEmail': admin?.email,
-        'timestamp': FieldValue.serverTimestamp(),
-      };
-      await _firestore.collection('admin_audit').add(entry);
-    } catch (_) {}
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_loading)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (!_allowedByEmail)
-      return const Scaffold(body: Center(child: Text('Acesso negado')));
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Master Developer Dashboard')),
-      body: _authorized
-          ? _buildDashboard()
-          : Center(
-              child: ElevatedButton(
-                  onPressed: _showPinDialogIfNeeded,
-                  child: const Text('Autenticar (PIN)'))),
+    return AdminGuard(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Master Developer Dashboard')),
+        body: _buildDashboard(),
+      ),
     );
   }
 
@@ -322,25 +157,35 @@ class _MasterDeveloperDashboardPageState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Operações do Carnaval',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text(
+            'Operações do Carnaval',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           const Text(
-              'Painel de controle operacional exclusivo para o modo mestre. Aqui ficam as métricas, alertas e gestão de vendas em produção.'),
+            'Painel de controle operacional exclusivo para o modo mestre. Aqui ficam as métricas, alertas e gestão de vendas em produção.',
+          ),
           const SizedBox(height: 20),
           Wrap(
             spacing: 16,
             runSpacing: 16,
             children: const [
               _MetricTile(
-                  label: 'Ingressos', value: '1.248', color: Colors.blue),
+                label: 'Ingressos',
+                value: '1.248',
+                color: Colors.blue,
+              ),
               _MetricTile(
-                  label: 'Vendas Hoje',
-                  value: 'R\$ 84.5k',
-                  color: Colors.green),
+                label: 'Vendas Hoje',
+                value: 'R\$ 84.5k',
+                color: Colors.green,
+              ),
               _MetricTile(label: 'Alertas', value: '03', color: Colors.orange),
               _MetricTile(
-                  label: 'Operação', value: 'Online', color: Colors.teal),
+                label: 'Operação',
+                value: 'Online',
+                color: Colors.teal,
+              ),
             ],
           ),
         ],
@@ -370,8 +215,9 @@ class _MasterDeveloperDashboardPageState
           child: TextField(
             controller: _searchController,
             decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                labelText: 'Buscar por nome ou email'),
+              prefixIcon: Icon(Icons.search),
+              labelText: 'Buscar por nome ou email',
+            ),
             onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
           ),
         ),
@@ -405,12 +251,16 @@ class _MasterDeveloperDashboardPageState
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                            icon: const Icon(Icons.block, color: Colors.orange),
-                            onPressed: () => _banUser(d.id)),
+                          icon: const Icon(Icons.block, color: Colors.orange),
+                          onPressed: () => _banUser(d.id),
+                        ),
                         IconButton(
-                            icon: const Icon(Icons.delete_forever,
-                                color: Colors.red),
-                            onPressed: () => _deleteUser(d.id)),
+                          icon: const Icon(
+                            Icons.delete_forever,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => _deleteUser(d.id),
+                        ),
                       ],
                     ),
                   );
@@ -445,8 +295,10 @@ class _MasterDeveloperDashboardPageState
               subtitle: Text('${data['content'] ?? ''}'),
               children: [
                 ListTile(
-                    title: Text(
-                        'Criado em: ${created is Timestamp ? created.toDate() : created ?? 'n/a'}')),
+                  title: Text(
+                    'Criado em: ${created is Timestamp ? created.toDate() : created ?? 'n/a'}',
+                  ),
+                ),
                 FutureBuilder<QuerySnapshot>(
                   future: _firestore
                       .collection('posts')
@@ -462,7 +314,8 @@ class _MasterDeveloperDashboardPageState
                         return ListTile(
                           title: Text(cd['text'] as String? ?? ''),
                           subtitle: Text(
-                              'por ${cd['authorId'] ?? 'unknown'} — ${cAt is Timestamp ? cAt.toDate() : cAt ?? ''}'),
+                            'por ${cd['authorId'] ?? 'unknown'} — ${cAt is Timestamp ? cAt.toDate() : cAt ?? ''}',
+                          ),
                         );
                       }).toList(),
                     );
@@ -490,9 +343,10 @@ class _MasterDeveloperDashboardPageState
               child: Row(
                 children: [
                   ElevatedButton.icon(
-                      onPressed: _exportDeadLetter,
-                      icon: const Icon(Icons.download),
-                      label: const Text('Exportar dead-letter')),
+                    onPressed: _exportDeadLetter,
+                    icon: const Icon(Icons.download),
+                    label: const Text('Exportar dead-letter'),
+                  ),
                   const SizedBox(width: 12),
                   Text('Itens: ${items.length}'),
                 ],
@@ -506,7 +360,8 @@ class _MasterDeveloperDashboardPageState
                   return ListTile(
                     title: Text(it['type'] as String? ?? 'unknown'),
                     subtitle: Text(
-                        'id: ${it['id'] ?? 'n/a'} — reason: ${it['deadReason'] ?? ''}'),
+                      'id: ${it['id'] ?? 'n/a'} — reason: ${it['deadReason'] ?? ''}',
+                    ),
                     isThreeLine: true,
                     trailing: Text(it['deadLetterAt'] ?? ''),
                   );
@@ -521,8 +376,11 @@ class _MasterDeveloperDashboardPageState
 }
 
 class _MetricTile extends StatelessWidget {
-  const _MetricTile(
-      {required this.label, required this.value, required this.color});
+  const _MetricTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
@@ -539,12 +397,18 @@ class _MetricTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: const TextStyle(fontSize: 12, color: Colors.white70)),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 12, color: Colors.white70),
+              ),
               const SizedBox(height: 8),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),

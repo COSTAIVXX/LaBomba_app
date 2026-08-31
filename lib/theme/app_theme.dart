@@ -60,9 +60,7 @@ class AppTheme {
         color: Colors.white,
         elevation: 4,
         shadowColor: Colors.black12,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
       ),
       appBarTheme: const AppBarTheme(

@@ -8,9 +8,9 @@ class FooterSection extends StatelessWidget {
   const FooterSection({super.key});
 
   Future<void> _openSupport(BuildContext context) async {
-    await context
-        .read<ShopProvider>()
-        .launchWhatsApp(message: EventConfig.whatsappSupportMessage);
+    await context.read<ShopProvider>().launchWhatsApp(
+          message: EventConfig.whatsappSupportMessage,
+        );
   }
 
   void _openTerms(BuildContext context) {
@@ -33,8 +33,10 @@ class FooterSection extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fechar',
-                  style: TextStyle(color: AppTheme.primaryLight)),
+              child: const Text(
+                'Fechar',
+                style: TextStyle(color: AppTheme.primaryLight),
+              ),
             ),
           ],
         );
@@ -57,8 +59,9 @@ class FooterSection extends StatelessWidget {
           children: [
             TextButton.icon(
               onPressed: () => _openSupport(context),
-              style:
-                  TextButton.styleFrom(foregroundColor: AppTheme.primaryLight),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryLight,
+              ),
               icon: const Icon(Icons.help_outline),
               label: const Text('Suporte / Dúvidas'),
             ),
@@ -71,9 +74,11 @@ class FooterSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 32),
-        Text('© $currentYear Bloco LaBomba. Todos os direitos reservados.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white24, fontSize: 12)),
+        Text(
+          '© $currentYear Bloco LaBomba. Todos os direitos reservados.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white24, fontSize: 12),
+        ),
       ],
     );
   }

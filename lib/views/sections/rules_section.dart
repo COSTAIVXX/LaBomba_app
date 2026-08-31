@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class RulesSection extends StatelessWidget {
@@ -59,13 +60,15 @@ class _RulesModal extends StatelessWidget {
             color: const Color(0xFF130A2A).withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: summerOrange.withValues(alpha: 0.5), width: 1.5),
+              color: summerOrange.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -76,8 +79,11 @@ class _RulesModal extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded,
-                          color: summerOrange, size: 28),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: summerOrange,
+                        size: 28,
+                      ),
                       const SizedBox(width: 12),
                       const Text(
                         'REGRAS OFICIAIS',
@@ -107,31 +113,39 @@ class _RulesModal extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
                       _RuleItem(
-                          text:
-                              'Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!'),
+                        text:
+                            'Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!',
+                      ),
                       _RuleItem(
-                          text:
-                              'Proibido Compartilhar Bebida: Passível de expulsão. Servidores do bloco têm autoridade para cortar a pulseira em caso de descumprimento.'),
+                        text:
+                            'Proibido Compartilhar Bebida: Passível de expulsão. Servidores do bloco têm autoridade para cortar a pulseira em caso de descumprimento.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Proibido Fumar: Dentro da área de concentração.'),
+                        text: 'Proibido Fumar: Dentro da área de concentração.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Tolerância Zero para Brigas: Passível de expulsão.'),
+                        text:
+                            'Tolerância Zero para Brigas: Passível de expulsão.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Respeito Obrigatório: Aos garçons, seguranças e servidores do bloco.'),
+                        text:
+                            'Respeito Obrigatório: Aos garçons, seguranças e servidores do bloco.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Entrada na concentração apenas com abadá, pulseira e caneca oficiais. Proibido uso de materiais de outros modelos ou marcas.'),
+                        text:
+                            'Entrada na concentração apenas com abadá, pulseira e caneca oficiais. Proibido uso de materiais de outros modelos ou marcas.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá).'),
+                        text:
+                            'Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá).',
+                      ),
                       _RuleItem(
-                          text: 'Banheiro do Bloco: Exclusivo para mulheres.'),
+                        text: 'Banheiro do Bloco: Exclusivo para mulheres.',
+                      ),
                       _RuleItem(
-                          text:
-                              'Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.'),
+                        text:
+                            'Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.',
+                      ),
                     ],
                   ),
                 ),
@@ -144,11 +158,16 @@ class _RulesModal extends StatelessWidget {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: const Text('EU ENTENDI',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                child: const Text(
+                  'EU ENTENDI',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
               ),
             ],
           ),
@@ -171,8 +190,11 @@ class _RuleItem extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 2, right: 16),
-            child: Icon(Icons.priority_high_rounded,
-                color: Color(0xFFFF8C00), size: 20),
+            child: Icon(
+              Icons.priority_high_rounded,
+              color: Color(0xFFFF8C00),
+              size: 20,
+            ),
           ),
           Expanded(
             child: Text(

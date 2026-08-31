@@ -59,10 +59,7 @@ class OfficialHornService {
         .snapshots();
   }
 
-  Future<void> publish({
-    required String title,
-    required String message,
-  }) async {
+  Future<void> publish({required String title, required String message}) async {
     final announcements = _announcements;
     if (announcements == null) return;
 

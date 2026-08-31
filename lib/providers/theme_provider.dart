@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/storage_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -30,7 +31,9 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _storage.write(
-          key: _keyDarkTheme, value: _isDark ? 'true' : 'false');
+        key: _keyDarkTheme,
+        value: _isDark ? 'true' : 'false',
+      );
     } catch (_) {}
   }
 }

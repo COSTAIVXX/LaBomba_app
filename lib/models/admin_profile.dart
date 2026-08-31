@@ -18,7 +18,11 @@ class AdminProfile {
   factory AdminProfile.fromMap(String uid, Map<String, dynamic>? map) {
     if (map == null)
       return AdminProfile(
-          uid: uid, email: null, displayName: null, isAdmin: false);
+        uid: uid,
+        email: null,
+        displayName: null,
+        isAdmin: false,
+      );
     return AdminProfile(
       uid: uid,
       email: map['email'] as String?,

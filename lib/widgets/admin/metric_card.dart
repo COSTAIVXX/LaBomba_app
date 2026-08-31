@@ -35,9 +35,10 @@ class _MetricCardState extends State<MetricCard>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.03,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -82,7 +83,7 @@ class _MetricCardState extends State<MetricCard>
                         blurRadius: 15,
                         spreadRadius: 2,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ]
                   : [],
             ),

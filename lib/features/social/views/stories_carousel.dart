@@ -11,17 +11,22 @@ class StoriesCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final threshold =
-        DateTime.now().toUtc().subtract(const Duration(hours: 24));
+    final threshold = DateTime.now().toUtc().subtract(
+          const Duration(hours: 24),
+        );
     return SizedBox(
       height: 110,
       child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        // Query active stories from all users in the last 24 hours using collectionGroup
+        // Keep story carousel bounded: we only need the newest active stories and a small
+        // result window to avoid streaming every story from every user at once.
         stream: _fs
             .collectionGroup('stories')
-            .where('createdAt',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
+            .where(
+              'createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(threshold),
+            )
             .orderBy('createdAt', descending: true)
+            .limit(60)
             .snapshots(),
         builder: (context, snap) {
           if (!snap.hasData) return const Center(child: SizedBox(height: 60));
@@ -58,10 +63,12 @@ class StoriesCarousel extends StatelessWidget {
                   (data['photoURL'] as String?);
               return GestureDetector(
                 onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) =>
-                            StoryViewerPage(userId: ownerId, firestore: _fs))),
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        StoryViewerPage(userId: ownerId, firestore: _fs),
+                  ),
+                ),
                 child: Column(
                   children: [
                     Container(
@@ -70,12 +77,13 @@ class StoriesCarousel extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: const LinearGradient(
-                            colors: [Colors.pinkAccent, Colors.orangeAccent]),
+                          colors: [Colors.pinkAccent, Colors.orangeAccent],
+                        ),
                         boxShadow: [
                           BoxShadow(
-                              color:
-                                  Colors.black.withAlpha((0.08 * 255).round()),
-                              blurRadius: 4)
+                            color: Colors.black.withAlpha((0.08 * 255).round()),
+                            blurRadius: 4,
+                          ),
                         ],
                       ),
                       child: Padding(
@@ -86,18 +94,22 @@ class StoriesCarousel extends StatelessWidget {
                               avatar != null ? NetworkImage(avatar) : null,
                           child: avatar == null
                               ? Text(
-                                  name.isNotEmpty ? name[0].toUpperCase() : '?')
+                                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                )
                               : null,
                         ),
                       ),
                     ),
                     const SizedBox(height: 6),
                     SizedBox(
-                        width: 72,
-                        child: Text(name,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            textAlign: TextAlign.center)),
+                      width: 72,
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ],
                 ),
               );

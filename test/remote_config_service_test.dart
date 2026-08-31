@@ -4,8 +4,10 @@ import 'package:labomba_app/services/remote_config_service.dart';
 void main() {
   group('RemoteConfigService (fallback behavior)', () {
     test('getString returns fallback when not initialized', () {
-      final value = RemoteConfigService.getString('nonexistent_key',
-          fallback: 'fallback');
+      final value = RemoteConfigService.getString(
+        'nonexistent_key',
+        fallback: 'fallback',
+      );
       expect(value, 'fallback');
     });
 

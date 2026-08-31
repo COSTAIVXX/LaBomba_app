@@ -62,7 +62,7 @@ class _ReactionBarState extends State<ReactionBar> {
                 children: [
                   Text(e, style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 6),
-                  Text('$count', style: const TextStyle(color: Colors.white70))
+                  Text('$count', style: const TextStyle(color: Colors.white70)),
                 ],
               ),
             ),

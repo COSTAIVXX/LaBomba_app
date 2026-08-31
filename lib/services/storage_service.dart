@@ -12,5 +12,6 @@ StorageService defaultStorageService() {
   // to avoid conditional imports complexity here we return null and callers can construct
   // appropriate instance using kIsWeb if needed.
   throw UnimplementedError(
-      'Use platform-specific storage constructors (MobileStorageService / WebStorageService)');
+    'Use platform-specific storage constructors (MobileStorageService / WebStorageService)',
+  );
 }

@@ -29,16 +29,15 @@ class _MemoryStorageService implements StorageService {
 
 void main() {
   group('terms acceptance flow', () {
-    testWidgets('stores the versioned acceptance and prevents looped prompts',
-        (tester) async {
+    testWidgets('stores the versioned acceptance and prevents looped prompts', (
+      tester,
+    ) async {
       final storage = _MemoryStorageService();
 
       await tester.pumpWidget(
         MaterialApp(
           home: TermsPage(storageService: storage),
-          routes: {
-            '/landing': (_) => const Scaffold(body: Text('Landing')),
-          },
+          routes: {'/landing': (_) => const Scaffold(body: Text('Landing'))},
         ),
       );
 
@@ -54,50 +53,50 @@ void main() {
       expect(find.byType(TermsPage), findsNothing);
     });
 
-    testWidgets('redirects directly to landing when the user already accepted',
-        (tester) async {
-      final storage = _MemoryStorageService();
-      await storage.write(key: 'terms_accepted_v1', value: '1');
+    testWidgets(
+      'redirects directly to landing when the user already accepted',
+      (tester) async {
+        final storage = _MemoryStorageService();
+        await storage.write(key: 'terms_accepted_v1', value: '1');
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: TermsGate(storageService: storage),
-          routes: {
-            '/landing': (_) => const Scaffold(body: Text('Landing')),
-          },
-        ),
-      );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: TermsGate(storageService: storage),
+            routes: {'/landing': (_) => const Scaffold(body: Text('Landing'))},
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.byType(TermsPage), findsNothing);
-    });
+        expect(find.byType(TermsPage), findsNothing);
+      },
+    );
   });
 
   group('onboarding persistence', () {
-    testWidgets('saves completion and routes to landing after the final slide',
-        (tester) async {
-      final storage = _MemoryStorageService();
+    testWidgets(
+      'saves completion and routes to landing after the final slide',
+      (tester) async {
+        final storage = _MemoryStorageService();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingPage(storageService: storage),
-          routes: {
-            '/landing': (_) => const Scaffold(body: Text('Landing')),
-          },
-        ),
-      );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: OnboardingPage(storageService: storage),
+            routes: {'/landing': (_) => const Scaffold(body: Text('Landing'))},
+          ),
+        );
 
-      await tester.tap(find.text('Continuar'), warnIfMissed: false);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Continuar'), warnIfMissed: false);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Começar a folia'), warnIfMissed: false);
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Continuar'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Continuar'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Começar a folia'), warnIfMissed: false);
+        await tester.pumpAndSettle();
 
-      expect(await storage.read(key: 'onboarding_completed'), '1');
-      expect(find.byType(OnboardingPage), findsNothing);
-    });
+        expect(await storage.read(key: 'onboarding_completed'), '1');
+        expect(find.byType(OnboardingPage), findsNothing);
+      },
+    );
   });
 
   group('auth service error handling', () {
@@ -109,7 +108,8 @@ void main() {
       Future<String> safeGoogleFlow() async {
         try {
           throw Exception(
-              'Google Sign-In indisponível no momento. Tente novamente.');
+            'Google Sign-In indisponível no momento. Tente novamente.',
+          );
         } catch (error) {
           final message = error.toString();
           if (message.contains('Google Sign-In')) {
@@ -142,6 +142,40 @@ void main() {
       final result = await safeEmailPasswordFlow();
 
       expect(result, contains('Credenciais inválidas'));
+    });
+
+    test('maps Firebase auth error codes to friendly user-facing messages', () {
+      expect(
+        AuthService.friendlyAuthErrorMessage('user-disabled'),
+        contains('desativada'),
+      );
+      expect(
+        AuthService.friendlyAuthErrorMessage('invalid-credential'),
+        contains('Credenciais inválidas'),
+      );
+      expect(
+        AuthService.friendlyAuthErrorMessage('requires-recent-login'),
+        contains('autenticação recente'),
+      );
+    });
+
+    test('maps account states to actionable user messaging', () {
+      expect(
+        AuthService.friendlyAccountStateMessage(
+          AuthAccountState.emailNotVerified,
+        ),
+        contains('Confirme seu e-mail'),
+      );
+      expect(
+        AuthService.friendlyAccountStateMessage(
+          AuthAccountState.sessionExpired,
+        ),
+        contains('sessão expirou'),
+      );
+      expect(
+        AuthService.friendlyAccountStateMessage(AuthAccountState.blocked),
+        contains('bloqueada'),
+      );
     });
   });
 }

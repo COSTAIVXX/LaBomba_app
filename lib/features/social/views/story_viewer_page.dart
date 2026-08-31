@@ -48,25 +48,26 @@ class _StoryViewerPageState extends State<StoryViewerPage>
   bool _reactionPending = false; // prevent duplicate requests
   static const String _likeEmoji = '❤️';
 
+  void _handleReplyFocusChange() {
+    if (_replyFocusNode.hasFocus) {
+      _pause();
+    } else if (!_userPaused) {
+      _resume();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _replyFocusNode.addListener(() {
-      if (_replyFocusNode.hasFocus) {
-        // pause when user focuses reply input
-        _pause();
-      } else {
-        if (!_userPaused) _resume();
-      }
-    });
+    _replyFocusNode.addListener(_handleReplyFocusChange);
     _loadStories();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _replyFocusNode.removeListener(() {});
+    _replyFocusNode.removeListener(_handleReplyFocusChange);
     _replyFocusNode.dispose();
     _reactionsSub?.cancel();
     _disposeVideo();
@@ -86,16 +87,20 @@ class _StoryViewerPageState extends State<StoryViewerPage>
 
   Future<void> _loadStories() async {
     try {
-      final threshold =
-          DateTime.now().toUtc().subtract(const Duration(hours: 24));
+      final threshold = DateTime.now().toUtc().subtract(
+            const Duration(hours: 24),
+          );
       final snap = await _fs
           .collection('users')
           .doc(widget.userId)
           .collection('stories')
-          .where('createdAt',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(threshold))
+          .where(
+            'createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(threshold),
+          )
           .orderBy('createdAt', descending: false)
           .get();
+      if (!mounted) return;
       setState(() {
         _stories = snap.docs.map((d) {
           final m = Map<String, dynamic>.from(d.data());
@@ -104,10 +109,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
         }).toList(growable: false);
       });
       if (_stories.isNotEmpty) {
-        // start at first
         _startForIndex(0);
       }
-    } catch (e) {
+    } catch (_) {
       // ignore
     }
   }
@@ -151,33 +155,39 @@ class _StoryViewerPageState extends State<StoryViewerPage>
     _reactionsSub?.cancel();
     _reactionsSub = _reactionService
         .reactionsCountStreamForStory(widget.userId, story['__id'] as String)
-        .listen((counts) => mounted
-            ? setState(() {
-                _likeCount = counts[_likeEmoji] ?? 0;
-              })
-            : null);
+        .listen((counts) {
+      if (!mounted) return;
+      setState(() {
+        _likeCount = counts[_likeEmoji] ?? 0;
+      });
+    });
 
     // check if current user already liked this story
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         final has = await _reactionService.userHasReactedToStory(
-            ownerId: widget.userId,
-            storyId: story['__id'] as String,
-            userId: currentUser.uid,
-            emoji: _likeEmoji);
+          ownerId: widget.userId,
+          storyId: story['__id'] as String,
+          userId: currentUser.uid,
+          emoji: _likeEmoji,
+        );
+        if (!mounted) return;
         _liked = has;
       } else {
         _liked = false;
       }
     } catch (_) {
-      _liked = false;
+      if (mounted) {
+        _liked = false;
+      }
     }
 
     if (type == 'video' && mediaUrl != null) {
       try {
-        _videoController =
-            VideoPlayerController.networkUrl(Uri.parse(mediaUrl));
+        _videoController = VideoPlayerController.networkUrl(
+          Uri.parse(mediaUrl),
+        );
         await _videoController!.initialize();
         _videoController!.addListener(_onVideoUpdate);
         await _videoController!.play();
@@ -215,7 +225,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
   void _next() {
     if (_index < _stories.length - 1) {
       _pageController.nextPage(
-          duration: const Duration(milliseconds: 250), curve: Curves.easeInOut);
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
     } else {
       Navigator.of(context).pop();
     }
@@ -224,7 +236,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
   void _prev() {
     if (_index > 0) {
       _pageController.previousPage(
-          duration: const Duration(milliseconds: 250), curve: Curves.easeInOut);
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
     } else {
       // at first — do nothing or exit
       Navigator.of(context).pop();
@@ -250,8 +264,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
         _startedAt = DateTime.now().subtract(Duration(milliseconds: elapsed));
         _progressTimer?.cancel();
         const tickMs = 50;
-        _progressTimer =
-            Timer.periodic(const Duration(milliseconds: tickMs), (t) {
+        _progressTimer = Timer.periodic(const Duration(milliseconds: tickMs), (
+          t,
+        ) {
           if (!mounted) return;
           final elapsed = DateTime.now().difference(_startedAt!).inMilliseconds;
           final total = _currentDuration.inMilliseconds;
@@ -266,24 +281,22 @@ class _StoryViewerPageState extends State<StoryViewerPage>
   }
 
   Future<void> _markViewed(String? storyId) async {
-    // Record the view in a document owned by the viewer to comply with
-    // firestore.rules (users/{userId} may only be updated by that user).
-    // We write to: users/{viewerUid}/storyViews/{ownerId}_{storyId}
+    // Record one unique view per viewer in a subcollection under the story.
+    // This is idempotent and avoids the unbounded 'viewedBy' array pattern.
     if (storyId == null) return;
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Do not record views for the story owner themselves
       if (user.uid == widget.userId) return;
 
-      final viewerDocRef = _fs
+      final storyRef = _fs
           .collection('users')
-          .doc(user.uid)
-          .collection('storyViews')
-          .doc('${widget.userId}_$storyId');
+          .doc(widget.userId)
+          .collection('stories')
+          .doc(storyId);
+      final viewerDocRef = storyRef.collection('views').doc(user.uid);
 
-      // Avoid unnecessary writes: check existence first to ensure one record per viewer
       final snap = await viewerDocRef.get();
       if (snap.exists) return;
 
@@ -294,7 +307,6 @@ class _StoryViewerPageState extends State<StoryViewerPage>
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      // On failure (network/permission), enqueue for retry via OutboxService
       try {
         final user = FirebaseAuth.instance.currentUser;
         if (user == null) return;
@@ -304,8 +316,10 @@ class _StoryViewerPageState extends State<StoryViewerPage>
           'storyId': storyId,
           'createdAt': DateTime.now().toUtc().toIso8601String(),
         };
-        await OutboxService.instance
-            .enqueue({'type': 'story_view', 'payload': payload});
+        await OutboxService.instance.enqueue({
+          'type': 'story_view',
+          'payload': payload,
+        });
       } catch (_) {}
     }
   }
@@ -319,15 +333,17 @@ class _StoryViewerPageState extends State<StoryViewerPage>
       builder: (c) => AlertDialog(
         title: const Text('Excluir story'),
         content: const Text(
-            'Tem certeza que deseja excluir este story? Esta ação não pode ser desfeita.'),
+          'Tem certeza que deseja excluir este story? Esta ação não pode ser desfeita.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.of(c).pop(false),
+            child: const Text('Cancelar'),
+          ),
           TextButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child:
-                  const Text('Excluir', style: TextStyle(color: Colors.red))),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
@@ -342,7 +358,8 @@ class _StoryViewerPageState extends State<StoryViewerPage>
       if (user == null) return;
       if (user.uid != widget.userId) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Você não pode excluir este story')));
+          const SnackBar(content: Text('Você não pode excluir este story')),
+        );
         return;
       }
 
@@ -369,8 +386,8 @@ class _StoryViewerPageState extends State<StoryViewerPage>
               'payload': {
                 'ownerId': widget.userId,
                 'storyId': storyId,
-                'mediaUrl': mediaUrl
-              }
+                'mediaUrl': mediaUrl,
+              },
             });
           } catch (_) {}
         }
@@ -403,14 +420,19 @@ class _StoryViewerPageState extends State<StoryViewerPage>
       try {
         await OutboxService.instance.enqueue({
           'type': 'story_delete',
-          'payload': {'ownerId': widget.userId, 'storyId': storyId}
+          'payload': {'ownerId': widget.userId, 'storyId': storyId},
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
             content: Text(
-                'A exclusão foi agendada e será processada quando possível.')));
+              'A exclusão foi agendada e será processada quando possível.',
+            ),
+          ),
+        );
       } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erro ao excluir o story.')));
+          const SnackBar(content: Text('Erro ao excluir o story.')),
+        );
       }
     }
   }
@@ -419,8 +441,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
   Widget build(BuildContext context) {
     if (_stories.isEmpty) {
       return Scaffold(
-          appBar: AppBar(title: const Text('Story')),
-          body: const Center(child: Text('Nenhum story disponível')));
+        appBar: AppBar(title: const Text('Story')),
+        body: const Center(child: Text('Nenhum story disponível')),
+      );
     }
 
     return Scaffold(
@@ -449,20 +472,25 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 16.0),
+                        horizontal: 8.0,
+                        vertical: 16.0,
+                      ),
                       child: type == 'video' &&
                               mediaUrl != null &&
                               _videoController != null &&
                               i == _index
                           ? AspectRatio(
                               aspectRatio: _videoController!.value.aspectRatio,
-                              child: VideoPlayer(_videoController!))
+                              child: VideoPlayer(_videoController!),
+                            )
                           : (mediaUrl != null
                               ? CachedNetworkImage(
                                   imageUrl: mediaUrl,
                                   fit: BoxFit.contain,
                                   placeholder: (c, u) => const Center(
-                                      child: CircularProgressIndicator()))
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
                               : const SizedBox.shrink()),
                     ),
                   );
@@ -493,9 +521,11 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                               widthFactor:
                                   filled ? 1.0 : (current ? _progress : 0.0),
                               child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(2))),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
                             ),
                           ),
                         );
@@ -519,23 +549,31 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                           : null,
                       child: _stories[_index]['authorPhoto'] == null
                           ? Text(
-                              (_stories[_index]['authorName'] ?? '')[0] ?? '?')
+                              (_stories[_index]['authorName'] ?? '')[0] ?? '?',
+                            )
                           : null,
                     ),
                     const SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_stories[_index]['authorName'] ?? '',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                        Text(
+                          _stories[_index]['authorName'] ?? '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         if (_stories[_index]['createdAt'] != null)
-                          Text(_relativeTime(_stories[_index]['createdAt']),
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text(
+                            _relativeTime(_stories[_index]['createdAt']),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -558,19 +596,27 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove_red_eye,
-                              color: Colors.white),
+                          icon: const Icon(
+                            Icons.remove_red_eye,
+                            color: Colors.white,
+                          ),
                           onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
                                 builder: (_) => StoryViewersPage(
-                                    ownerId: widget.userId,
-                                    storyId: _stories[_index]['__id'] as String,
-                                    firestore: _fs)));
+                                  ownerId: widget.userId,
+                                  storyId: _stories[_index]['__id'] as String,
+                                  firestore: _fs,
+                                ),
+                              ),
+                            );
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_forever,
-                              color: Colors.white),
+                          icon: const Icon(
+                            Icons.delete_forever,
+                            color: Colors.white,
+                          ),
                           onPressed: () async {
                             await _confirmAndDeleteCurrentStory();
                           },
@@ -618,27 +664,33 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                              color: Colors.white12,
-                              borderRadius: BorderRadius.circular(24)),
+                            color: Colors.white12,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
                           child: Row(
                             children: [
                               Expanded(
                                 child: TextField(
                                   style: const TextStyle(color: Colors.white),
                                   decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: 'Responder',
-                                      hintStyle:
-                                          TextStyle(color: Colors.white54)),
+                                    border: InputBorder.none,
+                                    hintText: 'Responder',
+                                    hintStyle: TextStyle(color: Colors.white54),
+                                  ),
                                   onSubmitted: (text) async {
                                     if (text.trim().isEmpty) return;
                                     final user =
                                         FirebaseAuth.instance.currentUser;
                                     if (user == null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Faça login para enviar resposta')));
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Faça login para enviar resposta',
+                                          ),
+                                        ),
+                                      );
                                       return;
                                     }
                                     final ownerId = widget.userId;
@@ -650,7 +702,9 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                         user.displayName ?? 'Você';
                                     // create or reuse a private chat room between current user and story owner
                                     final roomId = ChatService.privateRoomId(
-                                        user.uid, ownerId);
+                                      user.uid,
+                                      ownerId,
+                                    );
                                     final chat = ChatService(roomId: roomId);
                                     try {
                                       await chat.sendMessage(
@@ -668,14 +722,20 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                       );
 
                                       ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content:
-                                                  Text('Resposta enviada')));
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Resposta enviada'),
+                                        ),
+                                      );
                                     } catch (e) {
                                       ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Erro ao enviar resposta')));
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Erro ao enviar resposta',
+                                          ),
+                                        ),
+                                      );
                                     }
                                   },
                                 ),
@@ -689,9 +749,10 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                       FirebaseAuth.instance.currentUser;
                                   if (user == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Faça login para curtir')));
+                                      const SnackBar(
+                                        content: Text('Faça login para curtir'),
+                                      ),
+                                    );
                                     return;
                                   }
                                   _reactionPending = true;
@@ -707,11 +768,12 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                   try {
                                     await _reactionService
                                         .toggleReactionOnStory(
-                                            ownerId: widget.userId,
-                                            storyId: _stories[_index]['__id']
-                                                as String,
-                                            userId: user.uid,
-                                            emoji: _likeEmoji);
+                                      ownerId: widget.userId,
+                                      storyId:
+                                          _stories[_index]['__id'] as String,
+                                      userId: user.uid,
+                                      emoji: _likeEmoji,
+                                    );
                                     // backend change will be reflected by the reactions subscription
                                   } catch (e) {
                                     // revert optimistic update on error
@@ -724,9 +786,12 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                               : 0);
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Erro ao atualizar curtida. Tente novamente.')));
+                                      const SnackBar(
+                                        content: Text(
+                                          'Erro ao atualizar curtida. Tente novamente.',
+                                        ),
+                                      ),
+                                    );
                                   } finally {
                                     _reactionPending = false;
                                   }
@@ -735,27 +800,35 @@ class _StoryViewerPageState extends State<StoryViewerPage>
                                   alignment: Alignment.center,
                                   children: [
                                     Icon(
-                                        _liked
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: _liked
-                                            ? Colors.pinkAccent
-                                            : Colors.white),
+                                      _liked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: _liked
+                                          ? Colors.pinkAccent
+                                          : Colors.white,
+                                    ),
                                     if (_likeCount > 0)
                                       Positioned(
                                         right: -28,
                                         top: -6,
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 2),
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
-                                              color: Colors.black45,
-                                              borderRadius:
-                                                  BorderRadius.circular(12)),
-                                          child: Text('$_likeCount',
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12)),
+                                            color: Colors.black45,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '$_likeCount',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                   ],
