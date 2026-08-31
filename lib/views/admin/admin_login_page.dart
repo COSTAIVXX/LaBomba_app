@@ -11,7 +11,8 @@ class AdminLoginPage extends StatefulWidget {
   State<AdminLoginPage> createState() => _AdminLoginPageState();
 }
 
-class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProviderStateMixin {
+class _AdminLoginPageState extends State<AdminLoginPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,7 +20,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -31,8 +32,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+    _fadeAnimation =
+        CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
     _animationController.forward();
@@ -132,7 +135,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.05)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
@@ -156,7 +160,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                           Text(
                             'Painel Administrativo',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                   letterSpacing: -0.5,
@@ -175,17 +182,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: Colors.redAccent.withValues(alpha: 0.1),
-                                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
+                                border: Border.all(
+                                    color: Colors.redAccent
+                                        .withValues(alpha: 0.5)),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+                                  const Icon(Icons.error_outline,
+                                      color: Colors.redAccent, size: 20),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       _errorMessage!,
-                                      style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                                      style: const TextStyle(
+                                          color: Colors.redAccent,
+                                          fontSize: 13),
                                     ),
                                   ),
                                 ],
@@ -207,9 +219,12 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.trim().isEmpty) return 'Informe o usuário';
-                              if (value.contains(' ')) return 'O usuário não pode conter espaços';
-                              if (value.length < 4) return 'Mínimo 4 caracteres';
+                              if (value == null || value.trim().isEmpty)
+                                return 'Informe o usuário';
+                              if (value.contains(' '))
+                                return 'O usuário não pode conter espaços';
+                              if (value.length < 4)
+                                return 'Mínimo 4 caracteres';
                               return null;
                             },
                           ),
@@ -229,17 +244,22 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.white54,
                                 ),
                                 onPressed: () {
-                                  setState(() => _obscurePassword = !_obscurePassword);
+                                  setState(() =>
+                                      _obscurePassword = !_obscurePassword);
                                 },
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.trim().isEmpty) return 'Informe a senha';
-                              if (value.length < 6) return 'A senha deve ter no mínimo 6 caracteres';
+                              if (value == null || value.trim().isEmpty)
+                                return 'Informe a senha';
+                              if (value.length < 6)
+                                return 'A senha deve ter no mínimo 6 caracteres';
                               return null;
                             },
                           ),
@@ -249,16 +269,20 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               backgroundColor: AppTheme.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: _isLoading
                                 ? const SizedBox.square(
                                     dimension: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
                                   )
                                 : const Text(
                                     'ACESSAR SISTEMA',
-                                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2),
                                   ),
                           ),
                           const SizedBox(height: 24),
@@ -267,7 +291,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               Expanded(child: Divider(color: Colors.white10)),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text('OU', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold, fontSize: 12)),
+                                child: Text('OU',
+                                    style: TextStyle(
+                                        color: Colors.white38,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12)),
                               ),
                               Expanded(child: Divider(color: Colors.white10)),
                             ],
@@ -281,7 +309,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> with SingleTickerProvid
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Colors.white24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],

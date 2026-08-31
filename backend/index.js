@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const multer = require('multer');
+const { structuredLog, buildCorrelationId } = require('./observability');
 
 // Inicialização do Firebase Admin (usaria Application Default Credentials no GCP)
 // Para testes locais, normalmente se passaria um serviceAccountKey.json
@@ -16,6 +17,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const correlationId = buildCorrelationId(req.headers['x-correlation-id']);
+  req.correlationId = correlationId;
+  res.setHeader('x-correlation-id', correlationId);
+  const startedAt = Date.now();
+
+  structuredLog('http.request.start', {
+    method: req.method,
+    path: req.path,
+    correlationId,
+  });
+
+  res.on('finish', () => {
+    structuredLog('http.request.end', {
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      durationMs: Date.now() - startedAt,
+      correlationId,
+    });
+  });
+
+  next();
+});
+
 // Configurando upload em memória
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -27,20 +53,36 @@ const upload = multer({
 // Middleware de Autenticação (validação JWT)
 const authenticateAdmin = async (req, res, next) => {
   const authHeader = req.headers.authorization;
+  const correlationId = req.correlationId || buildCorrelationId();
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    structuredLog('admin.auth.denied', {
+      reason: 'missing_bearer_token',
+      correlationId,
+    });
     return res.status(401).json({ error: 'Não autorizado' });
   }
 
   const token = authHeader.split('Bearer ')[1];
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    // Verificar se o usuário possui claim de admin
     if (decodedToken.admin !== true) {
-       // return res.status(403).json({ error: 'Permissão negada' });
+      structuredLog('admin.auth.denied', {
+        reason: 'missing_admin_claim',
+        correlationId,
+      });
     }
     req.user = decodedToken;
+    structuredLog('admin.auth.success', {
+      uid: decodedToken.uid,
+      correlationId,
+    });
     next();
   } catch (err) {
+    structuredLog('admin.auth.failure', {
+      error: err.message,
+      correlationId,
+    });
     return res.status(401).json({ error: 'Token inválido', details: err.message });
   }
 };

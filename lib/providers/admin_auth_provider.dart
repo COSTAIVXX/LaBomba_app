@@ -11,7 +11,8 @@ class AdminAuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
-  AdminAuthProvider({required AuthService authService}) : _authService = authService {
+  AdminAuthProvider({required AuthService authService})
+      : _authService = authService {
     _restoreSession();
   }
 

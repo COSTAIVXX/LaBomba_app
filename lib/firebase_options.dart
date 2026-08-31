@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '624692030196',
     projectId: 'project-fdb4b65e-57ff-4b13-afc',
     storageBucket: 'project-fdb4b65e-57ff-4b13-afc.firebasestorage.app',
-    iosClientId: '624692030196-b6pm2or2jsoh19n94elnfc4vmb7bii27.apps.googleusercontent.com',
+    iosClientId:
+        '624692030196-b6pm2or2jsoh19n94elnfc4vmb7bii27.apps.googleusercontent.com',
     iosBundleId: 'com.example.labombaApp',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '624692030196',
     projectId: 'project-fdb4b65e-57ff-4b13-afc',
     storageBucket: 'project-fdb4b65e-57ff-4b13-afc.firebasestorage.app',
-    iosClientId: '624692030196-b6pm2or2jsoh19n94elnfc4vmb7bii27.apps.googleusercontent.com',
+    iosClientId:
+        '624692030196-b6pm2or2jsoh19n94elnfc4vmb7bii27.apps.googleusercontent.com',
     iosBundleId: 'com.example.labombaApp',
   );
 

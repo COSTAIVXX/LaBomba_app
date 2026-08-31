@@ -23,7 +23,8 @@ class GoogleAuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  GoogleAuthProvider({required AuthService authService}) : _authService = authService;
+  GoogleAuthProvider({required AuthService authService})
+      : _authService = authService;
 
   Future<GoogleAuthData?> signInWithGoogle() async {
     _setLoading(true);

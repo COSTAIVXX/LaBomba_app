@@ -2,20 +2,30 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'storage_service.dart';
-import 'storage_mobile.dart';
-import 'storage_web.dart';
+import 'storage_mobile.dart' if (dart.library.html) 'storage_web.dart';
 
 /// Central AuthService that encapsulates FirebaseAuth, GoogleSignIn and
 /// secure storage for tokens and admin session flags.
 class AuthService {
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final firebase_auth.FirebaseAuth? _auth;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final StorageService _storage;
 
   static const String _adminSessionKey = 'labomba_admin_session';
   static const String _idTokenKey = 'labomba_id_token';
 
-  AuthService({StorageService? storageService}) : _storage = storageService ?? (kIsWeb ? WebStorageService() : MobileStorageService());
+  AuthService({StorageService? storageService})
+      : _auth = _safeFirebaseAuthInstance(),
+        _storage = storageService ??
+            (kIsWeb ? WebStorageService() : MobileStorageService());
+
+  static firebase_auth.FirebaseAuth? _safeFirebaseAuthInstance() {
+    try {
+      return firebase_auth.FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Optional init; main.dart already calls GoogleSignIn.instance.initialize()
   /// but this method is safe to call if necessary (it will surface errors).
@@ -62,6 +72,11 @@ class AuthService {
       accessToken = null;
     }
 
+    final auth = _auth;
+    if (auth == null) {
+      return null;
+    }
+
     final firebase_auth.OAuthCredential credential =
         firebase_auth.GoogleAuthProvider.credential(
       accessToken: accessToken,
@@ -69,7 +84,7 @@ class AuthService {
     );
 
     final firebase_auth.UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
+        await auth.signInWithCredential(credential);
     final firebase_auth.User? user = userCredential.user;
 
     if (user == null) return null;
@@ -93,10 +108,11 @@ class AuthService {
   /// Signs out from Firebase and Google and clears stored tokens/sessions.
   Future<void> signOut() async {
     try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      final auth = _auth;
+      if (auth != null) {
+        await auth.signOut();
+      }
+      await _googleSignIn.signOut();
     } catch (_) {}
     try {
       await _storage.delete(key: _idTokenKey);
@@ -127,7 +143,7 @@ class AuthService {
   }
 
   /// Expose current Firebase user (if any)
-  firebase_auth.User? get currentUser => _auth.currentUser;
+  firebase_auth.User? get currentUser => _auth?.currentUser;
 
   /// Read stored id token (if any)
   Future<String?> readStoredIdToken() => _storage.read(key: _idTokenKey);
@@ -137,15 +153,18 @@ class AuthService {
   /// secure storage or current user.
   Future<String?> getIdToken({bool forceRefresh = false}) async {
     try {
-      // Prefer the Firebase User token (fresh)
-      final user = _auth.currentUser;
-      if (user != null) {
-        final token = await user.getIdToken(forceRefresh);
-        if (token != null) {
-          try {
-            await _storage.write(key: _idTokenKey, value: token);
-          } catch (_) {}
-          return token;
+      final auth = _auth;
+      if (auth != null) {
+        // Prefer the Firebase User token (fresh)
+        final user = auth.currentUser;
+        if (user != null) {
+          final token = await user.getIdToken(forceRefresh);
+          if (token != null) {
+            try {
+              await _storage.write(key: _idTokenKey, value: token);
+            } catch (_) {}
+            return token;
+          }
         }
       }
 
@@ -162,4 +181,3 @@ class AuthService {
     }
   }
 }
-

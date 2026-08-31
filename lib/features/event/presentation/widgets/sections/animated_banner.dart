@@ -91,16 +91,17 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                           imageUrl: 'assets/images/labomba_banner.png',
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(color: AppTheme.primary),
+                            child: CircularProgressIndicator(
+                                color: AppTheme.primary),
                           ),
-                          errorWidget: (context, url, error) => _buildFallbackBanner(),
+                          errorWidget: (context, url, error) =>
+                              _buildFallbackBanner(),
                         )
                       : Image.asset(
                           'assets/images/labomba_banner.png',
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _buildFallbackBanner(),
                         )),
-
                 ),
               ),
             ),

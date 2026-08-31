@@ -16,8 +16,7 @@ class EventInfoSection extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: [
         _InfoCard(icon: Icons.calendar_month, title: 'Data', value: cfg.date),
-        _InfoCard(
-            icon: Icons.location_on, title: 'Local', value: cfg.location),
+        _InfoCard(icon: Icons.location_on, title: 'Local', value: cfg.location),
         _InfoCard(icon: Icons.alarm, title: 'Abertura', value: '18:00 hrs'),
       ],
     );

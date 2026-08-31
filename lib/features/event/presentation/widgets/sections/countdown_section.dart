@@ -73,9 +73,9 @@ class _CountdownSectionState extends State<CountdownSection> {
           width: double.infinity,
           padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha:.02),
+            color: Colors.white.withValues(alpha: .02),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -128,7 +128,7 @@ class _TimeBlock extends StatelessWidget {
           width: 80,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha:0.15),
+            color: AppTheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
           ),
