@@ -1,6 +1,8 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../theme/app_theme.dart';
 
 class AnimatedBanner extends StatefulWidget {
@@ -77,30 +79,34 @@ class _AnimatedBannerState extends State<AnimatedBanner>
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primary
-                          .withValues(alpha: _isHovered ? 0.6 : 0.2),
+                      color: AppTheme.primary.withValues(
+                        alpha: _isHovered ? 0.6 : 0.2,
+                      ),
                       blurRadius: _isHovered ? 50 : 30,
                       spreadRadius: _isHovered ? 5 : 0,
                     ),
                   ],
                 ),
                 child: AspectRatio(
-                  aspectRatio: 16 / 7,
+                  aspectRatio: 1 / 1,
                   child: ('assets/images/labomba_banner.png'.startsWith('http')
                       ? CachedNetworkImage(
                           imageUrl: 'assets/images/labomba_banner.png',
                           fit: BoxFit.contain,
                           placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(color: AppTheme.primary),
+                            child: CircularProgressIndicator(
+                              color: AppTheme.primary,
+                            ),
                           ),
-                          errorWidget: (context, url, error) => _buildFallbackBanner(),
+                          errorWidget: (context, url, error) =>
+                              _buildFallbackBanner(),
                         )
                       : Image.asset(
                           'assets/images/labomba_banner.png',
-                          fit: BoxFit.contain, // Ajustado para exibir a imagem inteira
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
                           errorBuilder: (_, __, ___) => _buildFallbackBanner(),
                         )),
-
                 ),
               ),
             ),

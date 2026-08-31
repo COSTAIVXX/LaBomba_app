@@ -25,6 +25,21 @@ const upload = multer({
 });
 
 // Middleware de Autenticação (validação JWT)
+const hasPrivilegedAdminRole = (decodedToken = {}) => {
+  const role = typeof decodedToken.role === 'string'
+    ? decodedToken.role.toLowerCase()
+    : '';
+
+  return (
+    decodedToken.admin === true ||
+    decodedToken.owner === true ||
+    decodedToken.isAdmin === true ||
+    decodedToken.isOwner === true ||
+    role === 'admin' ||
+    role === 'owner'
+  );
+};
+
 const authenticateAdmin = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -34,9 +49,8 @@ const authenticateAdmin = async (req, res, next) => {
   const token = authHeader.split('Bearer ')[1];
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    // Verificar se o usuário possui claim de admin
-    if (decodedToken.admin !== true) {
-       // return res.status(403).json({ error: 'Permissão negada' });
+    if (!hasPrivilegedAdminRole(decodedToken)) {
+      return res.status(403).json({ error: 'Permissão negada' });
     }
     req.user = decodedToken;
     next();

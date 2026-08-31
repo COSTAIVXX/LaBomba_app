@@ -1,14 +1,14 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../../models/ticket.dart';
-import '../../../../providers/admin_auth_provider.dart';
-import '../../../../providers/shop_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
-import 'admin_login_page.dart';
+import 'package:labomba_app/models/ticket.dart';
+import 'package:labomba_app/providers/admin_auth_provider.dart';
+import 'package:labomba_app/providers/shop_provider.dart';
+
 import 'client_base_page.dart';
 import 'content_dashboard_page.dart';
+
+import 'package:labomba_app/views/user_login_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -29,7 +29,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     if (!context.watch<AdminAuthProvider>().isAuthenticated) {
-      return const AdminLoginPage();
+      return const UserLoginPage();
     }
 
     return LayoutBuilder(
@@ -98,7 +98,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           width: 36,
           height: 36,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.flash_on, color: AppTheme.primary, size: 32),
         ),
       ),
       destinations: const [
@@ -138,10 +139,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     width: 32,
                     height: 32,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.flash_on, color: Colors.white, size: 32),
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.flash_on,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  const Text('OPERAÇÃO LABOMBA', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                  const Text(
+                    'OPERAÇÃO LABOMBA',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -189,7 +200,12 @@ class _DashboardOverviewTab extends StatelessWidget {
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 760;
           return SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(compact ? 16 : 32, 12, compact ? 16 : 32, 32),
+            padding: EdgeInsets.fromLTRB(
+              compact ? 16 : 32,
+              12,
+              compact ? 16 : 32,
+              32,
+            ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1180),
@@ -200,21 +216,27 @@ class _DashboardOverviewTab extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(color: Colors.white54, letterSpacing: 1.2)),
+                        Text(
+                          'SEXTA, 05 FEV 2027  •  PEÇANHA, MG',
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: Colors.white54,
+                                    letterSpacing: 1.2,
+                                  ),
+                        ),
                         const SizedBox(height: 8),
-                        Text('Bom dia, equipe.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w800)),
+                        Text(
+                          'Bom dia, equipe.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
                         const SizedBox(height: 4),
                         const Text(
-                            'Acompanhe a operação e registre vendas em poucos toques.',
-                            style: TextStyle(color: Colors.white60)),
+                          'Acompanhe a operação e registre vendas em poucos toques.',
+                          style: TextStyle(color: Colors.white60),
+                        ),
                         const SizedBox(height: 24),
                         _CriticalMetric(shop: shop),
                         const SizedBox(height: 16),
@@ -225,13 +247,17 @@ class _DashboardOverviewTab extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Desempenho por lote',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w800)),
-                            Text('$totalCapacity abadás no total',
-                                style: const TextStyle(color: Colors.white54)),
+                            Text(
+                              'Desempenho por lote',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            Text(
+                              '$totalCapacity abadás no total',
+                              style: const TextStyle(color: Colors.white54),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 14),
@@ -264,36 +290,50 @@ class _CriticalMetric extends StatelessWidget {
       color: AppTheme.accent.withValues(alpha: 0.13),
       child: Padding(
         padding: const EdgeInsets.all(22),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.payments_outlined, color: AppTheme.accent),
-            const SizedBox(width: 10),
-            const Text('FATURAMENTO ESTIMADO',
-                style: TextStyle(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.payments_outlined, color: AppTheme.accent),
+                const SizedBox(width: 10),
+                const Text(
+                  'FATURAMENTO ESTIMADO',
+                  style: TextStyle(
                     color: AppTheme.accent,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2)),
-            const Spacer(),
-            Text('${(occupancy * 100).toStringAsFixed(1)}% da capacidade',
-                style: const TextStyle(color: Colors.white70)),
-          ]),
-          const SizedBox(height: 12),
-          Text('R\$ ${shop.estimatedRevenue.toStringAsFixed(2)}',
-              style:
-                  const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 16),
-          ClipRRect(
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${(occupancy * 100).toStringAsFixed(1)}% da capacidade',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'R\$ ${shop.estimatedRevenue.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
-                  value: occupancy,
-                  minHeight: 8,
-                  backgroundColor: Colors.white12,
-                  color: AppTheme.accent)),
-          const SizedBox(height: 8),
-          Text(
+                value: occupancy,
+                minHeight: 8,
+                backgroundColor: Colors.white12,
+                color: AppTheme.accent,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
               '$sold abadás vendidos  •  $available disponíveis',
-              style: const TextStyle(color: Colors.white60)),
-        ]),
+              style: const TextStyle(color: Colors.white60),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -308,42 +348,51 @@ class _DashboardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final cards = [
       _StatCard(
-          label: 'Abadás vendidos',
-          value: '${shop.totalSold}',
-          detail: 'de ${shop.totalCapacity}',
-          icon: Icons.confirmation_number_outlined,
-          color: AppTheme.primaryLight),
+        label: 'Abadás vendidos',
+        value: '${shop.totalSold}',
+        detail: 'de ${shop.totalCapacity}',
+        icon: Icons.confirmation_number_outlined,
+        color: AppTheme.primaryLight,
+      ),
       _StatCard(
-          label: 'Disponibilidade',
-          value: '${shop.totalCapacity - shop.totalSold}',
-          detail: 'restantes',
-          icon: Icons.inventory_2_outlined,
-          color: Colors.greenAccent),
+        label: 'Disponibilidade',
+        value: '${shop.totalCapacity - shop.totalSold}',
+        detail: 'restantes',
+        icon: Icons.inventory_2_outlined,
+        color: Colors.greenAccent,
+      ),
       _StatCard(
-          label: 'Ticket médio',
-          value: shop.totalSold == 0
-              ? 'R\$ 0'
-              : 'R\$ ${(shop.estimatedRevenue / shop.totalSold).toStringAsFixed(0)}',
-          detail: 'por abadá',
-          icon: Icons.sell_outlined,
-          color: AppTheme.pink),
+        label: 'Ticket médio',
+        value: shop.totalSold == 0
+            ? 'R\$ 0'
+            : 'R\$ ${(shop.estimatedRevenue / shop.totalSold).toStringAsFixed(0)}',
+        detail: 'por abadá',
+        icon: Icons.sell_outlined,
+        color: AppTheme.pink,
+      ),
     ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const _PanelTitle(
-          title: 'Indicadores-chave', icon: Icons.insights_outlined),
-      const SizedBox(height: 10),
-      Wrap(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _PanelTitle(
+          title: 'Indicadores-chave',
+          icon: Icons.insights_outlined,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
           spacing: 12,
           runSpacing: 12,
           children: cards
-              .map((card) =>
-                  SizedBox(width: compact ? double.infinity : 250, child: card))
-              .toList()),
-      const SizedBox(height: 16),
-      const _PanelTitle(title: 'Vendas recentes', icon: Icons.show_chart),
-      const SizedBox(height: 10),
-      _SalesChart(values: shop.salesHistory),
-    ]);
+              .map(
+                (card) => SizedBox(
+                  width: compact ? double.infinity : 250,
+                  child: card,
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
   }
 }
 
@@ -353,20 +402,23 @@ class _PanelTitle extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Row(children: [
-        Icon(icon, size: 18, color: AppTheme.primaryLight),
-        const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w800))
-      ]);
+  Widget build(BuildContext context) => Row(
+        children: [
+          Icon(icon, size: 18, color: AppTheme.primaryLight),
+          const SizedBox(width: 8),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        ],
+      );
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard(
-      {required this.label,
-      required this.value,
-      required this.detail,
-      required this.icon,
-      required this.color});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.detail,
+    required this.icon,
+    required this.color,
+  });
   final String label;
   final String value;
   final String detail;
@@ -375,106 +427,50 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      child: Padding(
+        child: Padding(
           padding: const EdgeInsets.all(18),
-          child: Row(children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  Text(label,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
                       style:
-                          const TextStyle(color: Colors.white60, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  Row(
+                          const TextStyle(color: Colors.white60, fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(value,
-                            style: const TextStyle(
-                                fontSize: 21, fontWeight: FontWeight.w900)),
+                        Text(
+                          value,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                         const SizedBox(width: 5),
-                        Text(detail,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 12))
-                      ])
-                ]))
-          ])));
-}
-
-class _SalesChart extends StatelessWidget {
-  const _SalesChart({required this.values});
-  final List<int> values;
-
-  @override
-  Widget build(BuildContext context) => Card(
-      color: Colors.white.withValues(alpha: 0.045),
-      child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 20, 12),
-          child: SizedBox(
-              height: 180,
-              width: double.infinity,
-              child: CustomPaint(painter: _SalesChartPainter(values)))));
-}
-
-class _SalesChartPainter extends CustomPainter {
-  const _SalesChartPainter(this.values);
-  final List<int> values;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) return;
-    const chartTop = 8.0;
-    const chartBottom = 150.0;
-    final maxValue = math.max(1, values.reduce(math.max));
-    final xStep = values.length == 1 ? 0.0 : size.width / (values.length - 1);
-    final points = values
-        .asMap()
-        .entries
-        .map((entry) => Offset(entry.key * xStep,
-            chartBottom - (entry.value / maxValue) * (chartBottom - chartTop)))
-        .toList();
-    final gridPaint = Paint()
-      ..color = Colors.white12
-      ..strokeWidth = 1;
-    for (var i = 0; i < 4; i++) {
-      final y = chartTop + i * ((chartBottom - chartTop) / 3);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-    final line = Path()..moveTo(points.first.dx, points.first.dy);
-    for (final point in points.skip(1)) {
-      line.lineTo(point.dx, point.dy);
-    }
-    final fill = Path.from(line)
-      ..lineTo(points.last.dx, chartBottom)
-      ..lineTo(points.first.dx, chartBottom)
-      ..close();
-    canvas.drawPath(
-        fill,
-        Paint()
-          ..shader = const LinearGradient(
-                  colors: [Color(0x557C3AED), Color(0x007C3AED)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter)
-              .createShader(
-                  Rect.fromLTWH(0, chartTop, size.width, chartBottom)));
-    canvas.drawPath(
-        line,
-        Paint()
-          ..color = AppTheme.primaryLight
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke);
-    final dotPaint = Paint()..color = AppTheme.accent;
-    for (final point in points) {
-      canvas.drawCircle(point, 4, dotPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SalesChartPainter oldDelegate) =>
-      oldDelegate.values != values;
+                        Text(
+                          detail,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 class _QuickSalePanel extends StatefulWidget {
@@ -494,72 +490,101 @@ class _QuickSalePanelState extends State<_QuickSalePanel> {
     _lotId ??= lots.first.id;
     final selected = lots.firstWhere((lot) => lot.id == _lotId);
     return Card(
-        color: AppTheme.primary.withValues(alpha: 0.16),
-        child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: LayoutBuilder(builder: (context, constraints) {
-              final compact = constraints.maxWidth < 560;
-              final controls = Row(children: [
+      color: AppTheme.primary.withValues(alpha: 0.16),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 560;
+            final controls = Row(
+              children: [
                 Expanded(
-                    child: DropdownButtonFormField<String>(
-                        initialValue: _lotId,
-                        decoration: const InputDecoration(
-                            labelText: 'Lote',
-                            prefixIcon: Icon(Icons.sell_outlined)),
-                        items: lots
-                            .map((lot) => DropdownMenuItem(
-                                value: lot.id, child: Text(lot.name)))
-                            .toList(),
-                        onChanged: (value) => setState(() => _lotId = value))),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _lotId,
+                    decoration: const InputDecoration(
+                      labelText: 'Lote',
+                      prefixIcon: Icon(Icons.sell_outlined),
+                    ),
+                    items: lots
+                        .map(
+                          (lot) => DropdownMenuItem(
+                            value: lot.id,
+                            child: Text(lot.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _lotId = value),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Text('${selected.remaining} livres',
-                    style: const TextStyle(color: Colors.white60))
-              ]);
-              final actions = Wrap(spacing: 8, runSpacing: 8, children: [
+                Text(
+                  '${selected.remaining} livres',
+                  style: const TextStyle(color: Colors.white60),
+                ),
+              ],
+            );
+            final actions = Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 for (final amount in [1, 5, 10])
                   FilledButton(
-                      onPressed: selected.remaining >= amount && selected.active
-                          ? () => _register(amount)
-                          : null,
-                      child: Text('+$amount')),
+                    onPressed: selected.remaining >= amount && selected.active
+                        ? () => _register(amount)
+                        : null,
+                    child: Text('+$amount'),
+                  ),
                 OutlinedButton.icon(
-                    onPressed: () => _showEditDialog(context, selected),
-                    icon: const Icon(Icons.tune),
-                    label: const Text('Ajustar lote'))
-              ]);
-              return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _PanelTitle(
-                        title: 'Registro rápido', icon: Icons.bolt),
-                    const SizedBox(height: 12),
-                    if (compact) ...[
-                      controls,
-                      const SizedBox(height: 12),
-                      actions
-                    ] else
-                      Row(children: [
-                        Expanded(child: controls),
-                        const SizedBox(width: 18),
-                        actions
-                      ])
-                  ]);
-            })));
+                  onPressed: () => _showEditDialog(context, selected),
+                  icon: const Icon(Icons.tune),
+                  label: const Text('Ajustar lote'),
+                ),
+              ],
+            );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _PanelTitle(title: 'Registro rápido', icon: Icons.bolt),
+                const SizedBox(height: 12),
+                if (compact) ...[
+                  controls,
+                  const SizedBox(height: 12),
+                  actions,
+                ] else
+                  Row(
+                    children: [
+                      Expanded(child: controls),
+                      const SizedBox(width: 18),
+                      actions,
+                    ],
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _register(int amount) async {
     final success = await widget.shop.registerSale(_lotId!, quantity: amount);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(success
-            ? '$amount venda(s) registrada(s).'
-            : 'Não há disponibilidade suficiente.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? '$amount venda(s) registrada(s).'
+              : 'Não há disponibilidade suficiente.',
+        ),
+      ),
+    );
   }
 
   Future<void> _showEditDialog(BuildContext context, TicketLot lot) async {
     await showDialog<void>(
-        context: context,
-        builder: (context) => _EditLotDialog(shop: widget.shop, lot: lot));
+      context: context,
+      builder: (context) => _EditLotDialog(shop: widget.shop, lot: lot),
+    );
   }
 }
 
@@ -574,8 +599,9 @@ class _EditLotDialog extends StatefulWidget {
 
 class _EditLotDialogState extends State<_EditLotDialog> {
   late final total = TextEditingController(text: '${widget.lot.total}');
-  late final price =
-      TextEditingController(text: widget.lot.price.toStringAsFixed(2));
+  late final price = TextEditingController(
+    text: widget.lot.price.toStringAsFixed(2),
+  );
   late bool active = widget.lot.active;
 
   @override
@@ -587,40 +613,49 @@ class _EditLotDialogState extends State<_EditLotDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-          title: Text('Editar ${widget.lot.name}'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+        title: Text('Editar ${widget.lot.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             TextField(
-                controller: total,
-                keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Quantidade total')),
+              controller: total,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Quantidade total'),
+            ),
             TextField(
-                controller: price,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Preço')),
+              controller: price,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Preço'),
+            ),
             SwitchListTile(
-                value: active,
-                onChanged: (value) => setState(() => active = value),
-                title: const Text('Lote ativo'))
-          ]),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar')),
-            FilledButton(
-                onPressed: () async {
-                  await widget.shop.updateLot(
-                      lotId: widget.lot.id,
-                      total: int.tryParse(total.text) ?? widget.lot.total,
-                      price: double.tryParse(price.text.replaceAll(',', '.')) ??
-                          widget.lot.price,
-                      active: active);
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                },
-                child: const Text('Salvar'))
-          ]);
+              value: active,
+              onChanged: (value) => setState(() => active = value),
+              title: const Text('Lote ativo'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await widget.shop.updateLot(
+                lotId: widget.lot.id,
+                total: int.tryParse(total.text) ?? widget.lot.total,
+                price: double.tryParse(price.text.replaceAll(',', '.')) ??
+                    widget.lot.price,
+                active: active,
+              );
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      );
 }
 
 class _LotGrid extends StatelessWidget {
@@ -628,24 +663,38 @@ class _LotGrid extends StatelessWidget {
   final ShopProvider shop;
 
   @override
-  Widget build(BuildContext context) =>
-      LayoutBuilder(builder: (context, constraints) {
-        final columns = constraints.maxWidth > 900
-            ? 3
-            : constraints.maxWidth > 580
-                ? 2
-                : 1;
-        final width = (constraints.maxWidth - (columns - 1) * 14) / columns;
-        final items = shop.lots
-            .map((lot) => SizedBox(width: width, child: _LotCard(lot: lot)))
-            .toList();
-        items.add(SizedBox(width: width, child: _AddLotCard(shop: shop)));
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Wrap(spacing: 14, runSpacing: 14, children: items),
-          const SizedBox(height: 18),
-          _LotSummary(shop: shop)
-        ]);
-      });
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth > 900
+              ? 3
+              : constraints.maxWidth > 580
+                  ? 2
+                  : 1;
+          final width = (constraints.maxWidth - (columns - 1) * 14) / columns;
+          final items = shop.lots
+              .map(
+                (lot) => SizedBox(
+                  width: width,
+                  child: _LotCard(lot: lot),
+                ),
+              )
+              .toList();
+          items.add(
+            SizedBox(
+              width: width,
+              child: _AddLotCard(shop: shop),
+            ),
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(spacing: 14, runSpacing: 14, children: items),
+              const SizedBox(height: 18),
+              _LotSummary(shop: shop),
+            ],
+          );
+        },
+      );
 }
 
 class _LotCard extends StatelessWidget {
@@ -654,100 +703,135 @@ class _LotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () async {
-        await showDialog<void>(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          await showDialog<void>(
             context: context,
             builder: (context) =>
-                _EditLotDialog(shop: context.read<ShopProvider>(), lot: lot));
-      },
-      child: Card(
+                _EditLotDialog(shop: context.read<ShopProvider>(), lot: lot),
+          );
+        },
+        child: Card(
           child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(children: [
-                      Expanded(
-                          child: Text(lot.name,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 17))),
-                      Icon(lot.active ? Icons.check_circle : Icons.pause_circle,
-                          color: lot.active
-                              ? Colors.greenAccent
-                              : Colors.orangeAccent)
-                    ]),
-                    const SizedBox(height: 12),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('${lot.sold} vendidos',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w700)),
-                                Text('${lot.remaining} restantes',
-                                    style:
-                                        const TextStyle(color: AppTheme.accent))
-                              ]),
-                          Text('R\$ ${lot.price.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontWeight: FontWeight.w800))
-                        ]),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                            value: lot.occupancy,
-                            minHeight: 9,
-                            backgroundColor: Colors.white12,
-                            color: AppTheme.primaryLight)),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      FilledButton(
-                          onPressed: lot.remaining >= 1 && lot.active
-                              ? () async {
-                                  final success = await context
-                                      .read<ShopProvider>()
-                                      .registerSale(lot.id, quantity: 1);
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(success
-                                              ? 'Venda registrada.'
-                                              : 'Sem disponibilidade.')));
-                                }
-                              : null,
-                          child: const Text('+1')),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                          onPressed: lot.sold > 0
-                              ? () async {
-                                  await context
-                                      .read<ShopProvider>()
-                                      .revertSale(lot.id, quantity: 1);
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Venda revertida.')));
-                                }
-                              : null,
-                          child: const Text('-1')),
-                      const SizedBox(width: 8),
-                      IconButton(
-                          tooltip: 'Ajustar lote',
-                          onPressed: () async {
-                            await showDialog<void>(
-                                context: context,
-                                builder: (context) => _EditLotDialog(
-                                    shop: context.read<ShopProvider>(),
-                                    lot: lot));
-                          },
-                          icon: const Icon(Icons.tune))
-                    ])
-                  ]))));
+                    Expanded(
+                      child: Text(
+                        lot.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      lot.active ? Icons.check_circle : Icons.pause_circle,
+                      color:
+                          lot.active ? Colors.greenAccent : Colors.orangeAccent,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${lot.sold} vendidos',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          '${lot.remaining} restantes',
+                          style: const TextStyle(color: AppTheme.accent),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'R\$ ${lot.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: lot.occupancy,
+                    minHeight: 9,
+                    backgroundColor: Colors.white12,
+                    color: AppTheme.primaryLight,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    FilledButton(
+                      onPressed: lot.remaining >= 1 && lot.active
+                          ? () async {
+                              final success = await context
+                                  .read<ShopProvider>()
+                                  .registerSale(lot.id, quantity: 1);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    success
+                                        ? 'Venda registrada.'
+                                        : 'Sem disponibilidade.',
+                                  ),
+                                ),
+                              );
+                            }
+                          : null,
+                      child: const Text('+1'),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: lot.sold > 0
+                          ? () async {
+                              await context.read<ShopProvider>().revertSale(
+                                    lot.id,
+                                    quantity: 1,
+                                  );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Venda revertida.')),
+                              );
+                            }
+                          : null,
+                      child: const Text('-1'),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Ajustar lote',
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) => _EditLotDialog(
+                            shop: context.read<ShopProvider>(),
+                            lot: lot,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.tune),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class _AddLotCard extends StatelessWidget {
@@ -756,30 +840,42 @@ class _AddLotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-      color: AppTheme.primary.withValues(alpha: 0.06),
-      child: Padding(
+        color: AppTheme.primary.withValues(alpha: 0.06),
+        child: Padding(
           padding: const EdgeInsets.all(18),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Row(children: [
-              Icon(Icons.add, color: AppTheme.accent),
-              SizedBox(width: 10),
-              Text('Adicionar lote',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))
-            ]),
-            const SizedBox(height: 12),
-            const Text('Crie um novo lote para vender mais abadás',
-                style: TextStyle(color: Colors.white70)),
-            const SizedBox(height: 12),
-            FilledButton.icon(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.add, color: AppTheme.accent),
+                  SizedBox(width: 10),
+                  Text(
+                    'Adicionar lote',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Crie um novo lote para vender mais abadás',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
                 onPressed: () async {
                   await showDialog<void>(
-                      context: context,
-                      builder: (context) => _CreateLotDialog(shop: shop));
+                    context: context,
+                    builder: (context) => _CreateLotDialog(shop: shop),
+                  );
                 },
                 icon: const Icon(Icons.add),
-                label: const Text('Novo lote'))
-          ])));
+                label: const Text('Novo lote'),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 class _LotSummary extends StatelessWidget {
@@ -790,58 +886,77 @@ class _LotSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final lots = shop.lots;
     return Card(
-        color: Colors.white.withValues(alpha: 0.03),
-        child: Padding(
-            padding: const EdgeInsets.all(12),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Resumo por lote',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Lote')),
-                    DataColumn(label: Text('Preço')),
-                    DataColumn(label: Text('Vendidos')),
-                    DataColumn(label: Text('Restantes')),
-                    DataColumn(label: Text('Receita')),
-                    DataColumn(label: Text('Ativo')),
-                    DataColumn(label: Text(''))
-                  ],
-                  rows: lots.map((lot) {
-                    return DataRow(cells: [
+      color: Colors.white.withValues(alpha: 0.03),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Resumo por lote',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('Lote')),
+                  DataColumn(label: Text('Preço')),
+                  DataColumn(label: Text('Vendidos')),
+                  DataColumn(label: Text('Restantes')),
+                  DataColumn(label: Text('Receita')),
+                  DataColumn(label: Text('Ativo')),
+                  DataColumn(label: Text('')),
+                ],
+                rows: lots.map((lot) {
+                  return DataRow(
+                    cells: [
                       DataCell(Text(lot.name)),
                       DataCell(Text('R\$ ${lot.price.toStringAsFixed(2)}')),
                       DataCell(Text('${lot.sold}')),
                       DataCell(Text('${lot.remaining}')),
-                      DataCell(Text(
-                          'R\$ ${(lot.sold * lot.price).toStringAsFixed(2)}')),
-                      DataCell(Icon(
-                        lot.active ? Icons.check : Icons.close,
-                        color: lot.active
-                            ? Colors.greenAccent
-                            : Colors.orangeAccent,
-                      )),
-                      DataCell(Row(children: [
-                        IconButton(
-                          tooltip: 'Editar',
-                          onPressed: () async {
-                            await showDialog<void>(
-                              context: context,
-                              builder: (context) => _EditLotDialog(
-                                  shop: context.read<ShopProvider>(), lot: lot),
-                            );
-                          },
-                          icon: const Icon(Icons.edit),
+                      DataCell(
+                        Text(
+                          'R\$ ${(lot.sold * lot.price).toStringAsFixed(2)}',
                         ),
-                      ])),
-                    ]);
-                  }).toList(),
-                ),
-              )
-            ])));
+                      ),
+                      DataCell(
+                        Icon(
+                          lot.active ? Icons.check : Icons.close,
+                          color: lot.active
+                              ? Colors.greenAccent
+                              : Colors.orangeAccent,
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          children: [
+                            IconButton(
+                              tooltip: 'Editar',
+                              onPressed: () async {
+                                await showDialog<void>(
+                                  context: context,
+                                  builder: (context) => _EditLotDialog(
+                                    shop: context.read<ShopProvider>(),
+                                    lot: lot,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.edit),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -869,49 +984,61 @@ class _CreateLotDialogState extends State<_CreateLotDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-          title: const Text('Criar novo lote'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+        title: const Text('Criar novo lote'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             TextField(
-                controller: name,
-                decoration: const InputDecoration(labelText: 'Nome do lote')),
+              controller: name,
+              decoration: const InputDecoration(labelText: 'Nome do lote'),
+            ),
             TextField(
-                controller: total,
-                keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Quantidade total')),
+              controller: total,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Quantidade total'),
+            ),
             TextField(
-                controller: price,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Preço')),
+              controller: price,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Preço'),
+            ),
             SwitchListTile(
-                value: active,
-                onChanged: (v) => setState(() => active = v),
-                title: const Text('Lote ativo'))
-          ]),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar')),
-            FilledButton(
-                onPressed: () async {
-                  final parsedTotal = int.tryParse(total.text) ?? 0;
-                  final parsedPrice =
-                      double.tryParse(price.text.replaceAll(',', '.')) ?? 0.0;
-                  if (name.text.trim().isEmpty || parsedTotal <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text(
-                            'Nome e quantidade válidos são necessários.')));
-                    return;
-                  }
-                  await widget.shop.addLot(
-                      name: name.text.trim(),
-                      total: parsedTotal,
-                      price: parsedPrice,
-                      active: active);
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                },
-                child: const Text('Criar'))
-          ]);
+              value: active,
+              onChanged: (v) => setState(() => active = v),
+              title: const Text('Lote ativo'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final parsedTotal = int.tryParse(total.text) ?? 0;
+              final parsedPrice =
+                  double.tryParse(price.text.replaceAll(',', '.')) ?? 0.0;
+              if (name.text.trim().isEmpty || parsedTotal <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Nome e quantidade válidos são necessários.'),
+                  ),
+                );
+                return;
+              }
+              await widget.shop.addLot(
+                name: name.text.trim(),
+                total: parsedTotal,
+                price: parsedPrice,
+                active: active,
+              );
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+            child: const Text('Criar'),
+          ),
+        ],
+      );
 }

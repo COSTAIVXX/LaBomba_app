@@ -1,7 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../services/storage_service.dart';
 import '../services/storage_mobile.dart';
+
 import 'package:uuid/uuid.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
 
@@ -22,7 +25,7 @@ class SecureClientRepository implements IClientRepository {
   Future<List<Client>> fetchClients() async {
     final saved = await secureStorage.read(key: _clientsKey);
     if (saved == null) return [];
-    
+
     // 3. Alta Performance: Utilizando Isolates (compute) para decode
     return await compute(_decodeClients, saved);
   }
@@ -36,7 +39,9 @@ class SecureClientRepository implements IClientRepository {
 
   static List<Client> _decodeClients(String jsonString) {
     final decoded = jsonDecode(jsonString) as List<dynamic>;
-    return decoded.map((e) => Client.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    return decoded
+        .map((e) => Client.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
   static String _encodeClients(List<Client> clients) {
@@ -50,8 +55,9 @@ class ClientProvider with ChangeNotifier {
   bool _isLoading = false;
 
   // 1. Separação de Responsabilidades (SRP) via Injeção de Dependência
-  ClientProvider({IClientRepository? repository}) 
-      : _repository = repository ?? SecureClientRepository(MobileStorageService()) {
+  ClientProvider({IClientRepository? repository})
+      : _repository =
+            repository ?? SecureClientRepository(MobileStorageService()) {
     _loadClients();
   }
 
@@ -81,9 +87,11 @@ class ClientProvider with ChangeNotifier {
     required bool acceptedTerms,
   }) async {
     if (!acceptedTerms) {
-      throw const ClientRegistrationException('É obrigatório aceitar o termo de responsabilidade.');
+      throw const ClientRegistrationException(
+        'É obrigatório aceitar o termo de responsabilidade.',
+      );
     }
-    
+
     // 5. Validação de Dados (CPF)
     if (!CPFValidator.isValid(cpf)) {
       throw const ClientRegistrationException('CPF inválido.');
@@ -101,7 +109,9 @@ class ClientProvider with ChangeNotifier {
     );
 
     if (newClient.age < 18) {
-      throw const ClientRegistrationException('O evento é restrito para maiores de 18 anos.');
+      throw const ClientRegistrationException(
+        'O evento é restrito para maiores de 18 anos.',
+      );
     }
 
     _clients = [..._clients, newClient];
@@ -120,9 +130,9 @@ class ClientProvider with ChangeNotifier {
   }) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
-    
+
     final existing = _clients[index];
-    
+
     if (cpf != null && cpf != existing.cpf && !CPFValidator.isValid(cpf)) {
       throw const ClientRegistrationException('CPF inválido.');
     }
@@ -150,10 +160,10 @@ class ClientProvider with ChangeNotifier {
   Future<void> updateLatestPaymentStatus(String clientId, String status) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
-    
+
     final client = _clients[index];
     if (client.purchaseHistory.isEmpty) return;
-    
+
     final last = client.purchaseHistory.last;
     final updatedPurchase = ClientPurchase(
       description: last.description,
@@ -163,11 +173,11 @@ class ClientProvider with ChangeNotifier {
       paymentMethod: last.paymentMethod,
       paymentStatus: status,
     );
-    
+
     // 7. Imutabilidade de Estado
     final updatedHistory = List<ClientPurchase>.from(client.purchaseHistory);
     updatedHistory[updatedHistory.length - 1] = updatedPurchase;
-    
+
     _clients[index] = client.copyWith(purchaseHistory: updatedHistory);
     notifyListeners();
     await _repository.saveClients(_clients);
@@ -176,9 +186,9 @@ class ClientProvider with ChangeNotifier {
   Future<void> addPurchase(String clientId, ClientPurchase purchase) async {
     final index = _clients.indexWhere((c) => c.id == clientId);
     if (index < 0) return;
-    
+
     final client = _clients[index];
-    
+
     // 7. Imutabilidade de Estado: Utilizando copyWith com spread operator
     final updatedClient = client.copyWith(
       purchaseHistory: [...client.purchaseHistory, purchase],

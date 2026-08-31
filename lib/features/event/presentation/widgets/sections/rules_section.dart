@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class RulesSection extends StatelessWidget {
@@ -16,33 +17,42 @@ class RulesSection extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
-            color: summerOrange.withValues(alpha:0.05),
+            color: summerOrange.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-                color: summerOrange.withValues(alpha:0.6), width: 2),
+              color: summerOrange.withValues(alpha: 0.6),
+              width: 2,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                    color: summerOrange,
-                    borderRadius: BorderRadius.circular(16)),
+                  color: summerOrange,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: Colors.white, size: 28),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'LEITURA OBRIGATÓRIA: REGRAS',
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5),
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -102,16 +112,23 @@ class _RuleItem extends StatelessWidget {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 2, right: 16),
-            child: Icon(Icons.priority_high_rounded,
-                color: Color(0xFFFF8C00), size: 22),
+            child: Icon(
+              Icons.priority_high_rounded,
+              color: Color(0xFFFF8C00),
+              size: 22,
+            ),
           ),
           Expanded(
-              child: Text(text,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      height: 1.4))),
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                height: 1.4,
+              ),
+            ),
+          ),
         ],
       ),
     );

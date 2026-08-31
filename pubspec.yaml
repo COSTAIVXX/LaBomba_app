@@ -28,6 +28,7 @@ dependencies:
   firebase_auth: ^6.6.0
   cloud_firestore: ^6.9.0
   firebase_storage: ^13.5.0
+  cloud_functions: ^6.4.0
   file_picker: ^12.1.0
   google_sign_in: ^7.2.0
   shared_preferences: ^2.3.2
@@ -38,14 +39,29 @@ dependencies:
   uuid: ^4.6.0
   cpf_cnpj_validator: ^2.0.0
   cached_network_image: ^3.2.3
+  video_player: ^2.9.2
+  image_picker: ^1.1.2
   firebase_analytics: ^12.5.0
   firebase_crashlytics: ^5.3.0
-
+  flutter_image_compress: ^2.5.1
+  shimmer: ^2.0.0
+  firebase_messaging: ^16.6.0
+  firebase_remote_config: ^6.6.0
+  share_plus: ^13.3.0
+  path_provider: ^2.0.14
+  connectivity_plus: ^2.3.6
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+  flutter_test:
+    sdk: flutter
+  fake_cloud_firestore: ^4.2.0
+
 flutter:
   uses-material-design: true
   assets:
@@ -82,3 +98,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon_master.png"
+  adaptive_icon_background: "#0D1117"
+  adaptive_icon_foreground: "assets/images/icon_master.png"
+  remove_alpha_ios: true
+

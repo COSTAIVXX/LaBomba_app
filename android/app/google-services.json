@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "624692030196-upsve91bbor90ip5f7ri5ci6n9dejtlq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.labomba_app",
+            "certificate_hash": "8170f5d35368fbdaa38ad9ebfee282a4cdbf5bbb"
+          }
+        },
+        {
           "client_id": "624692030196-r6bpsknq4na3po7lfd39e6tntil68mau.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "624692030196-r6bpsknq4na3po7lfd39e6tntil68mau.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "624692030196-b6pm2or2jsoh19n94elnfc4vmb7bii27.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.labombaApp"
+              }
             }
           ]
         }

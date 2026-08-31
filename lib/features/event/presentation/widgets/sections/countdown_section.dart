@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:labomba_app/providers/event_config_provider.dart';
@@ -38,8 +39,10 @@ class _CountdownSectionState extends State<CountdownSection> {
   void initState() {
     super.initState();
     _updateCountdown();
-    _timer =
-        Timer.periodic(const Duration(seconds: 1), (_) => _updateCountdown());
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _updateCountdown(),
+    );
   }
 
   void _updateCountdown() {
@@ -73,9 +76,9 @@ class _CountdownSectionState extends State<CountdownSection> {
           width: double.infinity,
           padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha:.02),
+            color: Colors.white.withValues(alpha: .02),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: AppTheme.primary.withValues(alpha:0.2)),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -97,13 +100,21 @@ class _CountdownSectionState extends State<CountdownSection> {
                 alignment: WrapAlignment.center,
                 children: [
                   _TimeBlock(
-                      value: days.toString().padLeft(2, '0'), label: 'DIAS'),
+                    value: days.toString().padLeft(2, '0'),
+                    label: 'DIAS',
+                  ),
                   _TimeBlock(
-                      value: hours.toString().padLeft(2, '0'), label: 'HORAS'),
+                    value: hours.toString().padLeft(2, '0'),
+                    label: 'HORAS',
+                  ),
                   _TimeBlock(
-                      value: minutes.toString().padLeft(2, '0'), label: 'MIN'),
+                    value: minutes.toString().padLeft(2, '0'),
+                    label: 'MIN',
+                  ),
                   _TimeBlock(
-                      value: seconds.toString().padLeft(2, '0'), label: 'SEG'),
+                    value: seconds.toString().padLeft(2, '0'),
+                    label: 'SEG',
+                  ),
                 ],
               ),
             ],
@@ -128,7 +139,7 @@ class _TimeBlock extends StatelessWidget {
           width: 80,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha:0.15),
+            color: AppTheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
           ),
@@ -136,9 +147,10 @@ class _TimeBlock extends StatelessWidget {
             child: Text(
               value,
               style: labombaTextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white),
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -146,10 +158,11 @@ class _TimeBlock extends StatelessWidget {
         Text(
           label,
           style: labombaTextStyle(
-              fontSize: 11,
-              color: Colors.white54,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1),
+            fontSize: 11,
+            color: Colors.white54,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
         ),
       ],
     );

@@ -1,13 +1,7 @@
 class EventConfig {
   static const String name = 'LaBomba 2027';
 
-  static final DateTime eventDate = DateTime(
-    2027,
-    2,
-    5,
-    18,
-    0,
-  );
+  static final DateTime eventDate = DateTime(2027, 2, 5, 18, 0);
 
   static const String whatsappPhone = '5531999999999';
   static const String eventLocation = 'Peçanha, Minas Gerais';

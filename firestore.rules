@@ -1,0 +1,318 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Basic helpers
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function tokenClaimEquals(claimName, value) {
+      return isAuth() && request.auth.token != null && request.auth.token.get(claimName, null) == value;
+    }
+
+    function hasRole(roleName) {
+      return isAuth() && request.auth.token != null && (
+        request.auth.token.role == roleName
+        || (roleName == 'owner' && request.auth.token.owner == true)
+        || (roleName == 'admin' && request.auth.token.admin == true)
+      );
+    }
+
+    function isOwner() {
+      return hasRole('owner') || tokenClaimEquals('owner', true);
+    }
+
+    function isAdmin() {
+      return isOwner() || hasRole('admin') || tokenClaimEquals('admin', true);
+    }
+
+    function isModerator() {
+      return isAuth() && request.auth.token != null && (
+        request.auth.token.role == 'moderator'
+        || request.auth.token.moderator == true
+      );
+    }
+
+    function isMaster() {
+      return isOwner();
+    }
+
+    function isSuperAdmin() { return isOwner() || isAdmin(); }
+
+    // Server/service accounts or functions should set custom claims such as owner/admin/isServer.
+    function isServer() {
+      return isAuth() && (
+        tokenClaimEquals('isServer', true)
+        || tokenClaimEquals('owner', true)
+        || tokenClaimEquals('admin', true)
+        || request.auth.uid == 'server'
+        || isSuperAdmin()
+      );
+    }
+
+    // Chat membership helper
+    function isChatMember(chatId) {
+      return exists(/databases/$(database)/documents/chats/$(chatId))
+        && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+    }
+
+    function isPrivilegedAdminAction() {
+      return isAuth() && (isAdmin() || isServer());
+    }
+
+    // Restrict which profile fields clients may change.
+    // Privacy and follower state are user-owned and must be mutable only by the owner.
+    function allowedProfileKeys(newData) {
+      return newData.keys().hasOnly([
+        'displayName',
+        'bio',
+        'avatarUrl',
+        'settings',
+        'updatedAt',
+        'language',
+        'private',
+        'following',
+        'followers',
+        'outgoingFollowRequests',
+        'incomingFollowRequests',
+        'blocked',
+        'muted'
+      ]);
+    }
+
+    function unchanged(fieldName) {
+      return resource != null && request.resource.data[fieldName] == resource.data[fieldName];
+    }
+
+    function canReadUserProfile(userId) {
+      return isAuth() && (
+        request.auth.uid == userId
+        || isServer()
+        || isAdmin()
+        || !exists(/databases/$(database)/documents/users/$(userId))
+        || !get(/databases/$(database)/documents/users/$(userId)).data.private
+        || request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.followers
+      );
+    }
+
+    match /admin_profiles/{uid} {
+      allow read: if isAuth() && (request.auth.uid == uid || isOwner() || isAdmin());
+      allow create, update, delete: if isServer();
+    }
+
+    // --- Users ---
+    match /users/{userId} {
+      // read: only owner, followers, or public profiles. Private users hide profile data from non-followers.
+      allow read: if canReadUserProfile(userId);
+
+      // create only for the authenticated user during signup flows
+      allow create: if isAuth() && request.auth.uid == userId;
+
+      // update: only the owner and only allowed keys
+      allow update: if isAuth() && request.auth.uid == userId
+                     && allowedProfileKeys(request.resource.data)
+                     && unchanged('roles')
+                     && unchanged('permissions')
+                     && unchanged('role')
+                     && unchanged('authorId')
+                     && unchanged('ownerId');
+
+      // delete: not allowed from client (require admin/backend)
+      allow delete: if isServer();
+
+      // Notifications: only server/administrator can create notifications for a user.
+      match /notifications/{noteId} {
+        allow read: if isAuth() && request.auth.uid == userId;
+        allow create: if isServer();
+        allow update: if isAuth() && request.auth.uid == userId; // user can mark read/archived
+        allow delete: if isServer() || (isAuth() && request.auth.uid == userId);
+      }
+
+      // Stories: user-owned stories, ephemeral (24h)
+      match /stories/{storyId} {
+        allow create: if isAuth() && (
+          (request.auth.uid == userId
+            && request.resource.data.userId == userId
+            && request.resource.data.createdAt == request.time)
+          || isServer()
+        );
+        allow update: if isAuth() && (
+          (request.auth.uid == userId
+            && request.resource.data.userId == resource.data.userId
+            && request.resource.data.createdAt == resource.data.createdAt)
+          || isServer()
+        );
+        allow delete: if isAuth() && (request.auth.uid == userId || isServer());
+
+        // reading: only if not expired and respecting private accounts (owner or follower or public)
+        allow read: if isAuth()
+                    && resource.data.createdAt >= request.time - duration.value(24, 'h')
+                    && (
+                      request.auth.uid == userId
+                      || isServer()
+                      || isAdmin()
+                      || !get(/databases/$(database)/documents/users/$(userId)).data.private
+                      || request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.followers
+                    );
+
+        // reactions under story: ensure user writes only their own reaction doc
+        match /reactions/{reactionId} {
+          allow create: if isAuth() && request.auth.uid == request.resource.data.userId
+                        && reactionId.matches('^' + request.auth.uid + '.*');
+          allow delete: if isAuth() && request.auth.uid == resource.data.userId;
+          allow read: if isAuth();
+        }
+
+        // viewers: records of who viewed — ensure only the viewer can write their own view
+        match /views/{viewerId} {
+          allow create: if isAuth() && request.auth.uid == viewerId && request.resource.data.viewerId == viewerId;
+          allow read: if isAuth() && (request.auth.uid == userId || request.auth.uid == viewerId);
+          allow delete: if isServer() || (isAuth() && request.auth.uid == userId);
+        }
+      }
+
+      match /followers/{followerId} {
+        allow read: if isAuth() && (request.auth.uid == userId || request.auth.uid == followerId || isServer() || isAdmin());
+        allow create: if isAuth() && request.auth.uid == followerId && request.resource.data.followerId == followerId && request.resource.data.createdAt is timestamp;
+        allow delete: if isAuth() && (request.auth.uid == userId || request.auth.uid == followerId || isServer());
+      }
+
+      match /following/{followedId} {
+        allow read: if isAuth() && (request.auth.uid == userId || request.auth.uid == followedId || isServer() || isAdmin());
+        allow create: if isAuth() && request.auth.uid == userId && request.resource.data.userId == userId && request.resource.data.followingId == followedId && request.resource.data.createdAt is timestamp;
+        allow delete: if isAuth() && (request.auth.uid == userId || request.auth.uid == followedId || isServer());
+      }
+
+      match /outgoingFollowRequests/{targetId} {
+        allow read: if isAuth() && (request.auth.uid == userId || isServer() || isAdmin());
+        allow create: if isAuth() && request.auth.uid == userId && request.resource.data.requesterId == userId && request.resource.data.targetId == targetId && request.resource.data.createdAt is timestamp;
+        allow delete: if isAuth() && (request.auth.uid == userId || isServer());
+      }
+
+      match /incomingFollowRequests/{requesterId} {
+        allow read: if isAuth() && (request.auth.uid == userId || isServer() || isAdmin());
+        allow create: if isAuth() && request.auth.uid == userId && request.resource.data.requesterId == requesterId && request.resource.data.targetId == userId && request.resource.data.createdAt is timestamp;
+        allow delete: if isAuth() && (request.auth.uid == userId || isServer());
+      }
+    }
+
+    // --- Posts ---
+    match /posts/{postId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && (request.resource.data.authorId == request.auth.uid || isServer());
+      allow update: if isAuth() && (
+        (request.auth.uid == resource.data.authorId
+          && request.resource.data.authorId == resource.data.authorId
+          && unchanged('authorId'))
+        || tokenClaimEquals('admin', true)
+        || isServer()
+      );
+      allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || tokenClaimEquals('admin', true) || isServer());
+
+      // Reactions as subcollection: ensure user only creates reaction docs for themselves
+      match /reactions/{reactionId} {
+        allow create: if isAuth() && request.auth.uid == request.resource.data.userId && reactionId.matches('^' + request.auth.uid + '.*');
+        allow delete: if isAuth() && request.auth.uid == resource.data.userId;
+        allow read: if isAuth();
+      }
+
+      match /likes/{userId} {
+        allow read: if isAuth();
+        allow create: if isAuth() && request.auth.uid == userId && request.resource.data.userId == userId && request.resource.data.createdAt is timestamp;
+        allow delete: if isAuth() && request.auth.uid == userId;
+      }
+
+      // Comments as subcollection (recommended over arrays)
+      match /comments/{commentId} {
+        allow create: if isAuth() && request.auth.uid == request.resource.data.authorId;
+        allow update: if isAuth() && request.auth.uid == resource.data.authorId && request.resource.data.authorId == resource.data.authorId;
+        allow delete: if isAuth() && (request.auth.uid == resource.data.authorId || tokenClaimEquals('admin', true));
+
+        match /reactions/{reactionId} {
+          allow create: if isAuth() && request.auth.uid == request.resource.data.userId && reactionId.matches('^' + request.auth.uid + '.*');
+          allow delete: if isAuth() && request.auth.uid == resource.data.userId;
+          allow read: if isAuth();
+        }
+      }
+    }
+
+    // --- Chats ---
+    match /chats/{chatId} {
+      // chat document must contain members array
+      allow read: if isAuth() && (request.auth.uid in resource.data.members);
+      allow create: if isAuth();
+      allow delete: if isServer() || tokenClaimEquals('admin', true);
+
+      match /messages/{messageId} {
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+        allow read: if isAuth() && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members);
+        allow update: if isAuth() && (
+          (request.auth.uid == resource.data.senderId && request.resource.data.senderId == resource.data.senderId)
+          || (request.resource.data.keys().hasOnly(['isRead','deliveredAt']) && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.members))
+        );
+        allow delete: if isServer() || tokenClaimEquals('admin', true);
+      }
+    }
+
+    // --- Groups / Broadcasts / Admin-only collections ---
+    match /groups/{groupId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if tokenClaimEquals('admin', true) || (isAuth() && request.auth.uid in resource.data.admins);
+
+      match /messages/{messageId} {
+        allow create: if isAuth() && request.resource.data.senderId == request.auth.uid && (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members);
+        allow read: if isAuth() && (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members);
+      }
+    }
+
+    match /broadcasts/{b} {
+      allow read: if isAuth();
+      allow create, update, delete: if tokenClaimEquals('admin', true) || isServer();
+    }
+
+    match /reports/{reportId} {
+      allow read: if isPrivilegedAdminAction();
+      allow create: if isAuth()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.resourceType in ['user', 'post', 'comment', 'story', 'message', 'community', 'group', 'event', 'profile', 'other']
+        && request.resource.data.category in ['spam', 'harassment', 'hate', 'sexual_content', 'violence', 'fraud', 'impersonation', 'illegal_content', 'account_compromised', 'other']
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isServer() || isPrivilegedAdminAction();
+      allow delete: if isServer();
+    }
+
+    match /admin_requests/{requestId} {
+      allow read: if isPrivilegedAdminAction();
+      allow create: if isPrivilegedAdminAction()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.type is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isServer() && request.resource.data.status in ['pending', 'approved', 'rejected', 'executed', 'failed'];
+      allow delete: if isServer();
+    }
+
+    match /admin_audit_logs/{logId} {
+      allow read: if isPrivilegedAdminAction();
+      allow create, update, delete: if isServer();
+    }
+
+    match /system_events/{eventId} {
+      allow read: if isPrivilegedAdminAction();
+      allow create, update, delete: if isServer();
+    }
+
+    match /system_metrics/{metricId} {
+      allow read: if isPrivilegedAdminAction();
+      allow create, update, delete: if isServer();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

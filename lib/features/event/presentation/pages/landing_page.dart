@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:labomba_app/features/event/presentation/widgets/sections/header_section.dart';
@@ -18,8 +17,9 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final ValueNotifier<Offset> _pointerPositionNotifier =
-      ValueNotifier<Offset>(Offset.zero);
+  final ValueNotifier<Offset> _pointerPositionNotifier = ValueNotifier<Offset>(
+    Offset.zero,
+  );
 
   @override
   void dispose() {
@@ -45,14 +45,7 @@ class _LandingPageState extends State<LandingPage> {
                 letterSpacing: isCompact ? 2 : 4,
               ),
             ),
-            actions: [
-              IconButton(
-                tooltip: 'Área administrativa',
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                onPressed: () => Navigator.pushNamed(context, '/admin/login'),
-              ),
-              const SizedBox(width: 8),
-            ],
+            actions: [const SizedBox(width: 8)],
           ),
           body: Listener(
             onPointerHover: (event) {
@@ -73,9 +66,7 @@ class _LandingPageState extends State<LandingPage> {
                 physics: const BouncingScrollPhysics(),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: contentMaxWidth,
-                    ),
+                    constraints: BoxConstraints(maxWidth: contentMaxWidth),
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
                         isCompact ? 16 : 20,
@@ -144,7 +135,7 @@ class _CarnivalBackgroundPainter extends CustomPainter {
       size.width / 2 + (pointerOffset.dx - size.width / 2) * 0.03,
       size.height / 2 + (pointerOffset.dy - size.height / 2) * 0.03,
     );
-    final radius = max(size.width, size.height) * 0.8;
+    final radius = (size.width > size.height ? size.width : size.height) * 0.8;
     final gradient = RadialGradient(
       colors: [Colors.deepPurple.shade900, Colors.black],
     ).createShader(Rect.fromCircle(center: center, radius: radius));

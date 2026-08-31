@@ -2,6 +2,7 @@ import 'dart:io' show SocketException;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:labomba_app/widgets/user_appbar_actions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
@@ -31,11 +32,16 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
     _apiService = ApiService(authService: authService);
   }
 
-  final _bannerTitleController = TextEditingController(text: 'LA BOMBA 2027 • O MAIOR CARNAVAL');
-  final _eventDateController = TextEditingController(text: '05 de Fevereiro de 2027');
+  final _bannerTitleController = TextEditingController(
+    text: 'LA BOMBA 2027 • O MAIOR CARNAVAL',
+  );
+  final _eventDateController = TextEditingController(
+    text: '05 de Fevereiro de 2027',
+  );
   final _locationController = TextEditingController(text: 'Peçanha - MG');
 
-  final List<Edition> _galleryItems = const EditionService().generateHistoricalEditions();
+  final List<Edition> _galleryItems =
+      const EditionService().generateHistoricalEditions();
 
   @override
   void dispose() {
@@ -64,7 +70,9 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text('Falha de rede durante upload. Verifique a conexão/API: $e'),
+          content: Text(
+            'Falha de rede durante upload. Verifique a conexão/API: $e',
+          ),
         ),
       );
     } catch (e) {
@@ -120,7 +128,9 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final content = _isLoading
-        ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+        ? const Center(
+            child: CircularProgressIndicator(color: AppTheme.primary),
+          )
         : SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Center(
@@ -131,22 +141,22 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                   children: [
                     _buildSectionHeader(
                       title: 'Banners & Identidade Visual',
-                      subtitle: 'Altere o banner principal e as mídias em destaque da Landing Page.',
+                      subtitle:
+                          'Altere o banner principal e as mídias em destaque da Landing Page.',
                       icon: Icons.image_outlined,
                     ),
                     const SizedBox(height: 16),
                     _buildBannerCard(),
                     const SizedBox(height: 32),
-
                     _buildSectionHeader(
                       title: 'Textos Dinâmicos & Informações do Evento',
-                      subtitle: 'Edite os títulos, datas e locais exibidos em tempo real no site.',
+                      subtitle:
+                          'Edite os títulos, datas e locais exibidos em tempo real no site.',
                       icon: Icons.edit_note_outlined,
                     ),
                     const SizedBox(height: 16),
                     _buildTextEditorCard(),
                     const SizedBox(height: 32),
-
                     _buildSectionHeader(
                       title: 'Galeria de Fotos (Edições Anteriores)',
                       subtitle: 'Gerencie as fotos dos eventos anteriores.',
@@ -165,12 +175,19 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestão de Conteúdo (CMS)')),
+      appBar: AppBar(
+        title: const Text('Gestão de Conteúdo (CMS)'),
+        actions: [UserAppBarActions()],
+      ),
       body: content,
     );
   }
 
-  Widget _buildSectionHeader({required String title, required String subtitle, required IconData icon}) {
+  Widget _buildSectionHeader({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
     return Row(
       children: [
         Container(
@@ -186,8 +203,18 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.white60)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 13, color: Colors.white60),
+              ),
             ],
           ),
         ),
@@ -196,60 +223,73 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
   }
 
   Widget _buildBannerCard() {
-      return Card(
-        color: Colors.white.withValues(alpha: 0.03),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Banner Principal', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-              const SizedBox(height: 8),
-              const Text('Altere o banner exibido na landing page. Dimensão recomendada: 1920x1080 (PNG/WebP, máx 2MB)',
-                  style: TextStyle(fontSize: 13, color: Colors.white60)),
-              const SizedBox(height: 16),
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                    width: MediaQuery.of(context).size.width > 600 ? 520 : 320,
-                    height: MediaQuery.of(context).size.width > 600 ? 180 : 120,
-                    color: Colors.black38,
-                    child: ('assets/images/labomba_banner.png'.startsWith('http')
-                        ? CachedNetworkImage(
-                            imageUrl: 'assets/images/labomba_banner.png',
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Center(
-                              child: CircularProgressIndicator(color: AppTheme.primary),
+    return Card(
+      color: Colors.white.withValues(alpha: 0.03),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Banner Principal',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Altere o banner exibido na landing page. Dimensão recomendada: 1920x1080 (PNG/WebP, máx 2MB)',
+              style: TextStyle(fontSize: 13, color: Colors.white60),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: MediaQuery.of(context).size.width > 600 ? 520 : 320,
+                  height: MediaQuery.of(context).size.width > 600 ? 180 : 120,
+                  color: Colors.black38,
+                  child: ('assets/images/labomba_banner.png'.startsWith('http')
+                      ? CachedNetworkImage(
+                          imageUrl: 'assets/images/labomba_banner.png',
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Center(
+                            child: CircularProgressIndicator(
+                              color: AppTheme.primary,
                             ),
-                            errorWidget: (context, url, error) => const Center(
-                              child: Icon(Icons.broken_image, color: Colors.white30),
+                          ),
+                          errorWidget: (context, url, error) => const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              color: Colors.white30,
                             ),
-                          )
-                        : Image.asset(
-                            'assets/images/labomba_banner.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.broken_image, color: Colors.white30),
+                          ),
+                        )
+                      : Image.asset(
+                          'assets/images/labomba_banner.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              color: Colors.white30,
                             ),
-                          )),
-                  ),
+                          ),
+                        )),
                 ),
               ),
-              const SizedBox(height: 12),
-              Center(
-                child: FilledButton.icon(
-                  onPressed: () => _uploadMedia('banner_principal'),
-                  icon: const Icon(Icons.upload_file_rounded),
-                  label: const Text('Substituir Banner'),
-                ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: FilledButton.icon(
+                onPressed: () => _uploadMedia('banner_principal'),
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Substituir Banner'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
   Widget _buildTextEditorCard() {
     return Card(
@@ -340,7 +380,9 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.22),
@@ -361,9 +403,12 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                                     imageUrl: edition.imageUrl,
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => Center(
-                                      child: CircularProgressIndicator(color: AppTheme.primary),
+                                      child: CircularProgressIndicator(
+                                        color: AppTheme.primary,
+                                      ),
                                     ),
-                                    errorWidget: (context, url, error) => const Center(
+                                    errorWidget: (context, url, error) =>
+                                        const Center(
                                       child: Icon(
                                         Icons.photo_library_outlined,
                                         color: Colors.white30,
@@ -382,7 +427,6 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                                       ),
                                     ),
                                   )),
-
                             Positioned.fill(
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
@@ -428,7 +472,10 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -440,10 +487,15 @@ class _ContentDashboardPageState extends State<ContentDashboardPage> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.upload_file_rounded, size: 18),
+                              icon: const Icon(
+                                Icons.upload_file_rounded,
+                                size: 18,
+                              ),
                               color: Colors.white,
-                              tooltip: 'Alterar imagem da edição ${edition.year}',
-                              onPressed: () => _uploadMedia('galeria_${edition.year}'),
+                              tooltip:
+                                  'Alterar imagem da edição ${edition.year}',
+                              onPressed: () =>
+                                  _uploadMedia('galeria_${edition.year}'),
                             ),
                           ],
                         ),

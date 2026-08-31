@@ -23,7 +23,8 @@ class GoogleAuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  GoogleAuthProvider({required AuthService authService}) : _authService = authService;
+  GoogleAuthProvider({required AuthService authService})
+      : _authService = authService;
 
   Future<GoogleAuthData?> signInWithGoogle() async {
     _setLoading(true);
@@ -45,6 +46,31 @@ class GoogleAuthProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Refresh the current Firebase user information and notify listeners so UI updates immediately
+  Future<void> refresh() async {
+    _setLoading(true);
+    try {
+      await _authService.reloadCurrentUser();
+    } catch (e) {
+      debugPrint('GoogleAuthProvider.refresh error: $e');
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
+
+  /// A convenience getter that maps current Firebase user to GoogleAuthData (or null)
+  GoogleAuthData? get currentUserData {
+    final u = _authService.currentUser;
+    if (u == null) return null;
+    return GoogleAuthData(
+      uid: u.uid,
+      displayName: u.displayName,
+      email: u.email,
+      photoUrl: u.photoURL,
+    );
   }
 
   Future<void> signOut() async {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../providers/admin_auth_provider.dart';
-import '../../../../providers/google_auth_provider.dart';
 import 'package:labomba_app/core/theme/app_theme.dart';
+import 'package:labomba_app/providers/admin_auth_provider.dart';
+import 'package:labomba_app/providers/google_auth_provider.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -194,7 +194,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           )
                         : const Icon(Icons.login),
                     label: Text(
-                        _isLoading ? 'Autenticando...' : 'ACESSAR SISTEMA'),
+                      _isLoading ? 'Autenticando...' : 'ACESSAR SISTEMA',
+                    ),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -205,7 +206,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       Expanded(child: Divider(color: Colors.white24)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OU', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          'OU',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       Expanded(child: Divider(color: Colors.white24)),
                     ],

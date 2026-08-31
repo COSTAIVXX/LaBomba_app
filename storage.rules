@@ -1,0 +1,115 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isOwner() {
+      return isAuth() && request.auth.token != null && (
+        request.auth.token.owner == true
+        || request.auth.token.role == 'owner'
+      );
+    }
+
+    function isAdmin() {
+      return isOwner() || (isAuth() && request.auth.token != null && (
+        request.auth.token.admin == true
+        || request.auth.token.role == 'admin'
+      ));
+    }
+
+    function isValidImageContentType() {
+      return request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'];
+    }
+
+    function isValidVideoContentType() {
+      return request.resource.contentType in ['video/mp4', 'video/quicktime'];
+    }
+
+    function isAllowedMediaContentType() {
+      return isValidImageContentType() || isValidVideoContentType();
+    }
+
+    function isOwnerBoundUpload() {
+      return isAuth() &&
+        request.resource.metadata.ownerUid is string &&
+        request.resource.metadata.ownerUid == request.auth.uid;
+    }
+
+    function isValidUserOwnedFile(userId, maxBytes) {
+      return isOwner(userId) &&
+        isOwnerBoundUpload() &&
+        request.resource.size <= maxBytes &&
+        isAllowedMediaContentType();
+    }
+
+    function isValidPostUpload(postId, maxBytes) {
+      return isAuth() &&
+        isOwnerBoundUpload() &&
+        request.resource.size <= maxBytes &&
+        isAllowedMediaContentType() &&
+        exists(/databases/$(default)/documents/posts/$(postId)) &&
+        get(/databases/$(default)/documents/posts/$(postId)).data.authorId == request.auth.uid;
+    }
+
+    function isValidChatUpload(chatId, maxBytes) {
+      return isAuth() &&
+        isOwnerBoundUpload() &&
+        request.resource.size <= maxBytes &&
+        isAllowedMediaContentType() &&
+        exists(/databases/$(default)/documents/chats/$(chatId)) &&
+        request.auth.uid in get(/databases/$(default)/documents/chats/$(chatId)).data.participants;
+    }
+
+    match /users/{userId}/avatar.{jpg,jpeg,png,webp} {
+      allow read: if isAuth();
+      allow write: if isValidUserOwnedFile(userId, 2 * 1024 * 1024);
+      allow delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/stories/{storyId}/{fileName} {
+      allow read: if isAuth();
+      allow write: if isValidUserOwnedFile(userId, 25 * 1024 * 1024);
+      allow delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/{fileName} {
+      allow read: if isAuth();
+      allow write: if isValidUserOwnedFile(userId, 25 * 1024 * 1024);
+      allow delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/memories/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isValidUserOwnedFile(userId, 25 * 1024 * 1024);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    match /posts/{postId}/{fileName} {
+      allow read: if isAuth();
+      allow write: if isValidPostUpload(postId, 25 * 1024 * 1024);
+      allow delete: if isAuth() && resource.metadata.ownerUid == request.auth.uid;
+    }
+
+    match /chats/{chatId}/{fileName} {
+      allow read: if isAuth();
+      allow write: if isValidChatUpload(chatId, 25 * 1024 * 1024);
+      allow delete: if isAuth() && resource.metadata.ownerUid == request.auth.uid;
+    }
+
+    match /site_assets/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size <= 10 * 1024 * 1024 && isAllowedMediaContentType();
+    }
+
+    match /{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+  }
+}
