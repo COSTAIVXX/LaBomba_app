@@ -1,164 +1,134 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class RulesSection extends StatelessWidget {
   const RulesSection({super.key});
 
-  void _showRulesModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) => const _RulesModal(),
-    );
-  }
+  static const _rules = <String>[
+    'Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!',
+    'Proibido Compartilhar Bebida: Passível de expulsão. Servidores do bloco têm autoridade para cortar a pulseira em caso de descumprimento.',
+    'Proibido Fumar: Dentro da área de concentração.',
+    'Tolerância Zero para Brigas: Passível de expulsão.',
+    'Respeito Obrigatório: Aos garçons, seguranças e servidores do bloco.',
+    'Entrada na concentração apenas com abadá, pulseira e caneca oficiais.',
+    'Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá).',
+    'Banheiro do Bloco: Exclusivo para mulheres.',
+    'Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: OutlinedButton.icon(
-        onPressed: () => _showRulesModal(context),
-        icon: const Icon(Icons.info_outline_rounded, color: Colors.white70),
-        label: const Text(
-          'TERMOS E REGRAS DO BLOCO',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
+      decoration: BoxDecoration(
+        color: const Color(0xFF120B25),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8D42FF).withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
-        ),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          backgroundColor: Colors.white.withValues(alpha: 0.05),
-        ),
+        ],
       ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const _RulesHeading(),
+                const SizedBox(height: 24),
+                ..._rules.map((rule) => _RuleItem(text: rule)),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  width: 190,
+                  child: _RulesHeading(),
+                ),
+                const SizedBox(width: 26),
+                Expanded(
+                  child: Wrap(
+                    spacing: 22,
+                    runSpacing: 18,
+                    children: [
+                      for (var index = 0; index < _rules.length; index++)
+                        SizedBox(
+                          width: (MediaQuery.sizeOf(context).width < 900
+                              ? 280
+                              : 210),
+                          child: _RuleItem(text: _rules[index]),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
 
-class _RulesModal extends StatelessWidget {
-  const _RulesModal();
+class _RulesHeading extends StatelessWidget {
+  const _RulesHeading();
 
   @override
   Widget build(BuildContext context) {
-    const Color summerOrange = Color(0xFFFF8C00);
-
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.all(24),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: const Color(0xFF130A2A).withValues(alpha: 0.95),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: summerOrange.withValues(alpha: 0.5), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 40,
-                offset: const Offset(0, 20),
-              )
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: summerOrange, size: 28),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'REGRAS OFICIAIS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white70),
-                  ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Divider(color: Colors.white24),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      _RuleItem(text: 'Uso exclusivo e intransferível de abadás, pulseiras e canecas oficiais!'),
-                      _RuleItem(text: 'Proibido Compartilhar Bebida: Passível de expulsão. Servidores do bloco têm autoridade para cortar a pulseira em caso de descumprimento.'),
-                      _RuleItem(text: 'Proibido Fumar: Dentro da área de concentração.'),
-                      _RuleItem(text: 'Tolerância Zero para Brigas: Passível de expulsão.'),
-                      _RuleItem(text: 'Respeito Obrigatório: Aos garçons, seguranças e servidores do bloco.'),
-                      _RuleItem(text: 'Entrada na concentração apenas com abadá, pulseira e caneca oficiais. Proibido uso de materiais de outros modelos ou marcas.'),
-                      _RuleItem(text: 'Responsabilidade do Material: A organização não se responsabiliza pela troca de materiais perdidos (caneca, pulseira ou abadá).'),
-                      _RuleItem(text: 'Banheiro do Bloco: Exclusivo para mulheres.'),
-                      _RuleItem(text: 'Gelo Saborizado Inteligente: Monitoramento digital e visual por garçons e organizadores. O gelo permanece inteiro por 3 a 4 rodadas, sem necessidade de reposição neste intervalo.'),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                style: FilledButton.styleFrom(
-                  backgroundColor: summerOrange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('EU ENTENDI', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-              ),
-            ],
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(
+          Icons.verified_user_outlined,
+          color: Color(0xFFF8C15A),
+          size: 38,
+        ),
+        const SizedBox(width: 12),
+        const Expanded(
+          child: Text(
+            'REGRAS\nDO BLOCO',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: 1.5,
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 class _RuleItem extends StatelessWidget {
-  final String text;
   const _RuleItem({required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(top: 2, right: 16),
-            child: Icon(Icons.priority_high_rounded, color: Color(0xFFFF8C00), size: 20),
+            padding: EdgeInsets.only(top: 2, right: 9),
+            child: Icon(
+              Icons.check_circle,
+              color: Color(0xFF8D42FF),
+              size: 16,
+            ),
           ),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
                 color: Colors.white70,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-                height: 1.5,
+                fontSize: 12,
+                height: 1.4,
               ),
             ),
           ),
